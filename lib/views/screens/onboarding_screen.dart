@@ -70,7 +70,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _navigateToAuth() {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
 
   Widget _buildDot(int index) {

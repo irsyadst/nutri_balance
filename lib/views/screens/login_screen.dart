@@ -46,14 +46,10 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const QuestionnaireScreen()));
       } else {
         // Jika profil ada, navigasi ke halaman utama
-
-        // ===== PERBAIKAN DI SINI =====
-        // Sekarang kita meneruskan data pengguna ke MainAppScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MainAppScreen(user: _controller.user!)),
         );
-        // ===============================
       }
     }
   }
@@ -123,4 +119,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

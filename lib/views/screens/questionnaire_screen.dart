@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../controllers/profile_controller.dart';
-import '../../models/user_model.dart';
 import '../widgets/question_widgets.dart';
 import 'main_app_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Untuk mengambil token
+import '../../utils/nutritional_calculator.dart';
 
-// Halaman utama untuk alur kuesioner
 class QuestionnaireScreen extends StatefulWidget {
   const QuestionnaireScreen({super.key});
   @override
@@ -16,196 +16,364 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
   final PageController _pageController = PageController();
   final ProfileController _profileController = ProfileController();
   int _currentStep = 0;
-  final int _totalSteps = 16;
-  final Map<int, dynamic> _answers = {};
+  final int _totalSteps = 9;
+  final Map<int, dynamic> _answers = {
+    0: 'Pria',
+    1: 24,
+    2: 165,
+    3: 65,
+    4: 55,
+    5: 'Cukup Aktif',
+    6: 'Penurunan Berat Badan',
+    7: [],
+    8: [],
+  };
 
-  void _nextPage() async {
-    // Validasi sederhana sebelum lanjut
-    if (_answers[_currentStep] == null ||
-        (_answers[_currentStep] is String && (_answers[_currentStep] as String).isEmpty) ||
-        (_answers[_currentStep] is List && (_answers[_currentStep] as List).isEmpty) ) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Harap pilih jawaban sebelum melanjutkan.'),
-        backgroundColor: Colors.red,
-      ));
+  late final List<Map<String, dynamic>> _questions;
+
+  @override
+  void initState() {
+    super.initState();
+    _questions = [
+      {'title': 'Jenis Kelamin Anda?', 'widget': SimpleGenderSelection(onChanged: (val) => _updateAnswer(0, val))},
+      {'title': 'Berapa usiamu?', 'widget': _buildNumberPicker(1, "Masukkan usia Anda", 15, 80)},
+      {'title': 'Berapa tinggi badanmu?', 'widget': _buildNumberPicker(2, "Masukkan tinggi badan Anda", 140, 220)},
+      {'title': 'Berapa Berat Badan Anda Saat Ini?', 'widget': _buildNumberPicker(3, "Masukkan berat badan Anda", 40, 150)},
+      {'title': 'Berapa berat target Anda?', 'widget': _buildNumberPicker(4, "Masukkan target berat badan Anda", 40, 150)},
+      {
+        'title': 'Seberapa aktif Anda?',
+        'widget': ChoiceOptionsWithDescription(
+          onChanged: (val) => _updateAnswer(5, val),
+          options: const [
+            {'title': 'Menetap', 'description': 'Sedikit atau tidak ada olahraga'},
+            {'title': 'Ringan Aktif', 'description': 'Olahraga ringan atau olah raga 1-3 hari dalam seminggu'},
+            {'title': 'Cukup Aktif', 'description': 'Olahraga sedang atau olah raga 3-5 hari seminggu'},
+            {'title': 'Sangat Aktif', 'description': 'Olahraga berat atau olahraga 6-7 hari seminggu'},
+            {'title': 'Sangat Aktif Sekali', 'description': 'Latihan atau olahraga yang sangat keras dan pekerjaan fisik'},
+          ],
+        ),
+      },
+      {
+        'title': 'Apa tujuan diet Anda?',
+        'widget': ChoiceOptionsWithDescription(
+          onChanged: (val) => _updateAnswer(6, val),
+          options: const [
+            {'title': 'Penurunan Berat Badan', 'description': 'Turunkan berat badan secara bertahap dan berkelanjutan.'},
+            {'title': 'Pertahankan Berat Badan', 'description': 'Pertahankan berat badan Anda saat ini dengan diet seimbang.'},
+            {'title': 'Pertambahan Berat Badan', 'description': 'Tambah berat badan secara sehat dengan surplus kalori.'},
+          ],
+        ),
+      },
+      {
+        'title': 'Preferensi Makanan Anda',
+        'widget': ListView(
+          physics: const BouncingScrollPhysics(),
+          children: [
+            Text('Beritahu kami tentang pantangan makanan dan alergi Anda.', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
+            const SizedBox(height: 30),
+            MultiSelectCheckbox(
+              title: 'Pembatasan Diet',
+              options: const ['Vegetarian', 'Vegan', 'Halal'],
+              onChanged: (selected) => _updateAnswer(7, selected),
+            ),
+            const SizedBox(height: 20),
+            MultiSelectCheckbox(
+              title: 'Alergi',
+              options: const ['Perekat', 'Produk susu', 'Gula', 'Kedelai', 'Kerang'],
+              onChanged: (selected) => _updateAnswer(8, selected),
+            ),
+          ],
+        ),
+      },
+    ];
+  }
+
+  void _onActionPressed() {
+    dynamic currentAnswer = _answers[_currentStep];
+    bool isAnswerMissing = false;
+
+    if (currentAnswer == null) {
+      isAnswerMissing = true;
+    } else if (currentAnswer is String && currentAnswer.isEmpty) {
+      isAnswerMissing = true;
+    }
+
+    if (_currentStep == 7 || _currentStep == 8) {
+      isAnswerMissing = false;
+    }
+
+    if (isAnswerMissing) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap lengkapi data sebelum melanjutkan.')));
       return;
     }
 
     if (_currentStep < _totalSteps - 1) {
-      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+      _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     } else {
-      // Langkah terakhir: Simpan profil
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      _saveProfile();
+    }
+  }
 
-      if (token == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Sesi tidak valid. Silakan login kembali.'),
-            backgroundColor: Colors.red,
-          ));
-        }
-        return;
-      }
+  void _saveProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sesi tidak valid.')));
+      return;
+    }
 
-      final updatedUser = await _profileController.saveProfileFromQuestionnaire(_answers, token);
+    final Map<String, dynamic> profileData = {
+      'gender': _answers[0],
+      'age': _answers[1],
+      'height': _answers[2],
+      'currentWeight': _answers[3],
+      'goalWeight': _answers[4],
+      'activityLevel': _answers[5],
+      'goals': [_answers[6]],
+      'dietaryRestrictions': _answers[7] ?? [],
+      'allergies': _answers[8] ?? [],
+    };
 
-      if (updatedUser != null && mounted) {
-        // Jika berhasil, navigasi ke halaman utama
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => MainAppScreen(user: updatedUser)),
-              (Route<dynamic> route) => false,
-        );
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Gagal menyimpan profil. Silakan coba lagi.'),
-          backgroundColor: Colors.red,
-        ));
-      }
+    final updatedUser = await _profileController.saveProfileFromQuestionnaire(profileData, token);
+
+    if (updatedUser != null && mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => MainAppScreen(user: updatedUser)),
+            (Route<dynamic> route) => false,
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menyimpan profil.')));
     }
   }
 
   void _previousPage() {
     if (_currentStep > 0) {
-      _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+      _pageController.previousPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     } else {
-      Navigator.pop(context); // Kembali ke halaman login/signup
+      Navigator.of(context).pop();
     }
   }
 
   void _updateAnswer(int step, dynamic answer) {
-    // Tidak perlu setState di sini karena tidak ada UI yang bergantung pada _answers secara langsung
-    _answers[step] = answer;
-    debugPrint("Step $step answered: $answer");
+    setState(() => _answers[step] = answer);
+    debugPrint("Step $step answered: ${_answers[step]}");
+  }
+
+  void _showPicker(int step, String title, int min, int max) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SizedBox(
+          height: 250,
+          child: CupertinoPicker(
+            magnification: 1.2,
+            itemExtent: 32.0,
+            scrollController: FixedExtentScrollController(initialItem: (_answers[step] ?? min) - min),
+            onSelectedItemChanged: (int selectedItem) {
+              _updateAnswer(step, min + selectedItem);
+            },
+            children: List<Widget>.generate(max - min + 1, (int index) {
+              return Center(child: Text('${min + index}'));
+            }),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNumberPicker(int step, String hint, int min, int max) {
+    return DropdownNumberPicker(
+      hintText: hint,
+      value: _answers[step] ?? 0,
+      onTap: () => _showPicker(step, hint, min, max),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    bool isLastStep = _currentStep == _totalSteps - 1;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black54),
-          onPressed: _previousPage,
-        ),
-        title: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: LinearProgressIndicator(
-            value: (_currentStep + 1) / _totalSteps,
-            backgroundColor: Colors.grey[200],
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF82B0F2)),
-            minHeight: 6,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
+        backgroundColor: isLastStep ? Colors.grey[50] : Colors.white,
+        leading: _currentStep == 0 ? null : IconButton(icon: const Icon(Icons.arrow_back, size: 24, color: Colors.black54), onPressed: _previousPage),
+        title: isLastStep ? const Text("Tinjauan", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)) : null,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 20.0),
-            child: Center(
-              child: Text(
-                '${_currentStep + 1}/$_totalSteps',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
+          if (!isLastStep)
+            TextButton(
+              onPressed: () {}, // Skip
+              child: const Text('Lewati', style: TextStyle(color: Color(0xFF007BFF), fontSize: 16)),
+            ),
+          const SizedBox(width: 16),
+        ],
+        centerTitle: true,
+      ),
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          if (!isLastStep)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              child: LinearProgressIndicator(
+                value: (_currentStep + 1) / _totalSteps,
+                backgroundColor: Colors.grey[200],
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF007BFF)),
+                minHeight: 6,
+                borderRadius: BorderRadius.circular(3),
               ),
+            ),
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              onPageChanged: (page) => setState(() => _currentStep = page),
+              itemCount: _totalSteps,
+              itemBuilder: (context, index) {
+                if (index < _questions.length) {
+                  final question = _questions[index];
+                  // === PERBAIKAN DI SINI ===
+                  // Langsung gunakan widget yang sudah dibuat di initState
+                  return QuestionPageContent(
+                    title: question['title'],
+                    onContinue: _onActionPressed,
+                    onBack: _previousPage,
+                    child: question['widget'],
+                  );
+                } else {
+                  return SummaryPage(answers: _answers, onConfirm: _saveProfile);
+                }
+              },
             ),
           ),
         ],
       ),
-      body: AnimatedBuilder(
-        animation: _profileController,
-        builder: (context, child) {
-          return _profileController.isLoading
-              ? const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+    );
+  }
+}
+
+// ... Sisa kode (SummaryPage, SummaryTile) tetap sama ...
+
+class SummaryPage extends StatelessWidget {
+  final Map<int, dynamic> answers;
+  final VoidCallback onConfirm;
+  const SummaryPage({super.key, required this.answers, required this.onConfirm});
+
+  @override
+  Widget build(BuildContext context) {
+    final recommendations = NutritionalCalculator.calculateNeeds(
+      gender: answers[0] as String? ?? 'Pria',
+      age: answers[1] as int? ?? 24,
+      height: answers[2] as int? ?? 165,
+      currentWeight: answers[3] as int? ?? 65,
+      activityLevel: answers[5] as String? ?? 'Cukup Aktif',
+      goal: answers[6] as String? ?? 'Penurunan Berat Badan',
+    );
+
+    final recommendationTiles = {
+      "Kalori": "${recommendations['calories']} kkal",
+      "Protein": "${recommendations['proteins']} g",
+      "Karbohidrat": "${recommendations['carbs']} g",
+      "Lemak": "${recommendations['fats']} g",
+      "IMT": "${recommendations['bmi']} (${recommendations['bmiCategory']})",
+    };
+
+    final dietaryRestrictions = (answers[7] as List<dynamic>?)?.join(', ');
+    final allergies = (answers[8] as List<dynamic>?)?.join(', ');
+
+    return Container(
+      color: Colors.grey[50],
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Ringkasan Profil", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            _buildInfoCard(
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 20),
-                Text("Menyimpan profil Anda...", style: TextStyle(fontSize: 16)),
+                SummaryTile(label: "Jenis Kelamin", value: "${answers[0] ?? 'N/A'}"),
+                SummaryTile(label: "Umur", value: "${answers[1] ?? 'N/A'}"),
+                SummaryTile(label: "Tinggi", value: "${answers[2] ?? 'N/A'} cm"),
+                SummaryTile(label: "Berat", value: "${answers[3] ?? 'N/A'} kg"),
+                SummaryTile(label: "Target Berat", value: "${answers[4] ?? 'N/A'} kg"),
+                SummaryTile(label: "Aktivitas", value: "${answers[5] ?? 'N/A'}"),
+                SummaryTile(label: "Tujuan Diet", value: "${answers[6] ?? 'N/A'}"),
+                SummaryTile(label: "Pembatasan Diet", value: (dietaryRestrictions == null || dietaryRestrictions.isEmpty) ? 'Tidak ada' : dietaryRestrictions),
+                SummaryTile(label: "Alergi", value: (allergies == null || allergies.isEmpty) ? 'Tidak ada' : allergies, hasDivider: false),
               ],
             ),
-          )
-              : child!;
-        },
-        child: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          onPageChanged: (page) => setState(() => _currentStep = page),
-          children: [
-            // Step 1: Jenis Kelamin
-            QuestionPageContent(title: 'Apa jenis kelaminmu??', description: 'Untuk mempersonalisasi pengalaman puasa Anda...', onContinue: _nextPage,
-              child: GenderSelection(onChanged: (value) => _updateAnswer(0, value)),
+            const SizedBox(height: 24),
+            const Text("Rekomendasi Harian", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            _buildInfoCard(
+              children: recommendationTiles.entries.map((e) =>
+                  SummaryTile(label: e.key, value: e.value, hasDivider: e.key != recommendationTiles.keys.last)
+              ).toList(),
             ),
-            // Step 2: Usia
-            QuestionPageContent(title: 'Berapa usiamu?', description: 'Usia Anda membantu kami menyesuaikan rekomendasi...', onContinue: _nextPage,
-              child: WheelNumberPicker(minValue: 15, maxValue: 80, initialValue: 25, unit: 'tahun', onChanged: (value) => _updateAnswer(1, value)),
-            ),
-            // Step 3: Tinggi Badan
-            QuestionPageContent(title: 'Berapa tinggi kamu?', description: 'Tinggi badan Anda membantu kami menghitung BMI Anda.', onContinue: _nextPage,
-              child: WheelNumberPicker(minValue: 140, maxValue: 220, initialValue: 170, unit: 'cm', onChanged: (value) => _updateAnswer(2, value)),
-            ),
-            // Step 4: Berat Badan Saat Ini
-            QuestionPageContent(title: 'Berapa berat badanmu sekarang?', description: 'Ini memungkinkan kami menetapkan tujuan yang realistis.', onContinue: _nextPage,
-              child: WheelNumberPicker(minValue: 40, maxValue: 150, initialValue: 65, unit: 'kg', onChanged: (value) => _updateAnswer(3, value)),
-            ),
-            // Step 5: Berat Badan Ideal
-            QuestionPageContent(title: 'Menetapkan berat ideal Anda?', description: 'Berapa berat badan yang ingin Anda capai?', onContinue: _nextPage,
-              child: WheelNumberPicker(minValue: 40, maxValue: 150, initialValue: 60, unit: 'kg', onChanged: (value) => _updateAnswer(4, value)),
-            ),
-            // Step 6: Waktu Bangun
-            QuestionPageContent(title: 'Jam berapa kamu biasanya memulai harimu?', description: 'Ini membantu kami menjadwalkan waktu puasa Anda.', onContinue: _nextPage,
-              child: WheelTimePicker(onChanged: (value) => _updateAnswer(5, value)),
-            ),
-            // Step 7: Waktu Tidur
-            QuestionPageContent(title: 'Jam berapa kamu biasanya tidur?', description: 'Ini membantu merencanakan jadwal puasa Anda.', onContinue: _nextPage,
-              child: WheelTimePicker(onChanged: (value) => _updateAnswer(6, value)),
-            ),
-            // Step 8: Waktu Makan Pertama
-            QuestionPageContent(title: 'Kapan Anda biasanya makan pertama kali?', description: 'Informasi ini penting untuk merancang jendela makan.', onContinue: _nextPage,
-              child: WheelTimePicker(onChanged: (value) => _updateAnswer(7, value)),
-            ),
-            // Step 9: Waktu Makan Terakhir
-            QuestionPageContent(title: 'Kapan Anda biasanya makan terakhir kali?', description: 'Ini membantu kami menentukan durasi puasa Anda.', onContinue: _nextPage,
-              child: WheelTimePicker(onChanged: (value) => _updateAnswer(8, value)),
-            ),
-            // Step 10: Asupan Makanan Harian
-            QuestionPageContent(title: 'Bagaimana asupan makanan harian Anda?', description: 'Memahami kebiasaan makan Anda membantu kami.', onContinue: _nextPage,
-              child: ChoiceOptions(options: const ['1', '2', '3', '4', '5+'], onChanged: (value) => _updateAnswer(9, value.isNotEmpty ? value.first : '')),
-            ),
-            // Step 11: Iklim
-            QuestionPageContent(title: 'Bagaimana iklim di daerah Anda?', description: 'Ini dapat mempengaruhi hidrasi Anda.', onContinue: _nextPage,
-              child: ChoiceOptions(options: const ['Panas', 'Berawan', 'Dingin'], onChanged: (value) => _updateAnswer(10, value.isNotEmpty ? value.first : '')),
-            ),
-            // Step 12: Asupan Air Mineral
-            QuestionPageContent(title: 'Berapa banyak air mineral yang Anda minum?', description: 'Tetap terhidrasi penting untuk puasa yang sukses.', onContinue: _nextPage,
-              child: ChoiceOptions(options: const ['Aku kebanyakan minum minuman lain', 'Sekitar 2 gelas', '2 sampai 6 gelas', 'Lebih dari 6 gelas'], onChanged: (value) => _updateAnswer(11, value.isNotEmpty ? value.first : '')),
-            ),
-            // Step 13: Tingkat Aktivitas
-            QuestionPageContent(title: 'Bagaimana tingkat aktivitas Anda?', description: 'Ini memengaruhi kebutuhan kalori Anda.', onContinue: _nextPage,
-              child: ChoiceOptionsWithDescription(options: const [
-                {'title': 'Menetap', 'description': 'Aktivitas fisik terbatas, kebanyakan duduk.'},
-                {'title': 'Aktivitas Ringan', 'description': 'Beberapa gerakan sepanjang hari, seperti berjalan ringan.'},
-                {'title': 'Aktivitas Sedang', 'description': 'Olahraga teratur atau aktivitas fisik, seperti jogging.'},
-                {'title': 'Sangat Aktif', 'description': 'Aktivitas fisik atau latihan yang intens setiap hari.'},
-              ], onChanged: (value) => _updateAnswer(12, value)),
-            ),
-            // Step 14: Tujuan
-            QuestionPageContent(title: 'Apa yang ingin Anda capai?', description: 'Pilih semua yang berlaku.', onContinue: _nextPage,
-              child: ChoiceOptions(options: const ['Penurunan berat badan', 'Meningkatkan kesehatan', 'Peningkatan tingkat energi', 'Kesehatan metabolisme', 'Meningkatkan fokus mental'], allowMultiple: true, onChanged: (value) => _updateAnswer(13, value)),
-            ),
-            // Step 15: Pengalaman Puasa
-            QuestionPageContent(title: 'Apakah Anda pernah berpuasa?', description: 'Ini membantu kami menyesuaikan rencana Anda.', onContinue: _nextPage,
-              child: ChoiceOptions(options: const ['Tidak, ini pertama saya', 'Ya, Kadang-Kadang', 'Ya, Secara Teratur'], onChanged: (value) => _updateAnswer(14, value.isNotEmpty ? value.first : '')),
-            ),
-            // Step 16: Masalah Kesehatan
-            QuestionPageContent(title: 'Masalah kesehatan apa yang perlu kami ketahui?', description: 'Ini penting untuk keselamatan Anda.', onContinue: _nextPage,
-              child: ChoiceOptions(options: const ['Aku tidak punya masalah sehat', 'Diabetes', 'Tekanan darah tinggi', 'Kolesterol tinggi', 'Gangguan tiroid'], allowMultiple: true, onChanged: (value) => _updateAnswer(15, value)),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onConfirm,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  backgroundColor: const Color(0xFF007BFF),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+                ),
+                child: const Text('Mulai Pelacakan', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildInfoCard({required List<Widget> children}){
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15)],
+      ),
+      child: Column(children: children),
+    );
+  }
 }
 
+class SummaryTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool hasDivider;
+  const SummaryTile({super.key, required this.label, required this.value, this.hasDivider = true});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 16)),
+                Flexible(
+                  child: Text(
+                      value,
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (hasDivider) Divider(height: 1, color: Colors.grey[200]),
+        ],
+      ),
+    );
+  }
+}

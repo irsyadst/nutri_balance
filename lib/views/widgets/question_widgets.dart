@@ -1,302 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
-// Template umum untuk setiap halaman pertanyaan
+// Template Halaman Pertanyaan dengan Tata Letak yang Diperbaiki
 class QuestionPageContent extends StatelessWidget {
   final String title;
-  final String description;
   final Widget child;
   final VoidCallback onContinue;
+  final VoidCallback onBack;
 
-  const QuestionPageContent({
+  QuestionPageContent({
     super.key,
     required this.title,
-    required this.description,
     required this.child,
     required this.onContinue,
+    required this.onBack,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 20),
-          Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1D1617)), textAlign: TextAlign.center),
-          const SizedBox(height: 15),
-          Text(description, style: TextStyle(fontSize: 14, color: Colors.grey[600]), textAlign: TextAlign.center),
-          const SizedBox(height: 40),
-          Expanded(child: Center(child: child)), // Memastikan konten berada di tengah
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onContinue,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                backgroundColor: const Color(0xFF82B0F2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          // 1. JUDUL
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0, bottom: 40.0),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1D1617),
               ),
-              child: const Text('Continue', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
-}
 
-
-// Widget untuk Pilihan Jenis Kelamin
-class GenderSelection extends StatefulWidget {
-  final ValueChanged<String> onChanged;
-  const GenderSelection({super.key, required this.onChanged});
-
-  @override
-  State<GenderSelection> createState() => _GenderSelectionState();
-}
-
-class _GenderSelectionState extends State<GenderSelection> {
-  String? _selectedGender;
-
-  @override
-  void initState() {
-    super.initState();
-    // Menunda pemanggilan agar tidak error saat build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onChanged(''); // Memberi tahu parent nilai awal adalah kosong
-    });
-  }
-
-  void _selectGender(String gender) {
-    setState(() => _selectedGender = gender);
-    widget.onChanged(gender);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GenderOption(
-              icon: Icons.male, label: 'Male',
-              isSelected: _selectedGender == 'Male',
-              onTap: () => _selectGender('Male'),
-            ),
-            const SizedBox(width: 20),
-            GenderOption(
-              icon: Icons.female, label: 'Female',
-              isSelected: _selectedGender == 'Female',
-              onTap: () => _selectGender('Female'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        TextButton(
-          onPressed: () => _selectGender('Prefer not to say'),
-          child: Text(
-            'Prefer not to say',
-            style: TextStyle(
-              color: _selectedGender == 'Prefer not to say' ? const Color(0xFF82B0F2) : Colors.grey,
-              fontWeight: _selectedGender == 'Prefer not to say' ? FontWeight.bold : FontWeight.normal,
+          // 2. KONTEN (JAWABAN)
+          // ================== PERBAIKAN UTAMA DI SINI ==================
+          // Menggunakan Align untuk memposisikan konten di tengah tanpa meregangkannya.
+          Expanded(
+            child: Align(
+              alignment: Alignment.center,
+              child: child,
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
+          // ==========================================================
 
-class GenderOption extends StatelessWidget {
-  final IconData icon; final String label; final bool isSelected; final VoidCallback onTap;
-  const GenderOption({super.key, required this.icon, required this.label, required this.isSelected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF82B0F2).withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF82B0F2) : Colors.transparent,
-            width: 2,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 50, color: isSelected ? const Color(0xFF82B0F2) : Colors.grey[800]),
-            const SizedBox(height: 10),
-            Text(label, style: TextStyle(
-                color: isSelected ? const Color(0xFF82B0F2) : Colors.black87,
-                fontWeight: FontWeight.bold, fontSize: 16
-            )),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Widget Pemilih Angka Model Roda (Wheel Picker)
-class WheelNumberPicker extends StatefulWidget {
-  final int minValue;
-  final int maxValue;
-  final int initialValue;
-  final String unit;
-  final ValueChanged<int> onChanged;
-
-  const WheelNumberPicker({
-    super.key,
-    required this.minValue,
-    required this.maxValue,
-    required this.initialValue,
-    required this.unit,
-    required this.onChanged,
-  });
-
-  @override
-  State<WheelNumberPicker> createState() => _WheelNumberPickerState();
-}
-
-class _WheelNumberPickerState extends State<WheelNumberPicker> {
-  late FixedExtentScrollController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    int initialItem = widget.initialValue - widget.minValue;
-    if (initialItem < 0 || initialItem >= (widget.maxValue - widget.minValue + 1)) {
-      initialItem = 0;
-    }
-    _controller = FixedExtentScrollController(initialItem: initialItem);
-
-    // PERBAIKAN: Menunda pemanggilan onChanged
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onChanged(widget.minValue + _controller.initialItem);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 200,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 150,
-            child: ListWheelScrollView.useDelegate(
-              controller: _controller,
-              itemExtent: 60,
-              perspective: 0.005,
-              diameterRatio: 1.2,
-              physics: const FixedExtentScrollPhysics(),
-              onSelectedItemChanged: (index) {
-                widget.onChanged(widget.minValue + index);
-              },
-              childDelegate: ListWheelChildBuilderDelegate(
-                childCount: widget.maxValue - widget.minValue + 1,
-                builder: (context, index) {
-                  final value = widget.minValue + index;
-                  return Center(
-                    child: Text(
-                      value.toString(),
-                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+          // 3. TOMBOL
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0, bottom: 40.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: onBack,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+                      side: BorderSide(color: Colors.grey[300]!),
                     ),
-                  );
-                },
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(widget.unit, style: TextStyle(fontSize: 24, color: Colors.grey[600])),
-        ],
-      ),
-    );
-  }
-}
-
-// Widget Pemilih Waktu Model Roda
-class WheelTimePicker extends StatefulWidget {
-  final ValueChanged<String> onChanged;
-  const WheelTimePicker({super.key, required this.onChanged});
-
-  @override
-  State<WheelTimePicker> createState() => _WheelTimePickerState();
-}
-
-class _WheelTimePickerState extends State<WheelTimePicker> {
-  int _selectedHour = 7;
-  int _selectedMinute = 0;
-  String _selectedPeriod = 'AM';
-
-  @override
-  void initState(){
-    super.initState();
-    // PERBAIKAN: Menunda pemanggilan onChanged
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateParent();
-    });
-  }
-
-  void _updateParent() {
-    final formattedTime =
-        '${_selectedHour.toString().padLeft(2, '0')}:${_selectedMinute.toString().padLeft(2, '0')} $_selectedPeriod';
-    widget.onChanged(formattedTime);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 200,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Hour Picker
-          SizedBox(
-            width: 70,
-            child: ListWheelScrollView(
-              itemExtent: 50,
-              onSelectedItemChanged: (index) => setState(() {
-                _selectedHour = index + 1;
-                _updateParent();
-              }),
-              controller: FixedExtentScrollController(initialItem: 6),
-              children: List.generate(12, (index) => Center(child: Text('${index + 1}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)))),
-            ),
-          ),
-          const Text(':', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-          // Minute Picker
-          SizedBox(
-            width: 70,
-            child: ListWheelScrollView(
-              itemExtent: 50,
-              onSelectedItemChanged: (index) => setState(() {
-                _selectedMinute = index;
-                _updateParent();
-              }),
-              children: List.generate(60, (index) => Center(child: Text(index.toString().padLeft(2, '0'), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)))),
-            ),
-          ),
-          // AM/PM Picker
-          SizedBox(
-            width: 70,
-            child: ListWheelScrollView(
-              itemExtent: 50,
-              onSelectedItemChanged: (index) => setState(() {
-                _selectedPeriod = index == 0 ? 'AM' : 'PM';
-                _updateParent();
-              }),
-              children: const [
-                Center(child: Text('AM', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF82B0F2)))),
-                Center(child: Text('PM', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF82B0F2)))),
+                    child: Text('Kembali', style: TextStyle(color: Colors.grey[700], fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: onContinue,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: const Color(0xFF007BFF),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+                      elevation: 4,
+                      shadowColor: const Color(0xFF007BFF).withOpacity(0.3),
+                    ),
+                    child: const Text('Selanjutnya', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
               ],
             ),
           ),
@@ -306,87 +87,123 @@ class _WheelTimePickerState extends State<WheelTimePicker> {
   }
 }
 
-// Widget untuk Pilihan Ganda (Single & Multiple Choice)
-class ChoiceOptions extends StatefulWidget {
-  final List<String> options;
-  final bool allowMultiple;
-  final ValueChanged<List<String>> onChanged;
 
-  const ChoiceOptions({super.key, required this.options, this.allowMultiple = false, required this.onChanged});
+// Widget untuk Pilihan Jenis Kelamin
+class SimpleGenderSelection extends StatefulWidget {
+  final ValueChanged<String> onChanged;
+  const SimpleGenderSelection({super.key, required this.onChanged});
 
   @override
-  State<ChoiceOptions> createState() => _ChoiceOptionsState();
+  State<SimpleGenderSelection> createState() => _SimpleGenderSelectionState();
 }
 
-class _ChoiceOptionsState extends State<ChoiceOptions> {
-  late List<String> _selectedOptions;
+class _SimpleGenderSelectionState extends State<SimpleGenderSelection> {
+  String? _selectedGender;
 
   @override
   void initState() {
     super.initState();
-    _selectedOptions = [];
-    // PERBAIKAN: Menunda pemanggilan onChanged
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onChanged(_selectedOptions);
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => widget.onChanged(''));
   }
 
-  void _toggleOption(String option) {
-    setState(() {
-      if (widget.allowMultiple) {
-        if (_selectedOptions.contains(option)) {
-          _selectedOptions.remove(option);
-        } else {
-          _selectedOptions.add(option);
-        }
-      } else {
-        _selectedOptions.clear();
-        _selectedOptions.add(option);
-      }
-    });
-    widget.onChanged(_selectedOptions);
+  void _selectGender(String gender) {
+    setState(() => _selectedGender = gender);
+    widget.onChanged(gender);
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const BouncingScrollPhysics(),
-      itemCount: widget.options.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 15),
-      itemBuilder: (context, index) {
-        final option = widget.options[index];
-        final isSelected = _selectedOptions.contains(option);
-        return GestureDetector(
-          onTap: () => _toggleOption(option),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF82B0F2).withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isSelected ? const Color(0xFF82B0F2) : Colors.transparent,
-                width: 2,
-              ),
-            ),
-            child: Text(
-              option,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? const Color(0xFF82B0F2) : Colors.black87,
-                  fontSize: 16
-              ),
-            ),
-          ),
-        );
-      },
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GenderButton(label: 'Pria', isSelected: _selectedGender == 'Pria', onTap: () => _selectGender('Pria')),
+        const SizedBox(width: 20),
+        GenderButton(label: 'Wanita', isSelected: _selectedGender == 'Wanita', onTap: () => _selectGender('Wanita')),
+      ],
     );
   }
 }
 
-// Widget untuk Pilihan Ganda dengan Deskripsi
+class GenderButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const GenderButton({super.key, required this.label, required this.isSelected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        width: 140,
+        height: 180, // Memberikan tinggi yang tetap
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFE7F3FF) : Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF007BFF) : Colors.grey[200]!,
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected ? const Color(0xFF007BFF).withOpacity(0.15) : Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+            )
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? const Color(0xFF007BFF) : Colors.black87,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ... Sisa kode di file ini (DropdownNumberPicker, dll.) tetap sama ...
+// Picker Angka dengan Tampilan Modern
+class DropdownNumberPicker extends StatelessWidget {
+  final String hintText;
+  final int value;
+  final VoidCallback onTap;
+
+  const DropdownNumberPicker({super.key, required this.hintText, required this.value, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              value == 0 ? hintText : '$value',
+              style: TextStyle(fontSize: 16, color: value == 0 ? Colors.grey[600] : Colors.black, fontWeight: FontWeight.w500),
+            ),
+            Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Pilihan Ganda dengan Animasi dan Tampilan Modern
 class ChoiceOptionsWithDescription extends StatefulWidget {
   final List<Map<String, String>> options;
   final ValueChanged<String> onChanged;
@@ -403,9 +220,10 @@ class _ChoiceOptionsWithDescriptionState extends State<ChoiceOptionsWithDescript
   @override
   void initState() {
     super.initState();
-    // PERBAIKAN: Menunda pemanggilan onChanged
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onChanged('');
+      if (widget.options.isNotEmpty) {
+        _selectOption(widget.options.first['title']!);
+      }
     });
   }
 
@@ -427,34 +245,46 @@ class _ChoiceOptionsWithDescriptionState extends State<ChoiceOptionsWithDescript
         return GestureDetector(
           onTap: () => _selectOption(option['title']!),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(20),
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF82B0F2).withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(
-                color: isSelected ? const Color(0xFF82B0F2) : Colors.transparent,
-                width: 2,
+                color: isSelected ? const Color(0xFF007BFF) : Colors.grey[200]!,
+                width: 1.5,
               ),
+              boxShadow: isSelected
+                  ? [BoxShadow(color: const Color(0xFF007BFF).withOpacity(0.15), blurRadius: 12)]
+                  : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  option['title']!,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? const Color(0xFF82B0F2) : Colors.black87,
-                    fontSize: 16,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        option['title']!,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      ),
+                      if(option['description']!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: Text(
+                            option['description']!,
+                            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  option['description']!,
-                  style: TextStyle(
-                    color: isSelected ? Colors.black54 : Colors.grey[600],
-                    fontSize: 12,
-                  ),
+                Radio<String>(
+                  value: option['title']!,
+                  groupValue: _selectedOption,
+                  onChanged: (String? value) => _selectOption(value!),
+                  activeColor: const Color(0xFF007BFF),
                 ),
               ],
             ),
@@ -465,3 +295,63 @@ class _ChoiceOptionsWithDescriptionState extends State<ChoiceOptionsWithDescript
   }
 }
 
+// Widget untuk Pilihan Ganda (Checkbox)
+class MultiSelectCheckbox extends StatefulWidget {
+  final String title;
+  final List<String> options;
+  final ValueChanged<List<String>> onChanged;
+
+  const MultiSelectCheckbox({
+    super.key,
+    required this.title,
+    required this.options,
+    required this.onChanged,
+  });
+
+  @override
+  State<MultiSelectCheckbox> createState() => _MultiSelectCheckboxState();
+}
+
+class _MultiSelectCheckboxState extends State<MultiSelectCheckbox> {
+  final List<String> _selectedOptions = [];
+
+  void _onOptionSelected(bool? selected, String option) {
+    setState(() {
+      if (selected == true) {
+        _selectedOptions.add(option);
+      } else {
+        _selectedOptions.remove(option);
+      }
+    });
+    widget.onChanged(_selectedOptions);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...widget.options.map(
+              (option) => CheckboxListTile(
+            title: Text(option),
+            value: _selectedOptions.contains(option),
+            onChanged: (bool? selected) {
+              _onOptionSelected(selected, option);
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: const Color(0xFF007BFF),
+            checkboxShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          ),
+        ),
+      ],
+    );
+  }
+}

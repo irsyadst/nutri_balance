@@ -37,6 +37,23 @@ class ApiService {
       return null;
     }
   }
+  Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/verify-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp}),
+      );
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 201) {
+        return {'success': true, 'token': body['token']};
+      }
+      return {'success': false, 'message': body['message']};
+    } catch (e) {
+      debugPrint('Error di verifyOtp: $e');
+      return {'success': false, 'message': 'Tidak dapat terhubung ke server.'};
+    }
+  }
 
   Future<User?> getProfile(String token) async {
     try {
@@ -96,32 +113,29 @@ class ApiService {
     }
   }
 
+  // ==== PERUBAHAN DI FUNGSI INI ====
   // Fungsi helper internal untuk mem-parsing data User dari JSON secara aman
   User _parseUserFromJson(Map<String, dynamic> data) {
+    var profileData = data['profile'];
     return User(
       id: data['_id'],
       name: data['name'],
       email: data['email'],
-      profile: data['profile'] != null ? UserProfile(
-        gender: data['profile']['gender'] ?? '',
-        age: data['profile']['age'] ?? 0,
-        height: (data['profile']['height'] ?? 0.0).toDouble(),
-        currentWeight: (data['profile']['currentWeight'] ?? 0.0).toDouble(),
-        goalWeight: (data['profile']['goalWeight'] ?? 0.0).toDouble(),
-        wakeUpTime: data['profile']['wakeUpTime'] ?? '',
-        sleepTime: data['profile']['sleepTime'] ?? '',
-        firstMealTime: data['profile']['firstMealTime'] ?? '',
-        lastMealTime: data['profile']['lastMealTime'] ?? '',
-        dailyMealIntake: data['profile']['dailyMealIntake'] ?? '',
-        climate: data['profile']['climate'] ?? '',
-        waterIntake: data['profile']['waterIntake'] ?? '',
-        activityLevel: data['profile']['activityLevel'] ?? '',
-        goals: List<String>.from(data['profile']['goals'] ?? []),
-        fastingExperience: data['profile']['fastingExperience'] ?? '',
-        healthIssues: List<String>.from(data['profile']['healthIssues'] ?? []),
-        targetCalories: data['profile']['targetCalories'],
+      profile: profileData != null ? UserProfile(
+        gender: profileData['gender'] ?? '',
+        age: profileData['age'] ?? 0,
+        height: (profileData['height'] ?? 0.0).toDouble(),
+        currentWeight: (profileData['currentWeight'] ?? 0.0).toDouble(),
+        goalWeight: (profileData['goalWeight'] ?? 0.0).toDouble(),
+        activityLevel: profileData['activityLevel'] ?? '',
+        goals: List<String>.from(profileData['goals'] ?? []),
+
+        // Parsing untuk field yang baru
+        dietaryRestrictions: List<String>.from(profileData['dietaryRestrictions'] ?? []),
+        allergies: List<String>.from(profileData['allergies'] ?? []),
+
+        targetCalories: profileData['targetCalories'],
       ) : null,
     );
   }
 }
-

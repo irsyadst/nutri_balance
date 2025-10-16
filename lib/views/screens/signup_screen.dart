@@ -3,7 +3,7 @@ import '../../controllers/auth_controller.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/secondary_button.dart';
-import 'questionnaire_screen.dart'; // Impor halaman tujuan
+import 'otp_screen.dart';
 
 // View untuk halaman pendaftaran
 class SignUpScreen extends StatefulWidget {
@@ -26,59 +26,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void initState() {
     super.initState();
-    // View "mendengarkan" setiap perubahan state dari Controller
-    _controller.addListener(_onAuthStateChanged);
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onAuthStateChanged);
-    _controller.dispose();
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
-
-  // Fungsi ini akan dipanggil setiap kali ada perubahan di Controller
-  void _onAuthStateChanged() {
-    // Jika Controller memiliki data user (artinya login berhasil)
-    if (_controller.user != null && mounted) {
-      // Langsung navigasi ke halaman kuesioner
-      // `pushAndRemoveUntil` akan menghapus semua halaman sebelumnya (login, signup)
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const QuestionnaireScreen()),
-            (Route<dynamic> route) => false, // Predikat ini menghapus semua rute
-      );
-    }
+    // Tidak perlu listener di sini
   }
 
   void _handleSignUp() {
     if (_formKey.currentState!.validate()) {
       if (_passwordController.text != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Password tidak cocok!"),
-          backgroundColor: Colors.red,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Password tidak cocok!")));
         return;
       }
 
-      // View meneruskan aksi pendaftaran dan login ke Controller
-      _controller.registerAndLogin(
+      // Panggil requestRegistration
+      _controller.requestRegistration(
         _nameController.text,
         _emailController.text,
         _passwordController.text,
       ).then((result) {
-        // Hanya tampilkan snackbar jika proses gagal
-        if (!result['success']! && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(result['message']!),
-            backgroundColor: Colors.red,
-          ));
+        if (result['success']! && mounted) {
+          // Navigasi ke Halaman OTP jika berhasil
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OtpScreen(email: _emailController.text),
+            ),
+          );
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message']!)));
         }
-        // Navigasi tidak lagi dilakukan di sini, melainkan ditangani oleh listener `_onAuthStateChanged`
       });
     }
   }
@@ -155,4 +129,3 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 }
-

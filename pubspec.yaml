@@ -17,6 +17,7 @@ dependencies:
   flutter_svg: ^2.0.7
   http: ^1.2.1
   shared_preferences: ^2.2.3
+  pinput: ^4.0.0
 
 dev_dependencies:
   flutter_test:

@@ -42,33 +42,32 @@ class AuthController with ChangeNotifier {
     return result;
   }
 
-  Future<Map<String, dynamic>> registerAndLogin(String name, String email, String password) async {
+  // Ganti nama registerAndLogin menjadi requestRegistration
+  Future<Map<String, dynamic>> requestRegistration(String name, String email, String password) async {
     _setLoading(true);
+    final result = await _apiService.register(name, email, password);
+    _setLoading(false);
+    return result;
+  }
 
-    final regResult = await _apiService.register(name, email, password);
+  // Fungsi baru untuk verifikasi dan login
+  Future<bool> verifyOtpAndLogin(String email, String otp) async {
+    _setLoading(true);
+    final result = await _apiService.verifyOtp(email, otp);
 
-    if (!regResult['success']) {
-      _setLoading(false);
-      return regResult;
-    }
-
-    final token = await _apiService.login(email, password);
-    if (token != null) {
-      // ===== PERBAIKAN DI SINI: Simpan token setelah registrasi berhasil =====
+    if (result['success']) {
+      final token = result['token'];
       await _storageService.saveToken(token);
-      // ======================================================================
-
       _user = await _apiService.getProfile(token);
       _setLoading(false);
-
       if (_user != null) {
-        notifyListeners();
-        return {'success': true, 'message': 'Registrasi & Login berhasil!'};
+        notifyListeners(); // Memberi tahu UI bahwa user sudah login
+        return true;
       }
     }
 
     _setLoading(false);
-    return {'success': false, 'message': 'Registrasi berhasil, tetapi login otomatis gagal.'};
+    return false;
   }
 }
 
