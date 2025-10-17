@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
               const Text('OR', style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 20),
-              SecondaryButton(text: 'Google', icon: Icons.g_mobiledata, onPressed: () {}),
+              const SizedBox(height: 30),
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
