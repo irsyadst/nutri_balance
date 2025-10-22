@@ -38,15 +38,13 @@ class QuestionPageContent extends StatelessWidget {
           ),
 
           // 2. KONTEN (JAWABAN)
-          // ================== PERBAIKAN UTAMA DI SINI ==================
-          // Menggunakan Align untuk memposisikan konten di tengah tanpa meregangkannya.
           Expanded(
             child: Align(
-              alignment: Alignment.center,
+              // Ubah alignment menjadi topCenter agar konten ListViews dimulai dari atas
+              alignment: Alignment.topCenter,
               child: child,
             ),
           ),
-          // ==========================================================
 
           // 3. TOMBOL
           Padding(
@@ -91,7 +89,8 @@ class QuestionPageContent extends StatelessWidget {
 // Widget untuk Pilihan Jenis Kelamin
 class SimpleGenderSelection extends StatefulWidget {
   final ValueChanged<String> onChanged;
-  const SimpleGenderSelection({super.key, required this.onChanged});
+  final String? initialValue;
+  const SimpleGenderSelection({super.key, required this.onChanged, this.initialValue});
 
   @override
   State<SimpleGenderSelection> createState() => _SimpleGenderSelectionState();
@@ -103,7 +102,9 @@ class _SimpleGenderSelectionState extends State<SimpleGenderSelection> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => widget.onChanged(''));
+    _selectedGender = widget.initialValue;
+    // Panggil onChanged dengan nilai awal jika ada
+    WidgetsBinding.instance.addPostFrameCallback((_) => widget.onChanged(_selectedGender ?? 'Pria'));
   }
 
   void _selectGender(String gender) {
@@ -169,7 +170,6 @@ class GenderButton extends StatelessWidget {
   }
 }
 
-// ... Sisa kode di file ini (DropdownNumberPicker, dll.) tetap sama ...
 // Picker Angka dengan Tampilan Modern
 class DropdownNumberPicker extends StatelessWidget {
   final String hintText;
@@ -192,6 +192,7 @@ class DropdownNumberPicker extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
+              // Tampilkan nilai jika tidak 0, jika 0 tampilkan hint
               value == 0 ? hintText : '$value',
               style: TextStyle(fontSize: 16, color: value == 0 ? Colors.grey[600] : Colors.black, fontWeight: FontWeight.w500),
             ),
@@ -207,8 +208,9 @@ class DropdownNumberPicker extends StatelessWidget {
 class ChoiceOptionsWithDescription extends StatefulWidget {
   final List<Map<String, String>> options;
   final ValueChanged<String> onChanged;
+  final String? initialValue; // Tambahkan initialValue
 
-  const ChoiceOptionsWithDescription({super.key, required this.options, required this.onChanged});
+  const ChoiceOptionsWithDescription({super.key, required this.options, required this.onChanged, this.initialValue});
 
   @override
   State<ChoiceOptionsWithDescription> createState() => _ChoiceOptionsWithDescriptionState();
@@ -220,9 +222,13 @@ class _ChoiceOptionsWithDescriptionState extends State<ChoiceOptionsWithDescript
   @override
   void initState() {
     super.initState();
+    // Set nilai awal dari properti, atau yang pertama jika tidak ada
+    _selectedOption = widget.initialValue ?? (widget.options.isNotEmpty ? widget.options.first['title'] : null);
+
+    // Panggil onChanged dengan nilai awal setelah frame pertama
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.options.isNotEmpty) {
-        _selectOption(widget.options.first['title']!);
+      if (_selectedOption != null) {
+        widget.onChanged(_selectedOption!);
       }
     });
   }
@@ -295,17 +301,47 @@ class _ChoiceOptionsWithDescriptionState extends State<ChoiceOptionsWithDescript
   }
 }
 
+// Widget untuk mengelompokkan Checkbox dengan deskripsi (Seperti di langkah 7 & 8)
+class MultiSelectSection extends StatelessWidget {
+  final String description;
+  final List<Widget> sections;
+  final List<String> initialSelected; // Diperlukan untuk inisialisasi MultiSelectCheckbox
+
+  const MultiSelectSection({
+    super.key,
+    required this.description,
+    required this.sections,
+    required this.initialSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.zero,
+      children: [
+        Text(description, style: TextStyle(color: Colors.grey[600], fontSize: 16)),
+        const SizedBox(height: 30),
+        ...sections,
+      ],
+    );
+  }
+}
+
+
 // Widget untuk Pilihan Ganda (Checkbox)
 class MultiSelectCheckbox extends StatefulWidget {
   final String title;
   final List<String> options;
   final ValueChanged<List<String>> onChanged;
+  final List<String>? initialSelected; // Tambahkan initialSelected
 
   const MultiSelectCheckbox({
     super.key,
     required this.title,
     required this.options,
     required this.onChanged,
+    this.initialSelected,
   });
 
   @override
@@ -313,12 +349,23 @@ class MultiSelectCheckbox extends StatefulWidget {
 }
 
 class _MultiSelectCheckboxState extends State<MultiSelectCheckbox> {
-  final List<String> _selectedOptions = [];
+  late List<String> _selectedOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi dengan nilai awal atau list kosong
+    _selectedOptions = widget.initialSelected ?? [];
+    // Panggil onChanged dengan nilai awal
+    WidgetsBinding.instance.addPostFrameCallback((_) => widget.onChanged(_selectedOptions));
+  }
 
   void _onOptionSelected(bool? selected, String option) {
     setState(() {
       if (selected == true) {
-        _selectedOptions.add(option);
+        if (!_selectedOptions.contains(option)) {
+          _selectedOptions.add(option);
+        }
       } else {
         _selectedOptions.remove(option);
       }
@@ -328,30 +375,46 @@ class _MultiSelectCheckboxState extends State<MultiSelectCheckbox> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    // Styling untuk menyesuaikan dengan tampilan gambar
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Text(
+              widget.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 10),
-        ...widget.options.map(
-              (option) => CheckboxListTile(
-            title: Text(option),
-            value: _selectedOptions.contains(option),
-            onChanged: (bool? selected) {
-              _onOptionSelected(selected, option);
-            },
-            controlAffinity: ListTileControlAffinity.leading,
-            activeColor: const Color(0xFF007BFF),
-            checkboxShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          const Divider(height: 20, thickness: 1, color: Color(0xFFF3F4F6)),
+          ...widget.options.map(
+                (option) => CheckboxListTile(
+              title: Text(option, style: const TextStyle(fontSize: 16)),
+              value: _selectedOptions.contains(option),
+              onChanged: (bool? selected) {
+                _onOptionSelected(selected, option);
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              activeColor: const Color(0xFF007BFF),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              // Hilangkan padding bawaan untuk membuatnya lebih rapat
+              dense: true,
+              checkboxShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

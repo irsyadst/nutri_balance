@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
 import 'views/screens/splash_screen.dart';
 
-// Titik masuk utama aplikasi Anda.
 void main() {
   runApp(const NutriBalanceApp());
 }
 
-// Widget root dari aplikasi.
 class NutriBalanceApp extends StatelessWidget {
   const NutriBalanceApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NutriBalance MVC',
+      debugShowCheckedModeBanner: false,
+      title: 'NutriBalance',
       theme: ThemeData(
-        primaryColor: const Color(0xFF82B0F2),
-        scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Inter',
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF82B0F2)),
+        // --- UBAH INI UNTUK WARNA BIRU UTAMA ---
+        primaryColor: const Color(0xFF007BFF), // Warna biru dari desain
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue) // Fallback untuk beberapa widget
+            .copyWith(secondary: const Color(0xFF007BFF)), // Juga set secondary
+        scaffoldBackgroundColor: const Color(0xFFFFFFFF),
+        fontFamily: 'Inter', // Contoh font, sesuaikan jika Anda punya
         useMaterial3: true,
       ),
-      debugShowCheckedModeBanner: false,
-      // Aplikasi dimulai dari SplashScreen
       home: const SplashScreen(),
     );
   }

@@ -1,13 +1,13 @@
+import 'dart:ui'; // <-- PERBAIKAN: Tambahkan import ini untuk ImageFilter
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../controllers/auth_controller.dart';
-import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
-import '../widgets/secondary_button.dart';
 import 'main_app_screen.dart';
 import 'questionnaire_screen.dart';
 import 'signup_screen.dart';
 
-// View untuk halaman Login
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,7 +16,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Menginstansiasi Controller untuk halaman ini
   final AuthController _controller = AuthController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -24,28 +23,22 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // View "mendengarkan" setiap perubahan state dari Controller
     _controller.addListener(_onAuthStateChanged);
   }
 
   @override
   void dispose() {
     _controller.removeListener(_onAuthStateChanged);
-    _controller.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  // Fungsi yang dijalankan saat ada perubahan di Controller
   void _onAuthStateChanged() {
-    // Jika Controller memiliki data user (artinya login berhasil)
     if (_controller.user != null && mounted) {
       if (_controller.user!.profile == null) {
-        // Jika profil kosong, navigasi ke kuesioner
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const QuestionnaireScreen()));
       } else {
-        // Jika profil ada, navigasi ke halaman utama
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MainAppScreen(user: _controller.user!)),
@@ -54,9 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Fungsi yang dipanggil saat tombol "Sign In" ditekan
   void _handleLogin() {
-    // View meneruskan aksi ke Controller
+    if (_controller.isLoading) return;
     _controller.login(_emailController.text, _passwordController.text).then((success) {
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login gagal. Periksa kembali email dan password.")));
@@ -66,38 +58,78 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            _buildMainUI(),
+            if (_controller.isLoading) _buildLoadingModal(),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMainUI() {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text("Let's Get You\nBalanced Again", textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 15),
-              const Text("Track your meals, stay mindful, and find your perfect balance.", textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey)),
-              const SizedBox(height: 30),
-              CustomTextField(controller: _emailController, hint: 'Email', icon: Icons.email_outlined),
               const SizedBox(height: 20),
-              CustomTextField(controller: _passwordController, hint: 'Password', icon: Icons.lock_outline, isPassword: true),
-              const SizedBox(height: 40),
-              // Widget ini akan otomatis rebuild saat state `isLoading` di Controller berubah
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return _controller.isLoading
-                      ? const CircularProgressIndicator()
-                      : PrimaryButton(text: 'Sign In', onPressed: _handleLogin);
-                },
+              Center(
+                child: SvgPicture.asset(
+                  'assets/images/NutriBalance.png',
+                  height: 60,
+                ),
               ),
-              const SizedBox(height: 20),
-              const Text('OR', style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 20),
               const SizedBox(height: 30),
+              const Text(
+                "Let's Get You\nBalanced Again",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 15),
+              const Text(
+                "Track your meals, stay mindful, and find your perfect balance.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 40),
+              _buildTextField(_emailController, 'Email', false),
+              const SizedBox(height: 20),
+              _buildTextField(_passwordController, 'Password', true),
               const SizedBox(height: 30),
+              PrimaryButton(
+                text: 'Sign In',
+                onPressed: _handleLogin,
+              ),
+              const SizedBox(height: 30),
+              const Row(
+                children: [
+                  Expanded(child: Divider(thickness: 1, endIndent: 10, color: Colors.grey)),
+                  Text('OR', style: TextStyle(color: Colors.grey)),
+                  Expanded(child: Divider(thickness: 1, indent: 10, color: Colors.grey)),
+                ],
+              ),
+              const SizedBox(height: 30),
+              _buildGoogleSignInButton(),
+              const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account? "),
+                  const Text("Don't have an account? ", style: TextStyle(color: Colors.grey)),
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -105,16 +137,120 @@ class _LoginScreenState extends State<LoginScreen> {
                         MaterialPageRoute(builder: (context) => const SignUpScreen()),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Sign Up',
-                      style: TextStyle(color: Color(0xFF82B0F2), fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
-              )
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hintText, bool isPassword) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword,
+      style: const TextStyle(fontSize: 16),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+        filled: true,
+        fillColor: Colors.grey.shade100,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleSignInButton() {
+    return ElevatedButton.icon(
+      onPressed: () {
+        // TODO: Implementasi Google Sign In
+      },
+      icon: Image.asset(
+        'assets/images/Google.png',
+        height: 22,
+      ),
+      label: const Text(
+        'Google',
+        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingModal() {
+    return PopScope(
+      canPop: false,
+      child: Stack(
+        children: [
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+            ),
+          ),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(30),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/NutriBalance.svg',
+                    height: 50,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Sign In...',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

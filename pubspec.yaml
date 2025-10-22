@@ -1,39 +1,45 @@
-name: nutri_balance
-description: A new Flutter project.
+name: NutriBalance
+description: "A new Flutter project."
 
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+# Mencegah publikasi tidak sengaja ke pub.dev.
+publish_to: 'none' 
 
 version: 1.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
+#================ DEPENDENCIES ================#
 dependencies:
   flutter:
     sdk: flutter
 
-  # Pastikan paket-paket ini sejajar dengan 'flutter'
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.7
   http: ^1.2.1
   shared_preferences: ^2.2.3
-  pinput: ^4.0.0
+  pinput: ^5.0.2
+  fl_chart: ^0.68.0
 
+#================ DEV DEPENDENCIES ================#
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^3.0.0
+  # Sebaiknya gunakan versi linter yang lebih baru dan stabil.
+  flutter_lints: ^4.0.0
 
+#================ FLUTTER SETTINGS ================#
+# Konfigurasi spesifik untuk Flutter.
 flutter:
+  # Baris ini harus berada di bawah bagian 'flutter', bukan 'dependencies'.
   uses-material-design: true
 
-  # Untuk menggunakan aset seperti gambar SVG, pastikan Anda membuat folder 'assets'
-  # dan memasukkan path-nya di sini
-  # assets:
-  #   - assets/logo.svg
-  #   - assets/onboarding1.svg
-  #   - assets/onboarding2.svg
-  #   - assets/onboarding3.svg
-  #   - assets/google.svg
-
+  # Aset seperti gambar, font, dll., didefinisikan di sini.
+  assets:
+    - assets/
+    - assets/images/
+    - assets/images/NutriBalance.png
+    # Contoh jika Anda ingin menambahkan file spesifik:
+    # - assets/images/logo.png
+    # - assets/images/onboarding1.svg
