@@ -170,16 +170,25 @@ class GenderButton extends StatelessWidget {
   }
 }
 
+
 // Picker Angka dengan Tampilan Modern
 class DropdownNumberPicker extends StatelessWidget {
   final String hintText;
-  final int value;
+  final int value; // Nilai ini diterima dari parent (QuestionnaireScreen)
   final VoidCallback onTap;
 
-  const DropdownNumberPicker({super.key, required this.hintText, required this.value, required this.onTap});
+  const DropdownNumberPicker({
+    super.key, // Menerima Key dari parent
+    required this.hintText,
+    required this.value, // Nilai yang akan ditampilkan
+    required this.onTap
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Debug print untuk melihat nilai yang diterima saat build
+    // print("DropdownNumberPicker building with value: $value");
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -193,7 +202,7 @@ class DropdownNumberPicker extends StatelessWidget {
           children: [
             Text(
               // Tampilkan nilai jika tidak 0, jika 0 tampilkan hint
-              value == 0 ? hintText : '$value',
+              value == 0 ? hintText : '$value', // <-- Teks menampilkan 'value'
               style: TextStyle(fontSize: 16, color: value == 0 ? Colors.grey[600] : Colors.black, fontWeight: FontWeight.w500),
             ),
             Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
