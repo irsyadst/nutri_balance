@@ -1,4 +1,4 @@
-name: NutriBalance
+name: nutri_balance
 description: "A new Flutter project."
 
 # Mencegah publikasi tidak sengaja ke pub.dev.
@@ -32,14 +32,6 @@ dev_dependencies:
 #================ FLUTTER SETTINGS ================#
 # Konfigurasi spesifik untuk Flutter.
 flutter:
-  # Baris ini harus berada di bawah bagian 'flutter', bukan 'dependencies'.
   uses-material-design: true
-
-  # Aset seperti gambar, font, dll., didefinisikan di sini.
   assets:
-    - assets/
     - assets/images/
-    - assets/images/NutriBalance.png
-    # Contoh jika Anda ingin menambahkan file spesifik:
-    # - assets/images/logo.png
-    # - assets/images/onboarding1.svg
