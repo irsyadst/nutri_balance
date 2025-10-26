@@ -1,4 +1,4 @@
-import 'dart:ui'; // <-- PERBAIKAN: Tambahkan import ini untuk ImageFilter
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -182,10 +182,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildGoogleSignInButton() {
     return ElevatedButton.icon(
       onPressed: () {
-        // TODO: Implementasi Google Sign In
       },
-      icon: Image.asset(
-        'assets/images/Google.png',
+      icon: SvgPicture.asset(
+        'assets/images/Google.svg',
         height: 22,
       ),
       label: const Text(
@@ -233,8 +232,8 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SvgPicture.asset(
-                    'assets/images/NutriBalance.svg',
+                  Image.asset(
+                    'assets/images/NutriBalance.png',
                     height: 50,
                   ),
                   const SizedBox(height: 20),

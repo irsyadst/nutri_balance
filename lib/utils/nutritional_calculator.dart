@@ -15,7 +15,7 @@ class NutritionalCalculator {
       bmr = 447.593 + (9.247 * currentWeight) + (3.098 * height) - (4.330 * age);
     }
 
-    // 2. Tentukan Pengali Aktivitas untuk menghitung TDEE
+
     double activityMultiplier;
     switch (activityLevel) {
       case 'Menetap':

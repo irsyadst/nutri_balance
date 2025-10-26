@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // <-- Import ini
+import 'package:intl/date_symbol_data_local.dart';
 import 'views/screens/splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
   runApp(const NutriBalanceApp());
 }
 
@@ -14,14 +18,23 @@ class NutriBalanceApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NutriBalance',
       theme: ThemeData(
-        // --- UBAH INI UNTUK WARNA BIRU UTAMA ---
-        primaryColor: const Color(0xFF007BFF), // Warna biru dari desain
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue) // Fallback untuk beberapa widget
-            .copyWith(secondary: const Color(0xFF007BFF)), // Juga set secondary
+        primaryColor: const Color(0xFF007BFF),
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
+            .copyWith(secondary: const Color(0xFF007BFF)),
         scaffoldBackgroundColor: const Color(0xFFFFFFFF),
-        fontFamily: 'Inter', // Contoh font, sesuaikan jika Anda punya
+        fontFamily: 'Inter',
         useMaterial3: true,
       ),
+
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('id', 'ID'),
+      ],
+      locale: const Locale('id', 'ID'),
       home: const SplashScreen(),
     );
   }

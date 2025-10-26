@@ -209,8 +209,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       onPressed: () {
         // TODO: Implementasi Google Sign Up
       },
-      icon: Image.asset(
-        'assets/images/Google.png',
+      icon: SvgPicture.asset(
+        'assets/images/Google.svg',
         height: 22,
       ),
       label: const Text(
