@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart'; // Import fl_chart
+import 'package:intl/intl.dart'; // Import intl
 import 'dart:math';
 
-// --- 1. IMPORT WIDGET BARU ---
+
 import '../widgets/statistics/calorie_detail_content.dart';
 import '../widgets/statistics/weight_detail_content.dart';
 import '../widgets/statistics/macro_detail_content.dart';
-import '../widgets/statistics/activity_detail_content.dart';
 import '../widgets/statistics/water_detail_content.dart';
-// --- AKHIR IMPORT ---
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -21,9 +19,9 @@ class StatisticsScreen extends StatefulWidget {
 class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _selectedPeriod = 'Minggu Ini';
-  String? _selectedDetailCategory; // State untuk kategori detail
+  String? _selectedDetailCategory;
 
-  // --- Data Dummy (Ringkasan) ---
+  // --- Data Dummy ---
   final double currentWeight = 155;
   final double weightChangePercent = -2;
   final String weightPeriod = "30 Hari Terakhir";
@@ -44,9 +42,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
   final Map<String, double> macroData = const {
     'Protein': 40, 'Karbohidrat': 35, 'Lemak': 25,
   };
-  final Map<String, String> activityData = const {
-    'Tangga': '5.000', 'Jarak': '2,5 mil', 'Lamanya': '45 menit',
-  };
+  // HAPUS DATA DUMMY AKTIVITAS
+  // final Map<String, String> activityData = const {
+  //   'Tangga': '5.000', 'Jarak': '2,5 mil', 'Lamanya': '45 menit',
+  // };
   // --- Akhir Data Dummy ---
 
 
@@ -55,7 +54,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _fetchStatisticsData();
-    // Listener untuk TabController
+    // Listener TabController
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging && _tabController.index == 0) {
         setState(() { _selectedDetailCategory = null; });
@@ -145,11 +144,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
           _buildSectionTitle('Kerusakan Makronutrien'),
           const SizedBox(height: 15),
           _buildMacroBreakdownCard(),
-          const SizedBox(height: 35),
-          _buildSectionTitle('Aktivitas'),
-          const SizedBox(height: 15),
-          _buildActivitySummaryGrid(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 35), // Jarak bawah setelah Makro
         ],
       ),
     );
@@ -158,13 +153,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
   // === WIDGET BUILDER UNTUK TAB DETAIL ===
   Widget _buildDetailTab() {
     if (_selectedDetailCategory == null) {
+      // --- HAPUS 'Aktivitas' DARI LIST INI ---
       final List<Map<String, dynamic>> detailCategories = [
         {'title': 'Kalori', 'icon': Icons.local_fire_department_outlined},
         {'title': 'Berat Badan', 'icon': Icons.monitor_weight_outlined},
         {'title': 'Makronutrien', 'icon': Icons.pie_chart_outline},
-        {'title': 'Aktivitas', 'icon': Icons.directions_run},
         {'title': 'Asupan Air', 'icon': Icons.water_drop_outlined},
       ];
+      // --- AKHIR PENGHAPUSAN ---
 
       return ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 25.0, horizontal: 24.0),
@@ -182,16 +178,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         separatorBuilder: (context, index) => const SizedBox(height: 18),
       );
     } else {
-      // --- 2. PANGGIL WIDGET DARI FILE TERPISAH ---
       Widget detailContent;
+      // --- HAPUS CASE 'Aktivitas' DARI SWITCH INI ---
       switch (_selectedDetailCategory) {
         case 'Kalori': detailContent = const CalorieDetailContent(); break;
         case 'Berat Badan': detailContent = const WeightDetailContent(); break;
         case 'Makronutrien': detailContent = const MacroDetailContent(); break;
-        case 'Aktivitas': detailContent = ActivityDetailContent(); break;
+      // case 'Aktivitas': detailContent = const ActivityDetailContent(); break; // <-- Hapus case ini
         case 'Asupan Air': detailContent = const WaterDetailContent(); break;
         default: detailContent = const Center(child: Text('Konten detail tidak ditemukan'));
       }
+      // --- AKHIR PENGHAPUSAN ---
       return SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: detailContent,
@@ -199,22 +196,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     }
   }
 
-  // === Helper Widgets Lainnya (TETAP DI SINI) ===
-  Widget _buildDetailCategoryTile({ required String title, required IconData icon, required VoidCallback onTap,}) {
+  // Helper widget lainnya (TIDAK BERUBAH)
+  Widget _buildDetailCategoryTile({ required String title, required IconData icon, required VoidCallback onTap,}) { /* ... kode sama ... */
     return InkWell( onTap: onTap, borderRadius: BorderRadius.circular(15), child: Container( padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18), decoration: BoxDecoration( color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: [ BoxShadow( color: Colors.grey.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 4), ) ], border: Border.all(color: Colors.grey.shade200, width: 1), ), child: Row( children: [
       Icon(icon, color: Theme.of(context).primaryColor, size: 26),
       const SizedBox(width: 15),
       Expanded( child: Text( title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600), ), ),
       Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey.shade400), ], ), ), );
   }
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title) { /* ... kode sama ... */
     return Text( title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),);
   }
-  Widget _buildWeightProgressCard() {
+  Widget _buildWeightProgressCard() { /* ... kode sama ... */
     final primaryColor = Theme.of(context).primaryColor;
     return Column( crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Berat', style: TextStyle(fontSize: 16, color: Colors.grey)),
-      Text('${currentWeight.round()} Kg', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+      Text('${currentWeight.round()} pon', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
       Text( '$weightPeriod ${weightChangePercent > 0 ? '+' : ''}$weightChangePercent%', style: TextStyle( fontSize: 14, color: weightChangePercent < 0 ? Colors.green : Colors.red, fontWeight: FontWeight.w500, ), ),
       const SizedBox(height: 20),
       SizedBox( height: 150, child: LineChart(
@@ -238,7 +235,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
           lineBarsData: [ LineChartBarData( spots: weightSpots, isCurved: true, color: primaryColor, barWidth: 3, isStrokeCapRound: true, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false), ), ],),
       ), ), ], );
   }
-  Widget _buildCalorieIntakeCard() {
+  Widget _buildCalorieIntakeCard() { /* ... kode sama ... */
     return Column( crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Kalori', style: TextStyle(fontSize: 16, color: Colors.grey)),
       Text(NumberFormat.decimalPattern('id_ID').format(caloriesToday), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
@@ -248,7 +245,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         return Expanded( child: _buildCalorieBar( label: entry.key, value: entry.value, maxValue: maxCaloriePerMeal, ), );
       }).toList(), ), ), ], );
   }
-  Widget _buildCalorieBar({required String label, required double value, required double maxValue}) {
+  Widget _buildCalorieBar({required String label, required double value, required double maxValue}) { /* ... kode sama ... */
     final double progress = max(0.0, min(1.0, value / maxValue));
     final primaryColor = Theme.of(context).primaryColor;
     return Padding( padding: const EdgeInsets.symmetric(horizontal: 4.0), child: Column( mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -256,7 +253,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
       const SizedBox(height: 8),
       Text( label, style: TextStyle(fontSize: 11, color: Colors.grey.shade600), maxLines: 1, overflow: TextOverflow.ellipsis, ), ], ), );
   }
-  Widget _buildMacroBreakdownCard() {
+  Widget _buildMacroBreakdownCard() { /* ... kode sama ... */
     return Column( crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Makro', style: TextStyle(fontSize: 16, color: Colors.grey)),
       Text(macroRatio, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
@@ -266,26 +263,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         return _buildMacroBar( label: entry.key, percentage: entry.value, );
       }).toList(), ], );
   }
-  Widget _buildMacroBar({required String label, required double percentage}) {
+  Widget _buildMacroBar({required String label, required double percentage}) { /* ... kode sama ... */
     Color color; if (label == 'Protein') { color = Theme.of(context).primaryColor; } else if (label == 'Karbohidrat') { color = Colors.green.shade400; } else { color = Colors.amber.shade400; }
     return Padding( padding: const EdgeInsets.only(bottom: 12.0), child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
       const SizedBox(height: 5),
       ClipRRect( borderRadius: BorderRadius.circular(5), child: LinearProgressIndicator( value: percentage / 100, backgroundColor: Colors.grey.shade200, valueColor: AlwaysStoppedAnimation<Color>(color), minHeight: 12, ), ), ], ), );
-  }
-  Widget _buildActivitySummaryGrid() {
-    return Column( children: [ Row( children: [
-      Expanded( child: _buildActivityStatCard( title: 'Tangga', value: activityData['Tangga'] ?? '0', icon: Icons.stairs_outlined, ), ),
-      const SizedBox(width: 15),
-      Expanded( child: _buildActivityStatCard( title: 'Jarak', value: activityData['Jarak'] ?? '0 mil', icon: Icons.map_outlined, ), ), ], ),
-      const SizedBox(height: 15),
-      _buildActivityStatCard( title: 'Lamanya', value: activityData['Lamanya'] ?? '0 menit', isFullWidth: true, icon: Icons.timer_outlined, ), ], );
-  }
-  Widget _buildActivityStatCard({ required String title, required String value, bool isFullWidth = false, IconData? icon,}) {
-    return Container( width: isFullWidth ? double.infinity : null, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15), decoration: BoxDecoration( color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(15), ), child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row( children: [ if (icon != null) ...[ Icon(icon, size: 18, color: Colors.grey.shade600), const SizedBox(width: 8), ], Text( title, style: TextStyle(fontSize: 14, color: Colors.grey.shade600), ), ], ),
-      const SizedBox(height: 5),
-      Text( value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87), ), ], ), );
   }
 
 }

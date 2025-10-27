@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../models/storage_service.dart';
 import 'login_screen.dart'; // Diperlukan untuk navigasi saat logout
-import 'edit_profile_screen.dart';
+import 'edit_profile_screen.dart'; // Untuk tombol Edit utama
+// --- 1. IMPORT LAYAR BARU ---
+import 'edit_target_goals_screen.dart'; // Import layar Target & Tujuan
 
 class ProfileScreen extends StatefulWidget {
-  // --- PERUBAHAN: Jadikan User bisa diubah ---
-  // Awalnya: final User user;
-  late User user; // Ubah jadi non-final agar bisa diupdate
-  // --- AKHIR PERUBAHAN ---
-
-  ProfileScreen({super.key, required this.user}); // Constructor tetap
+  late User user;
+  ProfileScreen({super.key, required this.user});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -19,67 +17,65 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isNotificationEnabled = true;
 
-  // Profile default (tidak berubah)
+  // Profile default
   final UserProfile _defaultProfile = UserProfile(
     gender: 'Pria', age: 25, height: 170, currentWeight: 70,
     goalWeight: 65, activityLevel: 'Sedang', goals: const [],
     dietaryRestrictions: const [], allergies: const [],
   );
 
-  // Ambil data profil (tidak berubah)
   UserProfile get profile => widget.user.profile ?? _defaultProfile;
 
-  // Fungsi Logout (tidak berubah)
+  // Fungsi Logout
   void _logout(BuildContext context) async {
-    // ... (kode logout tetap sama) ...
     final storage = StorageService();
-    await storage.deleteToken(); // Hapus token dari SharedPreferences
-
-    // Navigasi ke halaman login dan hapus semua rute sebelumnya
+    await storage.deleteToken();
     if (context.mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
-      );
+      Navigator.pushAndRemoveUntil( context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false, );
     }
   }
 
-  // --- Fungsi Navigasi ke Edit Data Pribadi ---
-  void _navigateToEditDataPribadi() async {
+  // Fungsi Navigasi ke Edit Profile Lengkap (untuk tombol "Edit")
+  void _navigateToEditProfile() async {
+    final result = await Navigator.push<User>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditDataPribadiScreen(user: widget.user),
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() { widget.user = result; });
+    }
+  }
+
+  // --- 2. BUAT FUNGSI NAVIGASI BARU UNTUK TARGET & TUJUAN ---
+  void _navigateToEditTargetGoals() async {
     final result = await Navigator.push<User>( // Tunggu hasil User
       context,
       MaterialPageRoute(
-        builder: (context) => EditDataPribadiScreen(user: widget.user), // Kirim user saat ini
+        builder: (context) => EditTargetGoalsScreen(user: widget.user), // Arahkan ke layar baru
       ),
     );
-
-    // Jika kembali dengan data User baru (setelah disimpan di EditDataPribadiScreen)
+    // Jika ada data user baru yang dikembalikan, update state
     if (result != null && mounted) {
       setState(() {
-        // --- PERUBAHAN: Update state user di ProfileScreen ---
-        widget.user = result;
-        print("ProfileScreen updated with user: ${result.name}"); // Debug print
+        widget.user = result; // Update data user dengan data terbaru
       });
     }
   }
-  // --- Akhir Fungsi Navigasi ---
+  // --- AKHIR FUNGSI NAVIGASI ---
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        // ... (AppBar tidak berubah) ...
         title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.more_horiz, color: Colors.black87), // Icon titik tiga
-            onPressed: () {},
-          ),
+          IconButton( icon: const Icon(Icons.more_horiz, color: Colors.black87), onPressed: () {}, ),
           const SizedBox(width: 10),
         ],
       ),
@@ -87,15 +83,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Profile dan Info Cards
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildProfileHeader(), // Widget ini juga perlu diupdate onTap Edit-nya nanti
+                  _buildProfileHeader(),
                   const SizedBox(height: 25),
-                  // Info cards akan otomatis update karena setState
                   _buildInfoCards(
                       height: profile.height.round(),
                       weight: profile.currentWeight.round(),
@@ -104,22 +98,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 10),
 
             // Akun Section
             _buildSectionContainer(
               title: 'Akun',
               children: [
-                // --- PERUBAHAN: Modifikasi onTap untuk Data Pribadi ---
                 _buildProfileTile(
                   Icons.person_outline,
                   'Data Pribadi',
-                  _navigateToEditDataPribadi, // Panggil fungsi navigasi
+                      () {}, // Tidak ada aksi
+                  showArrow: false, // Sembunyikan panah
+                ),
+                _buildDivider(),
+                // --- 3. UBAH ITEM "PENCAPAIAN" ---
+                _buildProfileTile(
+                  Icons.assignment_turned_in_outlined, // Ikon bisa diganti jika mau
+                  'Edit Target & Tujuan', // Ubah teks
+                  _navigateToEditTargetGoals, // Panggil fungsi navigasi baru
                 ),
                 // --- AKHIR PERUBAHAN ---
-                _buildDivider(),
-                _buildProfileTile(Icons.assignment_turned_in_outlined, 'Pencapaian', () {}),
                 _buildDivider(),
                 _buildProfileTile(Icons.watch_later_outlined, 'Riwayat Aktivitas', () {}),
                 _buildDivider(),
@@ -128,14 +126,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Notification Section (tidak berubah)
+            // Notification Section
             _buildSectionContainer(
               title: 'Notification',
               children: [_buildNotificationTile()],
             ),
             const SizedBox(height: 20),
 
-            // Other Section (tidak berubah)
+            // Other Section
             _buildSectionContainer(
               title: 'Other',
               children: [
@@ -148,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 40),
 
-            // Tombol Keluar (tidak berubah)
+            // Tombol Keluar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: _buildLogoutButton(context),
@@ -163,7 +161,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // === WIDGET PEMBANGUN (BUILDERS) ===
 
   Widget _buildProfileHeader() {
-    // Di sini juga perlu update tombol Edit jika ingin edit keseluruhan profil
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -173,31 +170,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             CircleAvatar(
               radius: 30,
               backgroundColor: Colors.grey[200],
-              // TODO: Gunakan gambar profil asli jika ada
               backgroundImage: const AssetImage('assets/images/avatar_placeholder.png'),
             ),
             const SizedBox(width: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Welcome',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-                Text(
-                  widget.user.name, // Akan otomatis update setelah setState
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
+                const Text('Welcome', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(widget.user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
               ],
             ),
           ],
         ),
-
-        // Tombol Edit (TODO: Arahkan ke EditProfileScreen utama jika ada)
+        // Tombol Edit di header memanggil _navigateToEditProfile
         ElevatedButton(
-          onPressed: () {
-            _navigateToEditDataPribadi();
-          },
+          onPressed: _navigateToEditProfile, // Arahkan ke edit profil lengkap
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF007BFF),
             foregroundColor: Colors.white,
@@ -232,29 +219,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
+          boxShadow: [ BoxShadow( color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 5), ), ],
         ),
         child: Column(
           children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF007BFF), // Warna biru untuk nilai
-              ),
-            ),
+            Text( value, style: const TextStyle( fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF007BFF), ), ),
             const SizedBox(height: 5),
-            Text(
-              label,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
+            Text( label, style: TextStyle(fontSize: 14, color: Colors.grey[600]), ),
           ],
         ),
       ),
@@ -269,10 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 10.0),
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
+            child: Text( title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87), ),
           ),
           Container(
             decoration: BoxDecoration(
@@ -291,20 +259,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return SwitchListTile(
       title: const Text('Pop-up Notifikasi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
       value: _isNotificationEnabled,
-      onChanged: (bool value) {
-        setState(() => _isNotificationEnabled = value);
-      },
+      onChanged: (bool value) { setState(() => _isNotificationEnabled = value); },
       secondary: Icon(Icons.notifications_outlined, color: Colors.grey[700]),
       activeColor: const Color(0xFF007BFF),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
     );
   }
 
-  Widget _buildProfileTile(IconData icon, String title, VoidCallback onTap) {
+  // Modifikasi _buildProfileTile untuk opsi tanpa panah
+  Widget _buildProfileTile(IconData icon, String title, VoidCallback onTap, {bool showArrow = true}) {
     return ListTile(
       leading: Icon(icon, color: Colors.grey[700]),
       title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
+      trailing: showArrow ? const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey) : null,
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
     );
@@ -329,18 +296,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
         ),
-        child: const Text(
-            'Keluar',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
-        ),
+        child: const Text('Keluar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       ),
     );
   }
 }
-// --- Tambahkan ekstensi pada UserProfile jika belum ada ---
-// Pastikan file user_model.dart Anda memiliki field ini
+
+// Ekstensi UserProfile (jika diperlukan oleh EditDataPribadiScreen/EditTargetGoalsScreen)
 extension UserProfileExtension on UserProfile {
-  // Tambahkan field ini jika belum ada di model Anda
-  String? get phoneNumber => null; // Ganti null dengan field asli jika ada
-  DateTime? get dateOfBirth => null; // Ganti null dengan field asli jika ada
+  String? get phoneNumber => null;
+  DateTime? get dateOfBirth => null;
 }
