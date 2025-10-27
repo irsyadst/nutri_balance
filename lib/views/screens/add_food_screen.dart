@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'daily_summary_screen.dart';
 
 class AddFoodScreen extends StatefulWidget {
   const AddFoodScreen({super.key});
@@ -12,15 +10,6 @@ class AddFoodScreen extends StatefulWidget {
 class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
-
-  // Controller form Tambah Manual
-  final _formKey = GlobalKey<FormState>();
-  final _foodNameController = TextEditingController();
-  final _caloriesController = TextEditingController();
-  final _proteinController = TextEditingController();
-  final _carbsController = TextEditingController();
-  final _fatController = TextEditingController();
-  final _servingSizeController = TextEditingController();
 
   // Data Dummy
   final List<String> recentFoods = ['Dada ayam', 'Beras merah', 'Brokoli', 'Alpukat', 'Ikan salmon'];
@@ -38,69 +27,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _searchController.dispose();
-    _foodNameController.dispose();
-    _caloriesController.dispose();
-    _proteinController.dispose();
-    _carbsController.dispose();
-    _fatController.dispose();
-    _servingSizeController.dispose();
-    super.dispose();
-  }
-
-  // Fungsi submit form Tambah Manual
-  void _submitManualFood() async { // <-- Tambahkan async jika proses simpan butuh await
-    if (_formKey.currentState!.validate()) {
-      // Form valid
-      final foodName = _foodNameController.text;
-      final calories = int.tryParse(_caloriesController.text) ?? 0;
-      final protein = int.tryParse(_proteinController.text) ?? 0;
-      final carbs = int.tryParse(_carbsController.text) ?? 0;
-      final fat = int.tryParse(_fatController.text) ?? 0;
-      final servingSize = _servingSizeController.text;
-
-      print('Nama Makanan: $foodName');
-      print('Kalori: $calories kkal');
-      print('Protein: $protein g');
-      print('Karbohidrat: $carbs g');
-      print('Lemak: $fat g');
-      print('Ukuran Porsi: $servingSize');
-
-      // --- SIMULASI PROSES SIMPAN (Ganti dengan kode asli Anda) ---
-      print('Menyimpan data...');
-      // TODO: Ganti ini dengan logika penyimpanan ke backend/state management
-      // Misalnya: bool success = await FoodController.saveFood(...);
-      await Future.delayed(const Duration(seconds: 1)); // Simulasi delay
-      bool success = true; // Anggap sukses untuk contoh ini
-      // --- AKHIR SIMULASI ---
-
-      // Penting: Cek 'mounted' sebelum melakukan navigasi atau menampilkan SnackBar
-      if (!mounted) return;
-
-      if (success) {
-        // --- NAVIGASI DITAMBAHKAN DI SINI ---
-        Navigator.pushReplacement( // Ganti layar saat ini dengan DailySummaryScreen
-          context,
-          MaterialPageRoute(builder: (context) => const DailySummaryScreen()),
-        );
-
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal menambahkan makanan.')),
-        );
-      }
-    } else {
-      // Form tidak valid
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap isi semua kolom dengan benar.')),
-      );
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +51,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
           unselectedLabelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           tabs: const [
             Tab(text: 'Rekomendasi'),
-            Tab(text: 'Tambah Manual'),
           ],
         ),
       ),
@@ -133,7 +58,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
         controller: _tabController,
         children: [
           _buildRecommendationTab(context),
-          _buildManualAddTab(context),
         ],
       ),
     );
@@ -262,144 +186,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> with SingleTickerProvider
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // === WIDGET BUILDER UNTUK TAB TAMBAH MANUAL ===
-  Widget _buildManualAddTab(BuildContext context) {
-    // ... (Kode tab manual - tidak berubah) ...
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
-      child: Form( // Bungkus dengan Form
-        key: _formKey, // Gunakan GlobalKey
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Agar tombol lebar penuh
-          children: [
-            // Field Nama Makanan
-            _buildManualTextField(
-              controller: _foodNameController,
-              hintText: 'Nama Makanan',
-              validator: (value) => value == null || value.isEmpty ? 'Nama tidak boleh kosong' : null,
-            ),
-            const SizedBox(height: 15),
-
-            // Field Kalori
-            _buildManualTextField(
-              controller: _caloriesController,
-              hintText: 'Kalori',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Hanya angka
-              validator: (value) => value == null || value.isEmpty ? 'Kalori tidak boleh kosong' : null,
-            ),
-            const SizedBox(height: 15),
-
-            // Field Protein & Karbohidrat (dalam satu baris)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildManualTextField(
-                    controller: _proteinController,
-                    hintText: 'Protein',
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    validator: (value) => value == null || value.isEmpty ? 'Protein tidak boleh kosong' : null,
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: _buildManualTextField(
-                    controller: _carbsController,
-                    hintText: 'Karbohidrat',
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    validator: (value) => value == null || value.isEmpty ? 'Karbohidrat tidak boleh kosong' : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-
-            // Field Lemak & Ukuran Porsi (dalam satu baris)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildManualTextField(
-                    controller: _fatController,
-                    hintText: 'Lemak',
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    validator: (value) => value == null || value.isEmpty ? 'Lemak tidak boleh kosong' : null,
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: _buildManualTextField(
-                    controller: _servingSizeController,
-                    hintText: 'Ukuran Porsi', // Misal: 100g, 1 mangkok
-                    validator: (value) => value == null || value.isEmpty ? 'Ukuran porsi tidak boleh kosong' : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 40), // Jarak sebelum tombol
-
-            // Tombol Tambahkan Makanan
-            ElevatedButton.icon(
-              onPressed: _submitManualFood, // Panggil fungsi submit
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text(
-                'Tambahkan Makanan',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor, // Warna biru
-                minimumSize: const Size(double.infinity, 55), // Lebar penuh
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                elevation: 2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper widget untuk TextField di tab manual
-  Widget _buildManualTextField({
-    required TextEditingController controller,
-    required String hintText,
-    TextInputType keyboardType = TextInputType.text,
-    List<TextInputFormatter>? inputFormatters,
-    String? Function(String?)? validator,
-  }) {
-    // ... (Kode text field - tidak berubah) ...
-    return TextFormField( // Gunakan TextFormField untuk validasi
-      controller: controller,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      validator: validator, // Terapkan validator
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(color: Colors.grey.shade400),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: const Color(0xFFF3F4F6),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        // Styling untuk error
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
       ),
     );

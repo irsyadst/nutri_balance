@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../models/storage_service.dart';
 import 'login_screen.dart'; // Diperlukan untuk navigasi saat logout
-import 'edit_profile_screen.dart'; // <-- 1. IMPORT LAYAR EDIT
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   // --- PERUBAHAN: Jadikan User bisa diubah ---
@@ -58,8 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (result != null && mounted) {
       setState(() {
         // --- PERUBAHAN: Update state user di ProfileScreen ---
-        widget.user = result; // Update data user dengan data terbaru
-        // --- AKHIR PERUBAHAN ---
+        widget.user = result;
         print("ProfileScreen updated with user: ${result.name}"); // Debug print
       });
     }
@@ -216,9 +215,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // --- Widget builder lainnya (_buildInfoCards, _buildInfoCard, _buildSectionContainer,
-  // --- _buildNotificationTile, _buildProfileTile, _buildDivider, _buildLogoutButton)
-  // --- tidak perlu diubah dari kode Anda sebelumnya ---
   Widget _buildInfoCards({required int height, required int weight, required int age}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

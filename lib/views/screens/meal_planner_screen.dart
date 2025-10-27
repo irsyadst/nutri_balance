@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart'; 
 import '../../models/meal_models.dart';
-import 'food_category_screen.dart'; 
-import 'meal_schedule_screen.dart'; 
+import 'food_category_screen.dart';
 
 class MealPlannerScreen extends StatelessWidget {
   const MealPlannerScreen({super.key});
@@ -281,8 +280,6 @@ class MealPlannerScreen extends StatelessWidget {
           const Text('Jadwal Makan Harian', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
           ElevatedButton(
             onPressed: () {
-              // Navigasi ke Jadwal Makan
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const MealScheduleScreen()));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF007BFF),

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-// Asumsikan path model dan screens Anda sudah benar
+import 'package:flutter_svg/flutter_svg.dart'; // Import SVG jika ikon Anda SVG
 import '../../models/user_model.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
-import 'meal_planner_screen.dart'; // <<< WAJIB DITAMBAHKAN
+// --- 1. PASTIKAN SEMUA LAYAR DIIMPORT ---
+import 'meal_package_screen.dart';
+import 'statistics_screen.dart';
 
-// Halaman Wrapper Aplikasi Utama dengan Bottom Navigation
 class MainAppScreen extends StatefulWidget {
-  // Menambahkan parameter untuk menerima data pengguna
   final User user;
   const MainAppScreen({super.key, required this.user});
 
@@ -16,19 +16,19 @@ class MainAppScreen extends StatefulWidget {
 }
 
 class _MainAppScreenState extends State<MainAppScreen> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 0; // Mulai dari Beranda
 
-  // Daftar halaman sekarang dibuat di sini agar bisa mengakses `widget.user`
   late final List<Widget> _widgetOptions;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi daftar halaman hanya dengan 3 item: Home, Calories, Profile
+    // --- 2. LENGKAPI DAFTAR HALAMAN SESUAI URUTAN NAVIGASI ---
     _widgetOptions = <Widget>[
-      HomeScreen(user: widget.user), // 0: Home
-      const MealPlannerScreen(), // 1: Calories (Ganti Placeholder dengan MealPlannerScreen)
-      ProfileScreen(user: widget.user), // 2: Profile
+      HomeScreen(user: widget.user), // 0: Beranda
+      const MealPackageScreen(),      // 1: Paket Makan (Layar baru Anda)
+      const StatisticsScreen(),       // 2: Statistik (Ganti dengan layar Anda jika sudah ada)
+      ProfileScreen(user: widget.user), // 3: Profil
     ];
   }
 
@@ -38,29 +38,27 @@ class _MainAppScreenState extends State<MainAppScreen> {
     });
   }
 
-  // Fungsi pembantu untuk membuat ikon dari asset dan mengelola warna
-  Widget _buildAssetIcon(String path, {Color? color}) {
-    return Image.asset(
-      path,
-      width: 28, // Ukuran ikon sesuai keinginan
-      height: 28,
-      color: color,
+  // Fungsi pembantu untuk membuat ikon
+  Widget _buildIcon(IconData iconData, int index, Color activeColor, Color inactiveColor) {
+    return Icon(
+      iconData,
+      color: _selectedIndex == index ? activeColor : inactiveColor,
+      size: 28, // Sesuaikan ukuran
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Tentukan warna aktif (biru) dan tidak aktif (abu-abu)
-    const activeColor = Color(0xFF007BFF); 
+    const activeColor = Color(0xFF007BFF);
     const inactiveColor = Colors.grey;
 
     return Scaffold(
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
-      
-      // Bagian Bottom Navigation Bar dengan styling melengkung
+
       bottomNavigationBar: Container(
+
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -69,7 +67,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Color(0x1A000000), // Shadow ringan
+              color: Color(0x1A000000),
               blurRadius: 10,
               offset: Offset(0, -5),
             ),
@@ -83,8 +81,8 @@ class _MainAppScreenState extends State<MainAppScreen> {
           child: BottomNavigationBar(
             onTap: _onItemTapped,
             currentIndex: _selectedIndex,
-            
-            // Styling
+
+
             backgroundColor: Colors.white,
             selectedItemColor: activeColor,
             unselectedItemColor: inactiveColor,
@@ -94,23 +92,26 @@ class _MainAppScreenState extends State<MainAppScreen> {
             type: BottomNavigationBarType.fixed,
 
             items: <BottomNavigationBarItem>[
-              // 1. Home
               BottomNavigationBarItem(
-                icon: _buildAssetIcon('assets/images/home-navbar.png', 
-                    color: _selectedIndex == 0 ? activeColor : inactiveColor),
-                label: 'Home',
+                icon: _buildIcon(Icons.home_outlined, 0, activeColor, inactiveColor),
+                activeIcon: _buildIcon(Icons.home, 0, activeColor, inactiveColor),
+                label: 'Beranda',
               ),
-              // 2. Calories
               BottomNavigationBarItem(
-                icon: _buildAssetIcon('assets/images/calories-navbar.png',
-                    color: _selectedIndex == 1 ? activeColor : inactiveColor),
-                label: 'Calories',
+                icon: _buildIcon(Icons.calendar_month_outlined, 1, activeColor, inactiveColor),
+                activeIcon: _buildIcon(Icons.calendar_month, 1, activeColor, inactiveColor),
+                // Ganti label jika perlu
+                label: 'Jadwal Makan',
               ),
-              // 3. Profile
               BottomNavigationBarItem(
-                icon: _buildAssetIcon('assets/images/profile-navbar.png',
-                    color: _selectedIndex == 2 ? activeColor : inactiveColor),
-                label: 'Profile',
+                icon: _buildIcon(Icons.bar_chart_outlined, 2, activeColor, inactiveColor),
+                activeIcon: _buildIcon(Icons.bar_chart, 2, activeColor, inactiveColor),
+                label: 'Statistik',
+              ),
+              BottomNavigationBarItem(
+                icon: _buildIcon(Icons.person_outline, 3, activeColor, inactiveColor),
+                activeIcon: _buildIcon(Icons.person, 3, activeColor, inactiveColor),
+                label: 'Profil',
               ),
             ],
           ),
