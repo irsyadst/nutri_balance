@@ -196,11 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Tombol Edit (TODO: Arahkan ke EditProfileScreen utama jika ada)
         ElevatedButton(
           onPressed: () {
-            // TODO: Arahkan ke layar edit profil utama (jika beda dengan edit data pribadi)
-            // Misalnya: _navigateToEditProfile();
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Tombol Edit Utama (Belum dihubungkan)'))
-            );
+            _navigateToEditDataPribadi();
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF007BFF),
@@ -341,7 +337,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-
 // --- Tambahkan ekstensi pada UserProfile jika belum ada ---
 // Pastikan file user_model.dart Anda memiliki field ini
 extension UserProfileExtension on UserProfile {
