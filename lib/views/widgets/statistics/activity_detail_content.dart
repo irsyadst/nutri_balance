@@ -13,6 +13,7 @@ class ActivityDetailContent extends StatelessWidget {
     {'date': '25 Okt 2025', 'steps': 6000, 'duration': 55, 'distance': 3.0},
     {'date': '24 Okt 2025', 'steps': 3000, 'duration': 25, 'distance': 1.5},
   ];
+  // --- Akhir Data Dummy ---
 
   @override
   Widget build(BuildContext context) {

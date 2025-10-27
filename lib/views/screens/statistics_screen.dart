@@ -188,7 +188,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         case 'Kalori': detailContent = const CalorieDetailContent(); break;
         case 'Berat Badan': detailContent = const WeightDetailContent(); break;
         case 'Makronutrien': detailContent = const MacroDetailContent(); break;
-        // case 'Aktivitas': detailContent = const ActivityDetailContent(); break;
+        case 'Aktivitas': detailContent = ActivityDetailContent(); break;
         case 'Asupan Air': detailContent = const WaterDetailContent(); break;
         default: detailContent = const Center(child: Text('Konten detail tidak ditemukan'));
       }
@@ -198,7 +198,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
       );
     }
   }
-
 
   // === Helper Widgets Lainnya (TETAP DI SINI) ===
   Widget _buildDetailCategoryTile({ required String title, required IconData icon, required VoidCallback onTap,}) {
