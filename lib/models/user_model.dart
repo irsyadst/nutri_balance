@@ -17,8 +17,10 @@ class UserProfile {
   final List<String> goals;
   final List<String> dietaryRestrictions; // Field baru
   final List<String> allergies;           // Field baru
-
   final int? targetCalories;
+  final int? targetProteins;
+  final int? targetCarbs;
+  final int? targetFats;
 
   UserProfile({
     required this.gender,
@@ -31,6 +33,9 @@ class UserProfile {
     required this.dietaryRestrictions,
     required this.allergies,
     this.targetCalories,
+    this.targetProteins,
+    this.targetCarbs,
+    this.targetFats,
   });
 
   Map<String, dynamic> toJson() {

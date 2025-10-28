@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'user_model.dart';
 import 'dashboard_data.dart';
+import 'meal_models.dart'; // <-- Impor MealItem atau model log jika perlu
+import 'food_log_model.dart'; // <-- Tambahkan import model FoodLog
 
 // Service untuk Komunikasi dengan Backend
 class ApiService {
@@ -113,7 +115,33 @@ class ApiService {
     }
   }
 
-  // ==== PERUBAHAN DI FUNGSI INI ====
+  Future<List<FoodLogEntry>> getFoodLogHistory(String token) async {
+    if (token.isEmpty) {
+      debugPrint('Error di getFoodLogHistory: Token kosong.');
+      return []; // Kembalikan list kosong jika token tidak ada
+    }
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/log/history'), // Endpoint: /api/log/history
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 20)); // Timeout lebih lama mungkin diperlukan
+
+      debugPrint('Get History Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        List<dynamic> body = jsonDecode(response.body);
+        // Ubah list JSON menjadi list objek FoodLogEntry
+        List<FoodLogEntry> logs = body.map((dynamic item) => FoodLogEntry.fromJson(item)).toList();
+        return logs;
+      } else {
+        debugPrint('Error di getFoodLogHistory: Status code ${response.statusCode}');
+        return []; // Kembalikan list kosong jika gagal
+      }
+    } catch (e) {
+      debugPrint('Error di getFoodLogHistory (catch): $e');
+      return []; // Kembalikan list kosong jika terjadi exception
+    }
+  }
   // Fungsi helper internal untuk mem-parsing data User dari JSON secara aman
   User _parseUserFromJson(Map<String, dynamic> data) {
     var profileData = data['profile'];

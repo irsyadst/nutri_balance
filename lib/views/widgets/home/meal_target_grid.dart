@@ -1,18 +1,18 @@
+// lib/views/widgets/home/meal_target_grid.dart
 import 'package:flutter/material.dart';
-import 'dart:math'; // For min function
+import 'dart:math';
 
 class MealTargetGrid extends StatelessWidget {
-  // Example data structure (consider passing this from the screen or a controller)
-  final Map<String, Map<String, dynamic>> targets = const {
-    'Sarapan': {'icon': Icons.wb_sunny_outlined, 'consumed': 500.0, 'target': 600.0, 'unit': 'kkal'},
-    'Makan siang': {'icon': Icons.restaurant_menu_outlined, 'consumed': 400.0, 'target': 700.0, 'unit': 'kkal'},
-    'Makan malam': {'icon': Icons.nights_stay_outlined, 'consumed': 0.0, 'target': 600.0, 'unit': 'kkal'},
-    'Makanan ringan': {'icon': Icons.bakery_dining_outlined, 'consumed': 400.0, 'target': 313.0, 'unit': 'kkal'},
-    'Air': {'icon': Icons.water_drop_outlined, 'consumed': 2.0, 'target': 3.0, 'unit': 'L'},
-    'Aktivitas': {'icon': Icons.fitness_center_outlined, 'consumed': 600.0, 'target': 900.0, 'unit': 'kkal'},
-  };
+  // Terima data target dari luar (misal dari profil user)
+  final Map<String, Map<String, dynamic>> targets;
+  // Terima data konsumsi hari ini dari luar
+  final Map<String, double> consumedData; // Contoh: {'Sarapan': 500.0, 'Air': 2.0}
 
-  const MealTargetGrid({super.key});
+  const MealTargetGrid({
+    super.key,
+    required this.targets, // Jadikan wajib
+    required this.consumedData, // Jadikan wajib
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,25 +26,28 @@ class MealTargetGrid extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 15,
         mainAxisSpacing: 15,
-        childAspectRatio: 1.8, // Adjust ratio for desired card height
+        childAspectRatio: 1.8,
       ),
       itemBuilder: (context, index) {
         final title = keys[index];
-        final data = targets[title]!;
-        // Pass data to the individual card widget
+        final targetData = targets[title]!;
+        // Ambil data konsumsi untuk title ini, default 0 jika tidak ada
+        final currentConsumed = consumedData[title] ?? 0.0;
+
         return _MealTargetCard(
           title: title,
-          icon: data['icon'] as IconData,
-          consumed: data['consumed'] as double,
-          target: data['target'] as double,
-          unit: data['unit'] as String,
+          icon: targetData['icon'] as IconData,
+          // Gunakan data konsumsi dari parameter
+          consumed: currentConsumed,
+          target: (targetData['target'] as num?)?.toDouble() ?? 0.0, // Konversi target ke double
+          unit: targetData['unit'] as String,
         );
       },
     );
   }
 }
 
-// --- Internal Widget for Individual Target Card ---
+// _MealTargetCard (internal widget) tetap sama
 class _MealTargetCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -62,10 +65,8 @@ class _MealTargetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate progress safely
     final double progress = (target > 0) ? min(1.0, consumed / target) : 0.0;
-    // Determine progress bar color (e.g., blue for food/water, green for activity)
-    final progressColor = (unit == 'L' || unit == 'kkal' && title != 'Aktivitas')
+    final progressColor = (unit == 'L' || (unit == 'kkal' && title != 'Aktivitas'))
         ? const Color(0xFF007BFF) // Blue
         : Colors.green.shade400; // Green for activity
 
@@ -87,12 +88,11 @@ class _MealTargetCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute space vertically
         children: [
-          // Icon and Title Row
           Row(
             children: [
               Icon(icon, color: Colors.grey.shade600, size: 20),
               const SizedBox(width: 8),
-              Expanded( // Prevent title overflow
+              Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
@@ -101,12 +101,10 @@ class _MealTargetCard extends StatelessWidget {
               ),
             ],
           ),
-          // Consumed/Target Text and Progress Bar
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                // Format text: 1 decimal for Liters, round for kkal
                 unit == 'L'
                     ? '${consumed.toStringAsFixed(1)} / ${target.toStringAsFixed(1)} $unit'
                     : '${consumed.round()} / ${target.round()} $unit',
