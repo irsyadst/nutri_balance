@@ -1,9 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../controllers/auth_controller.dart';
-import '../../models/user_model.dart'; // Import User model
 // Import widget baru
 import '../widgets/shared/primary_button.dart';
 import '../widgets/shared/auth_text_field.dart';

@@ -6,8 +6,6 @@ import '../../controllers/profile_controller.dart';
 import '../widgets/questionnaire/question_widgets.dart'; // Widget pertanyaan generik
 import '../widgets/questionnaire/summary_page.dart'; // Widget halaman ringkasan
 import 'main_app_screen.dart';
-import '../../utils/nutritional_calculator.dart';
-import '../../models/user_model.dart';
 
 class QuestionnaireScreen extends StatefulWidget {
   const QuestionnaireScreen({super.key});

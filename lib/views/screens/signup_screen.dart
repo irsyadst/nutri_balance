@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 // Import shared widgets
 import '../../controllers/auth_controller.dart';

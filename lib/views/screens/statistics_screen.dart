@@ -27,7 +27,6 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String _selectedPeriod = 'Minggu Ini'; // State untuk periode (belum digunakan aktif)
   String? _selectedDetailCategory; // State untuk kategori detail yang dipilih
 
   // --- Data Dummy (Pindahkan ke Controller/State Management nantinya) ---
@@ -83,13 +82,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
 
 
   // Fungsi Fetch Data (contoh)
-  Future<void> _fetchStatisticsData() async {
-    print("Fetching statistics for: $_selectedPeriod");
-    // TODO: Panggil controller/API untuk ambil data
-    await Future.delayed(const Duration(milliseconds: 300));
-    // Update state dengan data baru jika perlu
-    // setState(() {});
-  }
 
   // Fungsi untuk menangani tap pada kategori detail
   void _onDetailCategoryTap(String category) {

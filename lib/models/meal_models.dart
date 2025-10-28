@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class NutritionData {
   final double calories;
   final double sugar;

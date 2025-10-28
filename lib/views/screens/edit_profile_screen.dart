@@ -108,11 +108,11 @@ class _EditDataPribadiScreenState extends State<EditDataPribadiScreen> {
         // User updatedUser = User(...); // User baru dari response API
         // Navigator.pop(context, updatedUser);
         Navigator.pop(context, true); // Kirim 'true' untuk menandakan sukses
-      } else {
+      }/* else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Gagal memperbarui data.')),
         );
-      }
+      }*/
     }
   }
 

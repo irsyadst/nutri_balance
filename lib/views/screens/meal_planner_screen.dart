@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// Remove fl_chart import if not directly used here anymore
-// import 'package:fl_chart/fl_chart.dart';
+
 import '../../models/meal_models.dart';
 // Import new widgets
 import '../widgets/meal_planner/nutrition_chart_section.dart';
@@ -8,8 +7,6 @@ import '../widgets/meal_planner/daily_schedule_card_button.dart';
 import '../widgets/meal_planner/today_meals_header.dart';
 import '../widgets/meal_planner/meal_list_tile.dart'; // Ensure correct path
 import '../widgets/meal_planner/find_food_section.dart';
-// Import necessary screens for navigation
-import 'food_category_screen.dart'; // Make sure this is imported
 
 class MealPlannerScreen extends StatefulWidget { // Changed to StatefulWidget for dropdown state
   const MealPlannerScreen({super.key});

@@ -7,7 +7,6 @@ import '../widgets/meal_package/meal_calendar.dart';
 import '../widgets/meal_package/daily_schedule_list.dart';
 import '../widgets/meal_package/generate_menu_button.dart';
 // Import screen tujuan (jika belum)
-import 'generate_menu_screen.dart';
 
 class MealPackageScreen extends StatefulWidget {
   const MealPackageScreen({super.key});

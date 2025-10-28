@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/meal_models.dart';
-import 'food_detail_screen.dart';
 // Import new widgets
 import '../widgets/food_category/category_search_bar.dart';
 import '../widgets/food_category/horizontal_category_list.dart';
