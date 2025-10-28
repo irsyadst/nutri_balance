@@ -1,9 +1,15 @@
-import 'dart:ui'; // <-- PERBAIKAN: Tambahkan import ini untuk ImageFilter
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
+// Import shared widgets
 import '../../controllers/auth_controller.dart';
-import '../widgets/primary_button.dart';
+import '../widgets/shared/primary_button.dart';
+import '../widgets/shared/auth_text_field.dart';
+import '../widgets/shared/social_sign_in_button.dart';
+import '../widgets/shared/loading_modal.dart';
+import '../widgets/shared/auth_header.dart';
+import '../widgets/shared/or_divider.dart';
+import '../widgets/shared/auth_navigation_link.dart';
+// Import screen tujuan
 import 'otp_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -28,35 +34,59 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _controller.dispose(); // Dispose controller
     super.dispose();
   }
 
   void _handleSignUp() {
-    if (_controller.isLoading) return;
+    if (_controller.isLoading) return; // Prevent multiple taps
 
-    if (_formKey.currentState!.validate()) {
+    // Validate form first
+    if (_formKey.currentState?.validate() ?? false) {
+      // Check if passwords match
       if (_passwordController.text != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Password tidak cocok!")));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Password dan konfirmasi password tidak cocok!")));
         return;
       }
 
+      // Call controller to request registration
       _controller.requestRegistration(
         _nameController.text,
         _emailController.text,
         _passwordController.text,
       ).then((result) {
-        if (result['success']! && mounted) {
+        if (!mounted) return; // Check if widget is still mounted
+
+        if (result['success'] == true) {
+          // Navigate to OTP screen on success
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => OtpScreen(email: _emailController.text),
             ),
           );
-        } else if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message']!)));
+        } else {
+          // Show error message on failure
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result['message'] ?? 'Pendaftaran gagal.')));
         }
+      }).catchError((error) {
+        // Handle potential errors during the API call
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Terjadi kesalahan: ${error.toString()}')));
       });
     }
+  }
+
+  // --- Fungsi untuk Google Sign In ---
+  void _handleGoogleSignUp() {
+    // TODO: Implementasi Google Sign Up
+    print("Google Sign Up button pressed");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Google Sign Up belum diimplementasi.')),
+    );
   }
 
   @override
@@ -66,216 +96,124 @@ class _SignUpScreenState extends State<SignUpScreen> {
       builder: (context, child) {
         return Stack(
           children: [
-            _buildMainUI(),
-            if (_controller.isLoading) _buildLoadingModal(),
+            _buildMainUI(), // Build the main UI
+            // Show loading modal if controller is loading
+            if (_controller.isLoading)
+              const LoadingModal(
+                message: 'Signing Up...',
+                logoAssetPath: 'assets/images/NutriBalance.png',
+              ),
           ],
         );
       },
     );
   }
 
+  // Widget builder for the main UI structure
   Widget _buildMainUI() {
     return Scaffold(
       backgroundColor: Colors.white,
+      // Simple AppBar for back navigation
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Colors.transparent, // Transparent background
+        elevation: 0, // No shadow
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black54, size: 20), // Smaller back icon
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-          child: Form(
+          child: Form( // Wrap content in a Form
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Center(
-                  child: SvgPicture.asset(
-                    'assets/images/NutriBalance.png',
-                    height: 60,
-                  ),
+                // Use AuthHeader widget
+                const AuthHeader(
+                  logoAssetPath: 'assets/images/NutriBalance.svg', // Use SVG logo if available
+                  title: "Buat Akun Baru", // Updated title
+                  subtitle: "Isi detail Anda untuk memulai perjalanan kesehatan.", // Updated subtitle
                 ),
-                const SizedBox(height: 30),
-                const Text(
-                  "Let's Get You\nBalanced Again",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+
+                // Use AuthTextField for Name
+                AuthTextField(
+                  controller: _nameController,
+                  hintText: 'Nama Lengkap',
+                  prefixIcon: Icons.person_outline,
+                  validator: (value) => (value?.isEmpty ?? true) ? 'Nama tidak boleh kosong' : null,
                 ),
-                const SizedBox(height: 15),
-                const Text(
-                  "Daftar dan mulai perjalanan kesehatan Anda.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                const SizedBox(height: 20),
+
+                // Use AuthTextField for Email
+                AuthTextField(
+                  controller: _emailController,
+                  hintText: 'Email',
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: Icons.email_outlined,
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) return 'Email tidak boleh kosong';
+                    if (!value!.contains('@') || !value.contains('.')) return 'Format email tidak valid';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Use AuthTextField for Password
+                AuthTextField(
+                  controller: _passwordController,
+                  hintText: 'Password',
+                  isPassword: true,
+                  prefixIcon: Icons.lock_outline,
+                  validator: (value) => (value?.length ?? 0) < 6 ? 'Password minimal 6 karakter' : null,
+                ),
+                const SizedBox(height: 20),
+
+                // Use AuthTextField for Confirm Password
+                AuthTextField(
+                    controller: _confirmPasswordController,
+                    hintText: 'Konfirmasi Password',
+                    isPassword: true,
+                    prefixIcon: Icons.lock_outline,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) return 'Konfirmasi password tidak boleh kosong';
+                      if (value != _passwordController.text) return 'Password tidak cocok';
+                      return null;
+                    }
                 ),
                 const SizedBox(height: 40),
-                _buildTextField(_nameController, 'Nama Lengkap', false, validator: (value) => value!.isEmpty ? 'Nama tidak boleh kosong' : null),
-                const SizedBox(height: 20),
-                _buildTextField(_emailController, 'Email', false, validator: (value) {
-                  if (value!.isEmpty) return 'Email tidak boleh kosong';
-                  if (!value.contains('@')) return 'Format email tidak valid';
-                  return null;
-                }),
-                const SizedBox(height: 20),
-                _buildTextField(_passwordController, 'Password', true, validator: (value) => value!.length < 6 ? 'Password minimal 6 karakter' : null),
-                const SizedBox(height: 20),
-                _buildTextField(_confirmPasswordController, 'Confirm Password', true, validator: (value) => value!.isEmpty ? 'Konfirmasi password tidak boleh kosong' : null),
-                const SizedBox(height: 40),
+
+                // Use PrimaryButton for Sign Up action
                 PrimaryButton(
                   text: 'Sign Up',
                   onPressed: _handleSignUp,
                 ),
                 const SizedBox(height: 30),
-                const Row(
-                  children: [
-                    Expanded(child: Divider(thickness: 1, endIndent: 10, color: Colors.grey)),
-                    Text('OR', style: TextStyle(color: Colors.grey)),
-                    Expanded(child: Divider(thickness: 1, indent: 10, color: Colors.grey)),
-                  ],
-                ),
+
+                // Use OrDivider widget
+                const OrDivider(),
                 const SizedBox(height: 30),
-                _buildGoogleSignInButton(),
-                const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Already have an account? ", style: TextStyle(color: Colors.grey)),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Text(
-                        'Sign In',
-                        style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
+
+                // Use SocialSignInButton for Google
+                SocialSignInButton(
+                  label: 'Sign Up with Google', // Updated label
+                  iconAssetPath: 'assets/images/Google.svg',
+                  onPressed: _handleGoogleSignUp,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 40),
+
+                // Use AuthNavigationLink widget
+                AuthNavigationLink(
+                  leadingText: "Sudah punya akun? ", // Updated text
+                  linkText: 'Sign In',
+                  onTap: () => Navigator.pop(context), // Go back to login screen
+                ),
+                const SizedBox(height: 20), // Bottom padding
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String hintText, bool isPassword, {String? Function(String?)? validator}) {
-    return TextFormField(
-      controller: controller,
-      obscureText: isPassword,
-      style: const TextStyle(fontSize: 16),
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGoogleSignInButton() {
-    return ElevatedButton.icon(
-      onPressed: () {
-        // TODO: Implementasi Google Sign Up
-      },
-      icon: SvgPicture.asset(
-        'assets/images/Google.svg',
-        height: 22,
-      ),
-      label: const Text(
-        'Google',
-        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        side: BorderSide(color: Colors.grey.shade300, width: 1.5),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingModal() {
-    return PopScope(
-      canPop: false,
-      child: Stack(
-        children: [
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-            ),
-          ),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(30),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/NutriBalance.png',
-                    height: 50,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Signing Up...',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

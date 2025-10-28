@@ -3,7 +3,13 @@ import 'package:flutter/cupertino.dart'; // Untuk CupertinoPicker
 import 'package:intl/intl.dart'; // Untuk format tanggal
 import '../../models/user_model.dart';
 import '../../utils/nutritional_calculator.dart'; // Import kalkulator
-import '../widgets/question_widgets.dart'; // Import widget pilihan
+import '../widgets/questionnaire/question_widgets.dart'; // Import widget pilihan
+// Import new widgets
+import '../widgets/edit_target_goals/picker_header.dart';
+import '../widgets/edit_target_goals/picker_trigger_field.dart';
+import '../widgets/edit_target_goals/recalculation_warning_card.dart';
+import '../widgets/edit_target_goals/new_calculations_section.dart';
+import '../widgets/edit_target_goals/bottom_action_buttons.dart';
 // TODO: Import controller/service Anda
 // import '../../controllers/profile_controller.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
@@ -80,11 +86,13 @@ class _EditTargetGoalsScreenState extends State<EditTargetGoalsScreen> {
           height: 250,
           child: Column(
             children: [
-              _buildPickerHeader(context, title, () {
-                setState(() {
-                  _editedData[fieldKey] = selectedValue;
-                  _recalculate(); // Hitung ulang setelah memilih
-                });
+              PickerHeader(
+                  title: title,
+                  onDone: () {
+                    setState(() {
+                      _editedData[fieldKey] = selectedValue;
+                      _recalculate();
+                    });
                 Navigator.pop(context);
               }),
               Expanded(
@@ -182,27 +190,27 @@ class _EditTargetGoalsScreenState extends State<EditTargetGoalsScreen> {
                 // --- Body Measurements ---
                 const Text('Body Measurements', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 15),
-                _buildTextField(
+                PickerTriggerField(
                   label: 'Tinggi Badan(cm)',
                   value: '${_editedData['height']}',
                   onTap: () => _showPicker(context, 'height', 'Pilih Tinggi (cm)', 140, 220),
                 ),
                 const SizedBox(height: 15),
-                _buildTextField(
+                PickerTriggerField(
                   label: 'Berat Badan Saat Ini (kg)',
                   value: '${_editedData['currentWeight']}',
                   onTap: () => _showPicker(context, 'currentWeight', 'Pilih Berat (kg)', 40, 150),
                 ),
                 const Text('Terakhir diperbarui 12 Mei 2024', style: TextStyle(fontSize: 12, color: Colors.grey)), // Data dummy
                 const SizedBox(height: 15),
-                _buildTextField(
+                PickerTriggerField(
                   label: 'Target Berat Badan (kg)',
                   value: '${_editedData['goalWeight']}',
                   onTap: () => _showPicker(context, 'goalWeight', 'Pilih Target (kg)', 40, 150),
                 ),
                 Text('Perbedaan: $weightDifference kg', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 const SizedBox(height: 15),
-                _buildTextField(
+                PickerTriggerField(
                   label: 'Tanggal Target',
                   value: _editedData['targetDate'] == null ? 'Pilih Tanggal' : DateFormat('d MMM yyyy').format(_editedData['targetDate']),
                   onTap: () => _showDatePicker(context, 'targetDate'),
@@ -214,7 +222,7 @@ class _EditTargetGoalsScreenState extends State<EditTargetGoalsScreen> {
                 const Text('Activity & Goals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 15),
                 // Tingkat Aktivitas (Dropdown/Pilihan)
-                _buildDropdownField(
+                PickerTriggerField(
                   label: 'Tingkat Aktivitas',
                   value: _editedData['activityLevel'],
                   onTap: () => _showChoicePicker(
@@ -232,7 +240,7 @@ class _EditTargetGoalsScreenState extends State<EditTargetGoalsScreen> {
                 ),
                 const SizedBox(height: 15),
                 // Tujuan Diet (Dropdown/Pilihan)
-                _buildDropdownField(
+                PickerTriggerField(
                   label: 'Tujuan Diet',
                   value: _editedData['goals'],
                   onTap: () => _showChoicePicker(
@@ -249,19 +257,25 @@ class _EditTargetGoalsScreenState extends State<EditTargetGoalsScreen> {
                 const SizedBox(height: 30),
 
                 // --- Peringatan Kalkulasi Ulang ---
-                _buildWarningCard(),
+                const RecalculationWarningCard(),
                 const SizedBox(height: 30),
 
                 // --- Hasil Kalkulasi Baru ---
                 if (_newCalculations != null)
-                  _buildNewCalculationsSection(_newCalculations!),
-
-                const SizedBox(height: 100), // Padding untuk tombol bawah
+                  NewCalculationsSection(
+                    calculations: _newCalculations!,
+                    applyNewCalculations: _applyNewCalculations,
+                    onApplyChanged: (value) => setState(() => _applyNewCalculations = value ?? false),
+                  ),
               ],
             ),
           ),
           // --- Tombol Aksi di Bawah ---
-          _buildBottomActionButtons(),
+          BottomActionButtons(
+            isLoading: _isLoading,
+            onCancel: () => Navigator.pop(context),
+            onSave: _saveChanges,
+          ),
           // --- Overlay Loading ---
           if (_isLoading)
             Container(
@@ -269,83 +283,6 @@ class _EditTargetGoalsScreenState extends State<EditTargetGoalsScreen> {
               child: const Center(child: CircularProgressIndicator()),
             ),
         ],
-      ),
-    );
-  }
-
-  // === Helper Widgets ===
-
-  // Header untuk picker
-  Widget _buildPickerHeader(BuildContext context, String title, VoidCallback onDone) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          TextButton(
-            onPressed: onDone,
-            child: const Text('Pilih', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Field input yang terlihat seperti text field tapi memicu picker
-  Widget _buildTextField({required String label, required String value, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.grey.shade600),
-          filled: true,
-          fillColor: Colors.grey.shade100,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            const Icon(Icons.edit_outlined, color: Colors.grey, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Field input untuk pilihan (Tingkat Aktivitas, Tujuan Diet)
-  Widget _buildDropdownField({required String label, required String value, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.grey.shade600),
-          filled: true,
-          fillColor: Colors.grey.shade100,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(child: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis)),
-            const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 24),
-          ],
-        ),
       ),
     );
   }
@@ -381,141 +318,6 @@ class _EditTargetGoalsScreenState extends State<EditTargetGoalsScreen> {
             ),
           );
         }
-    );
-  }
-
-  // Kartu peringatan
-  Widget _buildWarningCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.shade100),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 28),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Perubahan akan menghitung ulang kebutuhan kalori harian Anda!',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade900),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Pastikan semua informasi sudah benar sebelum menyimpan.',
-                  style: TextStyle(color: Colors.red.shade800),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Bagian hasil kalkulasi baru
-  Widget _buildNewCalculationsSection(Map<String, dynamic> calculations) {
-    // Format rasio makro
-    final protPercent = ((calculations['proteins'] * 4) / calculations['calories'] * 100).round();
-    final carbPercent = ((calculations['carbs'] * 4) / calculations['calories'] * 100).round();
-    final fatPercent = ((calculations['fats'] * 9) / calculations['calories'] * 100).round();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Hasil Kalkulasi Baru', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 15),
-        _buildCalculationTile('BMI', calculations['bmi']),
-        _buildCalculationTile('BMR', '${calculations['calories']} kalori'),
-        _buildCalculationTile('TDEE', '${calculations['calories']} kalori'),
-        _buildCalculationTile('Target Harian', '${calculations['calories']} kalori'),
-        _buildCalculationTile('Makronutrisi', '$carbPercent% Karbohidrat, $protPercent% Protein, $fatPercent% Lemak'),
-        const SizedBox(height: 10),
-        // Checkbox "Terapkan"
-        CheckboxListTile(
-          title: const Text('Terapkan kalkulasi baru', style: TextStyle(fontWeight: FontWeight.w500)),
-          value: _applyNewCalculations,
-          onChanged: (bool? value) {
-            setState(() {
-              _applyNewCalculations = value ?? false;
-            });
-          },
-          controlAffinity: ListTileControlAffinity.leading,
-          contentPadding: EdgeInsets.zero,
-          activeColor: Theme.of(context).primaryColor,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCalculationTile(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
-          Flexible(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Tombol Batal dan Simpan di bagian bawah
-  Widget _buildBottomActionButtons() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0,-2))],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _isLoading ? null : () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  side: BorderSide(color: Colors.grey.shade300),
-                  foregroundColor: Colors.grey.shade700,
-                ),
-                child: const Text('Batal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _saveChanges,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  elevation: 2,
-                ),
-                child: _isLoading
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
-                    : const Text('Simpan & Terapkan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

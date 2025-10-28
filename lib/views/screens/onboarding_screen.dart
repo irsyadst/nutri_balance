@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import '../widgets/onboarding_content.dart';
+// Import widget baru
+import '../widgets/onboarding/onboarding_content.dart'; // Ini sudah ada sebelumnya
+import '../widgets/onboarding/page_indicator.dart';
+import '../widgets/onboarding/action_buttons.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -10,25 +13,48 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0;
+  int _currentPage = 0; // State untuk halaman aktif
 
+  // Data onboarding (bisa dipindah ke model atau konstanta terpisah)
   final List<Map<String, String>> onboardingData = [
     {
-      "image": "assets/images/onboarding1.png", 
-      "title": "NutriBalance - Capai Versi Terbaik Dirimu, Satu Langkah Setiap Hari.",
-      "description": "Selamat datang di NutriBalance, solusi lengkap Badan Ideal Anda, mari kita mulai perjalanan menuju kesehatan dan kesejahteraan yang lebih baik.",
+      "image": "assets/images/onboarding1.png", // Pastikan path gambar benar
+      "title": "Lacak Nutrisi & Capai Tujuan Sehatmu", // Judul lebih singkat
+      "description": "Selamat datang di NutriBalance! Mulai pantau kalori, makro, dan progres target idealmu dengan mudah.",
     },
     {
-      "image": "assets/images/onboarding1.png", 
-      "title": "Lacak kemajuan Anda dan tetap termotivasi",
-      "description": "lacak kemajuan puasa, asupan air, berat badan, dan suasana hati Anda dengan pelacak intuitif kami. dapatkan wawasan berharga tentang kebiasaan Anda!.",
+      "image": "assets/images/onboarding1.png", // Ganti gambar jika ada
+      "title": "Rencanakan Menu Harianmu Sendiri",
+      "description": "Temukan resep sehat, buat jadwal makan personal, dan capai keseimbangan nutrisi setiap hari.",
     },
     {
-      "image": "assets/images/onboarding1.png", 
-      "title": "Capai tujuan puasa Anda dengan NutriBalance sekarang",
-      "description": "tingkatkan perjalanan puasa Anda dengan fitur gamifikasi nutribalance. dengan NutriBalance, tetap konsisten dan antusias hanya dengan satu ketukan.",
+      "image": "assets/images/onboarding1.png", // Ganti gambar jika ada
+      "title": "Mulai Perjalanan Sehatmu Sekarang!",
+      "description": "Siap untuk transformasi? Tekan 'Get Started' untuk mengatur profil dan memulai gaya hidup sehatmu.",
     },
   ];
+
+  @override
+  void dispose() { // Jangan lupa dispose PageController
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  // Fungsi untuk navigasi ke halaman login/autentikasi
+  void _navigateToAuth() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
+  // Fungsi untuk pindah ke halaman berikutnya
+  void _nextPage() {
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeIn, // Gunakan kurva animasi
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,108 +63,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // Konten Onboarding (PageView)
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
+                // Update _currentPage saat halaman berganti
                 onPageChanged: (value) => setState(() => _currentPage = value),
                 itemCount: onboardingData.length,
                 itemBuilder: (context, index) {
+                  // Gunakan OnboardingPageContent yang sudah ada
                   return OnboardingPageContent(
                     image: onboardingData[index]['image']!,
                     title: onboardingData[index]['title']!,
                     description: onboardingData[index]['description']!,
-                    // --- PERUBAHAN DI SINI: kirim isLastPage ---
-                    isLastPage: index == onboardingData.length - 1, 
+                    // isLastPage tidak perlu diteruskan ke sini lagi
                   );
                 },
               ),
             ),
+
+            // Indikator Halaman dan Tombol Aksi
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0), // Sesuaikan padding
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(onboardingData.length, (index) => _buildDot(index)),
+                  // Gunakan PageIndicator widget
+                  PageIndicator(
+                    pageCount: onboardingData.length,
+                    currentPage: _currentPage,
+                    activeColor: Theme.of(context).primaryColor, // Gunakan warna tema
+                    inactiveColor: Colors.grey.shade300, // Warna inactive
                   ),
-                  const SizedBox(height: 50),
-                  _currentPage == onboardingData.length - 1
-                      ? _buildFullWidthButton()
-                      : _buildDualButtons(),
+                  const SizedBox(height: 50), // Jarak antara indikator dan tombol
+
+                  // Gunakan OnboardingActionButtons widget
+                  OnboardingActionButtons(
+                    isLastPage: _currentPage == onboardingData.length - 1,
+                    onSkip: _navigateToAuth, // Langsung ke auth saat skip
+                    onContinue: _nextPage, // Pindah halaman saat continue
+                    onGetStarted: _navigateToAuth, // Ke auth saat get started
+                  ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // --- Fungsi _buildDualButtons, _buildFullWidthButton, _navigateToAuth, _buildDot tetap sama ---
-  Widget _buildDualButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: TextButton(
-            onPressed: _navigateToAuth,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey.shade600,
-              backgroundColor: Colors.grey.shade200,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: const Text('Skip', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.ease);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF007BFF), // Warna biru
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFullWidthButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _navigateToAuth,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF007BFF), // Warna biru
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-        child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
-
-  void _navigateToAuth() {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
-  }
-
-  Widget _buildDot(int index) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 8,
-      width: _currentPage == index ? 24 : 8,
-      margin: const EdgeInsets.only(right: 5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: _currentPage == index ? const Color(0xFF007BFF) : Colors.grey[300],
       ),
     );
   }

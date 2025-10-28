@@ -1,308 +1,212 @@
 import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
-import '../../models/storage_service.dart';
-import 'login_screen.dart'; // Diperlukan untuk navigasi saat logout
-import 'edit_profile_screen.dart'; // Untuk tombol Edit utama
-// --- 1. IMPORT LAYAR BARU ---
-import 'edit_target_goals_screen.dart'; // Import layar Target & Tujuan
+// Hapus import yang tidak perlu lagi di sini (storage, login)
+// import '../../models/storage_service.dart';
+// import 'login_screen.dart';
+// Import screen tujuan navigasi
+import 'edit_profile_screen.dart';
+import 'edit_target_goals_screen.dart';
+// Import widget-widget baru
+import '../widgets/profile/profile_header.dart';
+import '../widgets/profile/info_card_row.dart';
+import '../widgets/profile/profile_section.dart';
+import '../widgets/profile/profile_list_tile.dart';
+import '../widgets/profile/logout_button.dart';
 
 class ProfileScreen extends StatefulWidget {
-  late User user;
-  ProfileScreen({super.key, required this.user});
+  // Terima User sebagai final, state akan mengelola perubahannya jika perlu
+  final User initialUser;
+  const ProfileScreen({super.key, required this.initialUser});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _isNotificationEnabled = true;
+  // State lokal untuk data user yang bisa berubah
+  late User _currentUser;
+  bool _isNotificationEnabled = true; // State untuk switch notifikasi
 
-  // Profile default
+  // Profile default jika user.profile null (bisa jadi konstanta)
   final UserProfile _defaultProfile = UserProfile(
-    gender: 'Pria', age: 25, height: 170, currentWeight: 70,
-    goalWeight: 65, activityLevel: 'Sedang', goals: const [],
+    gender: 'N/A', age: 0, height: 0, currentWeight: 0,
+    goalWeight: 0, activityLevel: 'N/A', goals: const [],
     dietaryRestrictions: const [], allergies: const [],
   );
 
-  UserProfile get profile => widget.user.profile ?? _defaultProfile;
+  // Getter untuk profil saat ini atau default
+  UserProfile get profile => _currentUser.profile ?? _defaultProfile;
 
-  // Fungsi Logout
-  void _logout(BuildContext context) async {
-    final storage = StorageService();
-    await storage.deleteToken();
-    if (context.mounted) {
-      Navigator.pushAndRemoveUntil( context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false, );
-    }
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = widget.initialUser; // Inisialisasi state user
   }
 
-  // Fungsi Navigasi ke Edit Profile Lengkap (untuk tombol "Edit")
+  // Fungsi Navigasi ke Edit Profile Lengkap
   void _navigateToEditProfile() async {
-    final result = await Navigator.push<User>(
+    // Tunggu hasil dari EditDataPribadiScreen (bisa berupa User baru atau boolean)
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EditDataPribadiScreen(user: widget.user),
-      ),
-    );
-    if (result != null && mounted) {
-      setState(() { widget.user = result; });
-    }
-  }
-
-  // --- 2. BUAT FUNGSI NAVIGASI BARU UNTUK TARGET & TUJUAN ---
-  void _navigateToEditTargetGoals() async {
-    final result = await Navigator.push<User>( // Tunggu hasil User
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditTargetGoalsScreen(user: widget.user), // Arahkan ke layar baru
+        builder: (context) => EditDataPribadiScreen(user: _currentUser),
       ),
     );
     // Jika ada data user baru yang dikembalikan, update state
-    if (result != null && mounted) {
-      setState(() {
-        widget.user = result; // Update data user dengan data terbaru
-      });
+    if (result is User && mounted) {
+      setState(() { _currentUser = result; });
+    } else if (result == true && mounted) {
+      // Jika hanya mengembalikan true (sukses), mungkin perlu fetch ulang data user
+      // TODO: Implement fetch user profile from API/Controller
+      print("Profile updated, ideally refetch user data here.");
     }
   }
-  // --- AKHIR FUNGSI NAVIGASI ---
+
+  // Fungsi Navigasi ke Edit Target & Tujuan
+  void _navigateToEditTargetGoals() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditTargetGoalsScreen(user: _currentUser),
+      ),
+    );
+    if (result is User && mounted) {
+      setState(() { _currentUser = result; });
+    } else if (result == true && mounted) {
+      // TODO: Implement fetch user profile from API/Controller
+      print("Target/Goals updated, ideally refetch user data here.");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.grey[100], // Background sedikit abu-abu
       appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+        title: const Text('Profil', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
         centerTitle: true,
         backgroundColor: Colors.white,
-        elevation: 0,
+        elevation: 0.5, // Shadow tipis di AppBar
+        shadowColor: Colors.grey.shade200,
         actions: [
-          IconButton( icon: const Icon(Icons.more_horiz, color: Colors.black87), onPressed: () {}, ),
-          const SizedBox(width: 10),
+          IconButton( icon: const Icon(Icons.more_horiz, color: Colors.black54), onPressed: () {
+            // TODO: Implementasi aksi more options di AppBar
+          }, tooltip: 'Opsi Lainnya'),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileHeader(),
-                  const SizedBox(height: 25),
-                  _buildInfoCards(
-                      height: profile.height.round(),
-                      weight: profile.currentWeight.round(),
-                      age: profile.age
-                  ),
-                ],
+        child: Padding( // Padding utama untuk seluruh konten
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch section
+            children: [
+              // --- Header ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: ProfileHeader(
+                  user: _currentUser, // Gunakan state _currentUser
+                  onEditPressed: _navigateToEditProfile, // Panggil fungsi navigasi
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
+              const SizedBox(height: 25),
 
-            // Akun Section
-            _buildSectionContainer(
-              title: 'Akun',
-              children: [
-                _buildProfileTile(
-                  Icons.person_outline,
-                  'Data Pribadi',
-                      () {}, // Tidak ada aksi
-                  showArrow: false, // Sembunyikan panah
+              // --- Info Cards ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: InfoCardRow(
+                  height: profile.height.round(), // Ambil data dari profile getter
+                  weight: profile.currentWeight.round(),
+                  age: profile.age,
                 ),
-                _buildDivider(),
-                // --- 3. UBAH ITEM "PENCAPAIAN" ---
-                _buildProfileTile(
-                  Icons.assignment_turned_in_outlined, // Ikon bisa diganti jika mau
-                  'Edit Target & Tujuan', // Ubah teks
-                  _navigateToEditTargetGoals, // Panggil fungsi navigasi baru
+              ),
+              const SizedBox(height: 30), // Jarak ke section
+
+              // --- Account Section ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: ProfileSection(
+                  title: 'Akun',
+                  children: [
+                    ProfileListTile( // Gunakan widget ProfileListTile
+                      icon: Icons.person_outline_rounded, // Ikon lebih rounded
+                      title: 'Data Pribadi',
+                      onTap: _navigateToEditProfile, // Tetap arahkan ke edit profile utama
+                    ),
+                    const ProfileListDivider(), // Gunakan divider kustom
+                    ProfileListTile(
+                      icon: Icons.track_changes_outlined, // Ikon target
+                      title: 'Target & Tujuan', // Ubah teks sesuai desain
+                      onTap: _navigateToEditTargetGoals, // Arahkan ke edit target
+                    ),
+                    const ProfileListDivider(),
+                    ProfileListTile(
+                      icon: Icons.history_rounded, // Ikon history
+                      title: 'Riwayat Aktivitas',
+                      onTap: () { /* TODO: Navigasi Riwayat Aktivitas */ },
+                    ),
+                    const ProfileListDivider(),
+                    ProfileListTile(
+                      icon: Icons.insert_chart_outlined_rounded, // Ikon chart
+                      title: 'Statistik Latihan', // Ubah nama jika perlu
+                      onTap: () { /* TODO: Navigasi Statistik */ },
+                    ),
+                  ],
                 ),
-                // --- AKHIR PERUBAHAN ---
-                _buildDivider(),
-                _buildProfileTile(Icons.watch_later_outlined, 'Riwayat Aktivitas', () {}),
-                _buildDivider(),
-                _buildProfileTile(Icons.bar_chart_outlined, 'Kemajuan Latihan', () {}),
-              ],
-            ),
-            const SizedBox(height: 20),
+              ),
+              // const SizedBox(height: 20), // Dihapus karena ProfileSection sudah ada padding bawah
 
-            // Notification Section
-            _buildSectionContainer(
-              title: 'Notification',
-              children: [_buildNotificationTile()],
-            ),
-            const SizedBox(height: 20),
+              // --- Notification Section ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: ProfileSection(
+                  title: 'Notifikasi',
+                  children: [
+                    // Gunakan SwitchListTile langsung di sini
+                    SwitchListTile(
+                      secondary: Icon(Icons.notifications_outlined, color: Colors.grey[600], size: 24),
+                      title: const Text('Notifikasi Pop-up', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      value: _isNotificationEnabled,
+                      onChanged: (bool value) { setState(() => _isNotificationEnabled = value); },
+                      activeColor: Theme.of(context).primaryColor,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      visualDensity: VisualDensity.compact,
+                    )
+                  ],
+                ),
+              ),
+              // const SizedBox(height: 20),
 
-            // Other Section
-            _buildSectionContainer(
-              title: 'Other',
-              children: [
-                _buildProfileTile(Icons.mail_outline, 'Contact Us', () {}),
-                _buildDivider(),
-                _buildProfileTile(Icons.privacy_tip_outlined, 'Privacy Policy', () {}),
-                _buildDivider(),
-                _buildProfileTile(Icons.settings_outlined, 'Settings', () {}),
-              ],
-            ),
-            const SizedBox(height: 40),
+              // --- Other Section ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: ProfileSection(
+                  title: 'Lainnya',
+                  children: [
+                    ProfileListTile( icon: Icons.help_outline_rounded, title: 'Bantuan & FAQ', onTap: () {}),
+                    const ProfileListDivider(),
+                    ProfileListTile( icon: Icons.info_outline_rounded, title: 'Tentang Aplikasi', onTap: () {}),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30), // Jarak sebelum tombol logout
 
-            // Tombol Keluar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: _buildLogoutButton(context),
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
-    );
-  }
+              // --- Logout Button ---
+              // Widget LogoutButton sudah termasuk Padding
+              const LogoutButton(),
 
-  // === WIDGET PEMBANGUN (BUILDERS) ===
-
-  Widget _buildProfileHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.grey[200],
-              backgroundImage: const AssetImage('assets/images/avatar_placeholder.png'),
-            ),
-            const SizedBox(width: 15),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Welcome', style: TextStyle(fontSize: 18, color: Colors.grey)),
-                Text(widget.user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
-              ],
-            ),
-          ],
-        ),
-        // Tombol Edit di header memanggil _navigateToEditProfile
-        ElevatedButton(
-          onPressed: _navigateToEditProfile, // Arahkan ke edit profil lengkap
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF007BFF),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            elevation: 0,
+              const SizedBox(height: 40), // Padding bawah akhir
+            ],
           ),
-          child: const Text('Edit', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCards({required int height, required int weight, required int age}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildInfoCard('$height cm', 'Height'),
-        const SizedBox(width: 10),
-        _buildInfoCard('$weight kg', 'Weight'),
-        const SizedBox(width: 10),
-        _buildInfoCard('$age yo', 'Age'),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard(String value, String label) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [ BoxShadow( color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 5), ), ],
-        ),
-        child: Column(
-          children: [
-            Text( value, style: const TextStyle( fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF007BFF), ), ),
-            const SizedBox(height: 5),
-            Text( label, style: TextStyle(fontSize: 14, color: Colors.grey[600]), ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionContainer({required String title, required List<Widget> children}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10.0),
-            child: Text( title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87), ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
-            ),
-            child: Column(children: children),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationTile() {
-    return SwitchListTile(
-      title: const Text('Pop-up Notifikasi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-      value: _isNotificationEnabled,
-      onChanged: (bool value) { setState(() => _isNotificationEnabled = value); },
-      secondary: Icon(Icons.notifications_outlined, color: Colors.grey[700]),
-      activeColor: const Color(0xFF007BFF),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-    );
-  }
-
-  // Modifikasi _buildProfileTile untuk opsi tanpa panah
-  Widget _buildProfileTile(IconData icon, String title, VoidCallback onTap, {bool showArrow = true}) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey[700]),
-      title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-      trailing: showArrow ? const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey) : null,
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Divider(height: 1, thickness: 1, color: Colors.grey[100]),
-    );
-  }
-
-  Widget _buildLogoutButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => _logout(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFEF5350),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
-        ),
-        child: const Text('Keluar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       ),
     );
   }
 }
 
+
 // Ekstensi UserProfile (jika diperlukan oleh EditDataPribadiScreen/EditTargetGoalsScreen)
+// Pastikan field ini ada di model asli Anda
 extension UserProfileExtension on UserProfile {
   String? get phoneNumber => null;
   DateTime? get dateOfBirth => null;
