@@ -122,7 +122,7 @@ class ApiService {
     }
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/log/history'), // Endpoint: /api/log/history
+        Uri.parse('$_baseUrl/food/log/history'), // Endpoint: /api/food/log/history
         headers: {'Authorization': 'Bearer $token'},
       ).timeout(const Duration(seconds: 20)); // Timeout lebih lama mungkin diperlukan
 
@@ -162,7 +162,10 @@ class ApiService {
         dietaryRestrictions: List<String>.from(profileData['dietaryRestrictions'] ?? []),
         allergies: List<String>.from(profileData['allergies'] ?? []),
 
-        targetCalories: profileData['targetCalories'],
+        targetCalories: profileData['targetCalories'], // Pastikan ini ada
+        targetProteins: profileData['targetProteins'], // <-- PASTIKAN INI ADA
+        targetCarbs: profileData['targetCarbs'],     // <-- PASTIKAN INI ADA
+        targetFats: profileData['targetFats'],
       ) : null,
     );
   }
