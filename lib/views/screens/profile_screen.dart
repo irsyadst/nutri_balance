@@ -49,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EditDataPribadiScreen(user: _currentUser),
+        builder: (context) => EditProfileScreen(user: _currentUser),
       ),
     );
     // Jika ada data user baru yang dikembalikan, update state

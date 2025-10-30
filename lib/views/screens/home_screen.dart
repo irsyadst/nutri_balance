@@ -6,7 +6,6 @@ import '../../models/user_model.dart';
 // Import Widget (tetap diperlukan)
 import '../widgets/home/home_header.dart';
 import '../widgets/home/calorie_macro_card.dart';
-import '../widgets/home/target_check_button.dart';
 import '../widgets/home/meal_target_grid.dart';
 import '../widgets/home/add_food_button.dart';
 // Import screen lain (jika diperlukan untuk navigasi error/logout)
@@ -124,10 +123,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           carbsGoal: _controller.targetCarbs.round(),
                         ),
                         const SizedBox(height: 25),
-
-                        // Tombol Cek Target
-                        const TargetCheckButton(),
-                        const SizedBox(height: 15),
 
                         // Gunakan MealTargetGrid dengan data dari controller
                         MealTargetGrid(

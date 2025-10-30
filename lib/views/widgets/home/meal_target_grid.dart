@@ -16,7 +16,8 @@ class MealTargetGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final keys = targets.keys.toList();
+    // Filter keys untuk memastikan 'Aktivitas' tidak ikut (meskipun sudah dihapus dari controller)
+    final keys = targets.keys.where((key) => key != 'Aktivitas').toList();
 
     return GridView.builder(
       shrinkWrap: true,
@@ -26,28 +27,29 @@ class MealTargetGrid extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 15,
         mainAxisSpacing: 15,
-        childAspectRatio: 1.8,
+        childAspectRatio: 1.8, // Sesuaikan rasio jika perlu agar pas
       ),
       itemBuilder: (context, index) {
         final title = keys[index];
-        final targetData = targets[title]!;
-        // Ambil data konsumsi untuk title ini, default 0 jika tidak ada
+        // Tambahkan pengecekan null safety (meskipun seharusnya tidak null karena sudah difilter)
+        final targetData = targets[title];
+        if (targetData == null) return const SizedBox.shrink(); // Widget kosong jika data tidak ada
+
         final currentConsumed = consumedData[title] ?? 0.0;
 
         return _MealTargetCard(
           title: title,
-          icon: targetData['icon'] as IconData,
-          // Gunakan data konsumsi dari parameter
+          icon: targetData['icon'] as IconData? ?? Icons.error_outline, // Fallback icon
           consumed: currentConsumed,
-          target: (targetData['target'] as num?)?.toDouble() ?? 0.0, // Konversi target ke double
-          unit: targetData['unit'] as String,
+          target: (targetData['target'] as num?)?.toDouble() ?? 0.0,
+          unit: targetData['unit'] as String? ?? '', // Fallback string kosong
         );
       },
     );
   }
 }
 
-// _MealTargetCard (internal widget) tetap sama
+// _MealTargetCard (internal widget)
 class _MealTargetCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -66,9 +68,15 @@ class _MealTargetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double progress = (target > 0) ? min(1.0, consumed / target) : 0.0;
-    final progressColor = (unit == 'L' || (unit == 'kkal' && title != 'Aktivitas'))
-        ? const Color(0xFF007BFF) // Blue
-        : Colors.green.shade400; // Green for activity
+    // --- HAPUS LOGIKA PEWARNAAN AKTIVITAS ---
+    // final progressColor = (unit == 'L' || (unit == 'kkal' && title != 'Aktivitas'))
+    //     ? const Color(0xFF007BFF) // Blue
+    //     : Colors.green.shade400; // Green for activity
+    // Gunakan warna biru untuk semua kecuali Air (jika ingin) atau warna primer saja
+    final progressColor = unit == 'L'
+        ? Colors.lightBlue.shade400 // Warna berbeda untuk air
+        : const Color(0xFF007BFF); // Warna biru primer untuk lainnya (kkal)
+    // ------------------------------------------
 
     return Container(
       padding: const EdgeInsets.all(15),
@@ -86,7 +94,7 @@ class _MealTargetCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute space vertically
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [

@@ -4,7 +4,12 @@ class PeriodRadioOption extends StatelessWidget {
   final String title;
   final String value;
   final String? groupValue; // Nilai grup saat ini
-  final ValueChanged<String?> onChanged; // Callback saat pilihan berubah
+
+  // --- PERBAIKAN DI SINI ---
+  // Ubah tipe onChanged menjadi nullable (tambahkan '?')
+  final ValueChanged<String?>? onChanged;
+  // -------------------------
+
   final Color activeColor;
 
   const PeriodRadioOption({
@@ -12,7 +17,7 @@ class PeriodRadioOption extends StatelessWidget {
     required this.title,
     required this.value,
     required this.groupValue,
-    required this.onChanged,
+    required this.onChanged, // Konstruktor tetap required
     required this.activeColor,
   });
 
@@ -31,14 +36,12 @@ class PeriodRadioOption extends StatelessWidget {
         ),
         value: value,
         groupValue: groupValue,
-        onChanged: onChanged, // Gunakan callback dari parameter
+        onChanged: onChanged, // Sekarang onChanged bisa menerima null
         activeColor: activeColor, // Gunakan warna aktif dari parameter
         controlAffinity: ListTileControlAffinity.trailing, // Radio di kanan
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
-        // VisualDensity bisa ditambahkan jika ingin lebih rapat
-        // visualDensity: VisualDensity.compact,
       ),
     );
   }

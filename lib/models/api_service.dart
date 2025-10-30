@@ -77,8 +77,9 @@ class ApiService {
   Future<User?> updateProfile(String token, UserProfile profile) async {
     try {
       final response = await http.put(
-        Uri.parse('$_baseUrl/user/profile'),
+        Uri.parse('$_baseUrl/user/profile'), // Endpoint PUT profile
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        // Gunakan toJson dari UserProfile
         body: jsonEncode(profile.toJson()),
       );
 
@@ -86,8 +87,11 @@ class ApiService {
       debugPrint("Update Profile Body: ${response.body}");
 
       if (response.statusCode == 200) {
+        // Parse user lengkap dari response (backend mengirim user utuh)
         return _parseUserFromJson(jsonDecode(response.body)['user']);
       }
+      // Handle error jika status code bukan 200
+      print('Update profile failed: ${response.body}');
       return null;
     } catch (e) {
       debugPrint('Error di updateProfile: $e');
@@ -142,31 +146,38 @@ class ApiService {
       return []; // Kembalikan list kosong jika terjadi exception
     }
   }
+
+  Future<bool> generateMealPlan(String token, Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/food/generate-meal-plan'), // Endpoint: /api/food/generate-meal-plan
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode(data),
+      );
+
+      debugPrint("Generate Meal Plan Status: ${response.statusCode}");
+      debugPrint("Generate Meal Plan Body: ${response.body}");
+
+      // Backend (foodController.js) mengembalikan status 201 (Created)
+      return response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Error di generateMealPlan: $e');
+      return false; // Gagal jika terjadi exception
+    }
+  }
+
   // Fungsi helper internal untuk mem-parsing data User dari JSON secara aman
   User _parseUserFromJson(Map<String, dynamic> data) {
     var profileData = data['profile'];
     return User(
       id: data['_id'],
-      name: data['name'],
+      name: data['name'], // Ambil nama dari data user utama
       email: data['email'],
-      profile: profileData != null ? UserProfile(
-        gender: profileData['gender'] ?? '',
-        age: profileData['age'] ?? 0,
-        height: (profileData['height'] ?? 0.0).toDouble(),
-        currentWeight: (profileData['currentWeight'] ?? 0.0).toDouble(),
-        goalWeight: (profileData['goalWeight'] ?? 0.0).toDouble(),
-        activityLevel: profileData['activityLevel'] ?? '',
-        goals: List<String>.from(profileData['goals'] ?? []),
-
-        // Parsing untuk field yang baru
-        dietaryRestrictions: List<String>.from(profileData['dietaryRestrictions'] ?? []),
-        allergies: List<String>.from(profileData['allergies'] ?? []),
-
-        targetCalories: profileData['targetCalories'], // Pastikan ini ada
-        targetProteins: profileData['targetProteins'], // <-- PASTIKAN INI ADA
-        targetCarbs: profileData['targetCarbs'],     // <-- PASTIKAN INI ADA
-        targetFats: profileData['targetFats'],
-      ) : null,
+      profile: profileData != null ? UserProfile.fromJson(profileData) : null,
+      // UserProfile.fromJson akan memparsing semua field profile
     );
   }
 }
