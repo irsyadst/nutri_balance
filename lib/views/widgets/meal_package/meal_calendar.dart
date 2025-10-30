@@ -1,82 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:nutri_balance/controllers/meal_package_controller.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
 
-// Widget Kalender khusus untuk Meal Package Screen
 class MealCalendar extends StatelessWidget {
-  final DateTime focusedDay;
-  final DateTime selectedDay;
-  final CalendarFormat calendarFormat;
-  final Function(DateTime, DateTime) onDaySelected;
-  final Function(DateTime)? onPageChanged; // Opsional
-  final Function(CalendarFormat)? onFormatChanged; // Opsional, jika format bisa diubah
+  final MealPackageController controller;
 
-  const MealCalendar({
-    super.key,
-    required this.focusedDay,
-    required this.selectedDay,
-    required this.calendarFormat,
-    required this.onDaySelected,
-    this.onPageChanged,
-    this.onFormatChanged,
-  });
+  const MealCalendar({Key? key, required this.controller}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).primaryColor;
+    // Bungkus dengan Obx agar UI otomatis update
+    return Obx(() {
+      return TableCalendar(
+        firstDay: DateTime.utc(2020, 1, 1),
+        lastDay: DateTime.utc(2030, 12, 31),
 
-    return TableCalendar(
-      locale: 'id_ID', // Gunakan locale Indonesia
-      firstDay: DateTime.utc(2010, 1, 1),
-      lastDay: DateTime.utc(2030, 12, 31),
-      focusedDay: focusedDay,
-      calendarFormat: calendarFormat,
-      selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-      onDaySelected: onDaySelected, // Gunakan callback dari parameter
-      onPageChanged: onPageChanged, // Gunakan callback dari parameter
-      onFormatChanged: onFormatChanged, // Gunakan callback dari parameter
+        // Gunakan .value dari controller
+        focusedDay: controller.focusedDate.value,
+        selectedDayPredicate: (day) {
+          return isSameDay(controller.selectedDate.value, day);
+        },
+        calendarFormat: controller.calendarFormat.value,
 
-      // Styling Header
-      headerStyle: HeaderStyle(
-        titleCentered: true,
-        // Format judul bulan dan tahun
-        titleTextFormatter: (date, locale) => DateFormat.yMMMM(locale).format(date),
-        titleTextStyle: const TextStyle(fontSize: 17.0, fontWeight: FontWeight.w600),
-        formatButtonVisible: false, // Sembunyikan tombol format (Week/Month)
-        leftChevronIcon: const Icon(Icons.chevron_left, color: Colors.grey),
-        rightChevronIcon: const Icon(Icons.chevron_right, color: Colors.grey),
-      ),
+        // Panggil fungsi di controller
+        onDaySelected: controller.onDateSelected,
+        onFormatChanged: controller.onFormatChanged,
+        onPageChanged: controller.onPageChanged,
 
-      // Styling Nama Hari (Sen, Sel, ...)
-      daysOfWeekStyle: const DaysOfWeekStyle(
-        weekendStyle: TextStyle(color: Colors.black54), // Warna hari weekend
-        weekdayStyle: TextStyle(color: Colors.black54), // Warna hari biasa
-      ),
-
-      // Styling Tanggal
-      calendarStyle: CalendarStyle(
-        // Dekorasi hari ini
-        todayDecoration: BoxDecoration(
-          color: Colors.grey.shade200, // Background abu-abu
-          shape: BoxShape.circle,
+        // Styling
+        headerStyle: HeaderStyle(
+          formatButtonVisible: false,
+          titleCentered: true,
         ),
-        todayTextStyle: const TextStyle(color: Colors.black), // Teks hitam
-
-        // Dekorasi hari yang dipilih
-        selectedDecoration: BoxDecoration(
-          color: primaryColor, // Background warna primer
-          shape: BoxShape.circle,
+        calendarStyle: CalendarStyle(
+          todayDecoration: BoxDecoration(
+            color: Colors.blueAccent.withOpacity(0.5),
+            shape: BoxShape.circle,
+          ),
+          selectedDecoration: BoxDecoration(
+            color: Theme.of(context).primaryColor,
+            shape: BoxShape.circle,
+          ),
         ),
-        selectedTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // Teks putih tebal
-
-        // Sembunyikan tanggal di luar bulan ini
-        outsideDaysVisible: false,
-
-        // Styling weekend
-        weekendTextStyle: TextStyle(color: Colors.red.shade400), // Contoh: warna merah untuk weekend
-      ),
-      // Builder untuk kustomisasi lebih lanjut (opsional)
-      // calendarBuilders: CalendarBuilders(...),
-    );
+      );
+    });
   }
 }

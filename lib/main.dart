@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'; // <-- Import ini
 import 'package:intl/date_symbol_data_local.dart';
 import 'views/screens/splash_screen.dart';
@@ -14,7 +15,7 @@ class NutriBalanceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NutriBalance',
       theme: ThemeData(

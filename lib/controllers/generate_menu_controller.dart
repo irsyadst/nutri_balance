@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/api_service.dart';
 import '../models/storage_service.dart';
+import 'package:get/get.dart';
 
 // Enum untuk status proses generate
 enum GenerateMenuStatus { initial, loading, success, failure }
@@ -64,7 +65,6 @@ class GenerateMenuController with ChangeNotifier {
   }
 
 
-  // Dipanggil saat tombol "Hasilkan Menu" ditekan
   Future<void> generateMenu() async {
     _status = GenerateMenuStatus.loading;
     _errorMessage = null;
@@ -74,7 +74,8 @@ class GenerateMenuController with ChangeNotifier {
       final token = await _storageService.getToken();
       if (token == null) throw Exception('Token tidak ditemukan');
 
-      // 1. Map key frontend ke key backend
+      // (Logika 'backendPeriod' dan 'body' Anda sudah benar)
+      // ...
       String backendPeriod;
       switch (_selectedPeriod) {
         case '3_hari':
@@ -91,39 +92,39 @@ class GenerateMenuController with ChangeNotifier {
           backendPeriod = 'today';
       }
 
-      // 2. Siapkan body request
       Map<String, dynamic> body = {
         'period': backendPeriod,
       };
 
-      // 3. Tambahkan tanggal jika period-nya 'custom'
       if (backendPeriod == 'custom') {
         if (_dateRange == null) {
-          // Beri pesan error spesifik jika tanggal belum dipilih
           throw Exception('Silakan pilih rentang tanggal khusus.');
         }
-        // Format tanggal YYYY-MM-DD sesuai standar backend
         body['startDate'] = DateFormat('yyyy-MM-dd').format(_dateRange!.start);
         body['endDate'] = DateFormat('yyyy-MM-dd').format(_dateRange!.end);
       }
 
-      print("Mengirim request generate meal plan: $body"); // Log untuk debug
+      print("Mengirim request generate meal plan: $body");
 
-      // 4. Panggil API
       bool success = await _apiService.generateMealPlan(token, body);
 
       if (success) {
         _status = GenerateMenuStatus.success;
+        // --- PERUBAHAN DI SINI ---
+        // Jangan panggil notifyListeners() lagi.
+        // Langsung tutup layar dan kirim 'true' sebagai hasil.
+        Get.back(result: true);
+        // -------------------------
       } else {
-        // Jika API mengembalikan false (misal status 400 atau 500)
         _errorMessage = 'Gagal membuat rencana makan di server.';
         _status = GenerateMenuStatus.failure;
+        notifyListeners(); // Tetap notify di sini untuk menampilkan error
       }
     } catch (e) {
-      // Menangkap error (token null, date range null, error jaringan)
       _errorMessage = e.toString().replaceFirst("Exception: ", "");
       _status = GenerateMenuStatus.failure;
+      notifyListeners(); // Tetap notify di sini untuk menampilkan error
     }
-    notifyListeners();
+    // Hapus notifyListeners() dari sini jika ada
   }
 }

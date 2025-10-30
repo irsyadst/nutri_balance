@@ -24,31 +24,27 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
 
   // Fungsi untuk memberi feedback ke user saat status controller berubah
   void _handleStateChange() {
-    // Pastikan UI sudah ter-build sebelum menampilkan SnackBar/Navigasi
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return; // Pastikan widget masih ada
+      if (!mounted) return;
 
       if (_controller.status == GenerateMenuStatus.success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Rencana makan berhasil dibuat!'),
-            backgroundColor: Colors.green, // Feedback sukses
+            backgroundColor: Colors.green,
           ),
         );
-        // Kembali ke layar sebelumnya (MealPackageScreen)
-        // Kirim 'true' untuk menandakan sukses (opsional, agar layar sebelumnya bisa refresh)
-        Navigator.pop(context, true);
+
       } else if (_controller.status == GenerateMenuStatus.failure) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_controller.errorMessage ?? 'Gagal membuat rencana makan.'),
-            backgroundColor: Colors.red, // Feedback error
+            backgroundColor: Colors.red,
           ),
         );
       }
     });
   }
-
   // --- FUNGSI PICKER PINDAH KE SINI ---
   // Fungsi untuk menangani perubahan radio DAN memanggil picker
   void _handleRadioChange(String? newValue, bool isLoading) async {

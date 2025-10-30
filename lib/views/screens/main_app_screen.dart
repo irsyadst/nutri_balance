@@ -29,7 +29,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
     // Inisialisasi daftar halaman (pastikan urutan sesuai dengan item di bottom nav bar)
     _widgetOptions = <Widget>[
       HomeScreen(initialUser: widget.user), // Index 0: Beranda
-      const MealPackageScreen(),      // Index 1: Paket Makan (Ganti jika nama berbeda)
+      MealPackageScreen(),      // Index 1: Paket Makan (Ganti jika nama berbeda)
       const StatisticsScreen(),       // Index 2: Statistik
       ProfileScreen(initialUser: widget.user), // Index 3: Profil
     ];

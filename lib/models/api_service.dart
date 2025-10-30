@@ -169,6 +169,24 @@ class ApiService {
     }
   }
 
+  Future<List<MealPlan>> getMealPlan(String token, String date) async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/meal-planner?date=$date'), // <-- Kirim tanggal sebagai query
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Gunakan helper 'mealPlanFromJson' dari model kita
+      return mealPlanFromJson(response.body);
+    } else {
+      print('Gagal mengambil meal plan: ${response.body}');
+      throw Exception('Gagal mengambil meal plan');
+    }
+  }
+
   // Fungsi helper internal untuk mem-parsing data User dari JSON secara aman
   User _parseUserFromJson(Map<String, dynamic> data) {
     var profileData = data['profile'];
