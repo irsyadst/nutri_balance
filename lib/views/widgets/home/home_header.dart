@@ -3,12 +3,10 @@ import '../../screens/notification_screen.dart'; // For navigation
 
 class HomeHeader extends StatelessWidget {
   final String userName;
-  final String? avatarAssetPath; // Path for user avatar
 
   const HomeHeader({
     super.key,
     required this.userName,
-    this.avatarAssetPath = 'assets/images/avatar_placeholder.png', // Default placeholder
   });
 
   @override
@@ -23,28 +21,6 @@ class HomeHeader extends StatelessWidget {
             // User Greeting and Avatar
             Row(
               children: [
-                // Avatar
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade300, width: 1.5),
-                  ),
-                  child: ClipOval(
-                    // Use AssetImage for local assets
-                    child: avatarAssetPath != null
-                        ? Image.asset(
-                      avatarAssetPath!,
-                      fit: BoxFit.cover,
-                      // Error handling for image loading
-                      errorBuilder: (context, error, stackTrace) =>
-                          Icon(Icons.person, size: 30, color: Colors.grey.shade400),
-                    )
-                        : Icon(Icons.person, size: 30, color: Colors.grey.shade400), // Fallback icon
-                  ),
-                ),
-                const SizedBox(width: 12),
                 // Welcome Text
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,15 +38,6 @@ class HomeHeader extends StatelessWidget {
             // Action Icons (Search & Notifications)
             Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.search, size: 30, color: Colors.black54),
-                  onPressed: () {
-                    // TODO: Implement search functionality
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Search action not implemented.')),
-                    );
-                  },
-                ),
                 Stack(
                   children: [
                     IconButton(

@@ -62,22 +62,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Fungsi Navigasi ke Edit Target & Tujuan
-  void _navigateToEditTargetGoals() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditTargetGoalsScreen(user: _currentUser),
-      ),
-    );
-    if (result is User && mounted) {
-      setState(() { _currentUser = result; });
-    } else if (result == true && mounted) {
-      // TODO: Implement fetch user profile from API/Controller
-      print("Target/Goals updated, ideally refetch user data here.");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,12 +72,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 0.5, // Shadow tipis di AppBar
         shadowColor: Colors.grey.shade200,
-        actions: [
-          IconButton( icon: const Icon(Icons.more_horiz, color: Colors.black54), onPressed: () {
-            // TODO: Implementasi aksi more options di AppBar
-          }, tooltip: 'Opsi Lainnya'),
-          const SizedBox(width: 8),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding( // Padding utama untuk seluruh konten
@@ -133,24 +111,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title: 'Data Pribadi',
                       onTap: _navigateToEditProfile, // Tetap arahkan ke edit profile utama
                     ),
-                    const ProfileListDivider(), // Gunakan divider kustom
-                    ProfileListTile(
-                      icon: Icons.track_changes_outlined, // Ikon target
-                      title: 'Target & Tujuan', // Ubah teks sesuai desain
-                      onTap: _navigateToEditTargetGoals, // Arahkan ke edit target
-                    ),
-                    const ProfileListDivider(),
-                    ProfileListTile(
-                      icon: Icons.history_rounded, // Ikon history
-                      title: 'Riwayat Aktivitas',
-                      onTap: () { /* TODO: Navigasi Riwayat Aktivitas */ },
-                    ),
-                    const ProfileListDivider(),
-                    ProfileListTile(
-                      icon: Icons.insert_chart_outlined_rounded, // Ikon chart
-                      title: 'Statistik Latihan', // Ubah nama jika perlu
-                      onTap: () { /* TODO: Navigasi Statistik */ },
-                    ),
                   ],
                 ),
               ),
@@ -183,7 +143,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ProfileSection(
                   title: 'Lainnya',
                   children: [
-                    ProfileListTile( icon: Icons.help_outline_rounded, title: 'Bantuan & FAQ', onTap: () {}),
                     const ProfileListDivider(),
                     ProfileListTile( icon: Icons.info_outline_rounded, title: 'Tentang Aplikasi', onTap: () {}),
                   ],

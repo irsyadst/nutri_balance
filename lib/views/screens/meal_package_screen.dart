@@ -78,14 +78,6 @@ class _MealPackageScreenState extends State<MealPackageScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
-          },
-        ),
         title: const Text('Jadwal Makan', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18)), // Rename title
         centerTitle: true,
         backgroundColor: Colors.white,

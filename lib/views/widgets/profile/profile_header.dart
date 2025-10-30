@@ -20,16 +20,6 @@ class ProfileHeader extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center, // Sejajarkan vertikal
           children: [
-            CircleAvatar(
-              radius: 30, // Ukuran avatar
-              backgroundColor: Colors.grey[200], // Warna placeholder
-              // TODO: Ganti dengan path gambar avatar asli jika ada
-              backgroundImage: const AssetImage('assets/images/avatar_placeholder.png'),
-              // Fallback jika gambar gagal dimuat
-              onBackgroundImageError: (_, __) {}, // Handle error (opsional)
-              child: const ClipOval(child: null), // Pastikan bentuknya bulat
-            ),
-            const SizedBox(width: 15),
             // Welcome & Nama
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

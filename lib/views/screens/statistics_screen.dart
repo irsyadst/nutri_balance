@@ -167,16 +167,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Gunakan SectionTitle
-          const SectionTitle('Progres Berat Badan'),
-          // Gunakan WeightProgressCard
-          WeightProgressCard(
-            currentWeight: currentWeight,
-            weightChangePercent: weightChangePercent,
-            weightPeriod: weightPeriod,
-            weightSpots: weightSpots, // Teruskan data FlSpot
-          ),
-          const SizedBox(height: 25), // Jarak antar section
-
           const SectionTitle('Asupan Kalori'),
           // Gunakan CalorieIntakeCard
           CalorieIntakeCard(
@@ -206,7 +196,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     // (Bisa jadi konstanta atau didapat dari state)
     final List<Map<String, dynamic>> detailCategories = [
       {'title': 'Kalori', 'icon': Icons.local_fire_department_outlined},
-      {'title': 'Berat Badan', 'icon': Icons.monitor_weight_outlined},
       {'title': 'Makronutrien', 'icon': Icons.pie_chart_outline_rounded}, // Ikon rounded
       {'title': 'Asupan Air', 'icon': Icons.water_drop_outlined},
       // Hapus 'Aktivitas'
@@ -236,7 +225,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
       // Tentukan konten berdasarkan _selectedDetailCategory
       switch (_selectedDetailCategory) {
         case 'Kalori': detailContent = const CalorieDetailContent(); break;
-        case 'Berat Badan': detailContent = const WeightDetailContent(); break;
         case 'Makronutrien': detailContent = const MacroDetailContent(); break;
         case 'Asupan Air': detailContent = const WaterDetailContent(); break;
       // Hapus case 'Aktivitas'
