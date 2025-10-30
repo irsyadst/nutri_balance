@@ -49,24 +49,29 @@ class DailyScheduleList extends StatelessWidget {
               itemCount: controller.dailySchedule.length,
               itemBuilder: (context, index) {
                 final meal = controller.dailySchedule[index];
-
+                final totalCalories = meal.food.calories * meal.quantity;
+                // Tampilkan quantity jika lebih dari 1
+                String quantityText = (meal.quantity > 1)
+                    ? ' (x${meal.quantity.toStringAsFixed(1)})'
+                    : '';
                 // Gunakan data dari model MealPlan baru
                 return ListTile(
                   leading: CircleAvatar(
-                    // TODO: Ganti dengan icon berdasarkan meal.mealType
                     child: Icon(Icons.restaurant),
                   ),
-                  title: Text(meal.food.name), // <-- Tampilkan nama makanan
-                  subtitle: Text(meal.mealType), // <-- e.g., 'Sarapan'
+                  // Tampilkan nama + quantity
+                  title: Text(meal.food.name + quantityText), // <-- UBAH INI
+                  subtitle: Text(meal.mealType),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${meal.food.calories} kkal', // <-- Tampilkan kalori
+                        // Tampilkan kalori yang sudah dikalikan
+                        '${totalCalories.toStringAsFixed(0)} kkal', // <-- UBAH INI
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      Text(meal.time), // <-- Tampilkan jam
+                      Text(meal.time),
                     ],
                   ),
                 );

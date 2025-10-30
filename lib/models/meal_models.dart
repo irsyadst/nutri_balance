@@ -34,14 +34,13 @@ class Food {
   }
 }
 
-// ... (Model Food tetap sama) ...
-
 class MealPlan {
   final String id;
   final String date;
   final String mealType;
   final String time;
-  final Food food; // Ini tetap objek Food
+  final Food food;
+  final double quantity;
 
   MealPlan({
     required this.id,
@@ -49,6 +48,7 @@ class MealPlan {
     required this.mealType,
     required this.time,
     required this.food,
+    required this.quantity,
   });
 
   factory MealPlan.fromJson(Map<String, dynamic> json) {
@@ -57,35 +57,18 @@ class MealPlan {
     Food parsedFood;
 
     if (foodData is Map<String, dynamic>) {
-      // KASUS 1: Backend mengirim objek utuh (hasil .populate())
       parsedFood = Food.fromJson(foodData);
-    } else if (foodData is String) {
-      // KASUS 2 (ERROR ANDA): Backend mengirim ID sebagai String
-      // Kita buat objek Food "dummy" hanya dengan ID-nya.
-      // Ini akan menyebabkan error di UI, tapi tidak akan crash saat parsing.
-      // INI MENUNJUKKAN MASALAH DI BACKEND.
-      print("PERINGATAN: Backend mengirim food ID sebagai String, bukan objek.");
-      parsedFood = Food(
-        id: foodData,
-        name: 'Error: Makanan tidak ter-load', // Tampilkan pesan error
-        calories: 0,
-        proteins: 0,
-        carbs: 0,
-        fats: 0,
-        category: 'Error',
-      );
     } else {
-      // KASUS 3: Backend mengirim null atau tipe data salah
-      parsedFood = Food.fromJson({}); // Buat food kosong
+      parsedFood = Food.fromJson({}); // Buat food kosong jika error
     }
-    // --- AKHIR PERBAIKAN ---
 
     return MealPlan(
       id: json['_id'] ?? '',
       date: json['date'] ?? '',
       mealType: json['mealType'] ?? 'Unknown Meal',
       time: json['time'] ?? '00:00',
-      food: parsedFood, // <-- Gunakan hasil parsing yang sudah aman
+      food: parsedFood,
+      quantity: (json['quantity'] ?? 1.0).toDouble(),
     );
   }
 }
