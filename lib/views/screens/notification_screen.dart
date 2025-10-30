@@ -1,147 +1,153 @@
 import 'package:flutter/material.dart';
 // Import model notifikasi
 import '../../models/notification_model.dart'; // Sesuaikan path jika berbeda
-// Import widget tile notifikasi yang baru
+// Import widget tile notifikasi
 import '../widgets/notification/notification_tile.dart';
+// Import controller baru
+import '../../controllers/notification_controller.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
 
-  // --- Data Notifikasi Statis (Idealnya berasal dari Controller/API) ---
-  final List<AppNotification> notifications = const [
-    AppNotification(
-      title: 'Hei, sudah waktunya makan siang',
-      subtitle: 'Sekitar 1 menit yang lalu',
-      iconAsset: 'food_plate',
-      iconColor: Color(0xFFE8963D), // Oranye
-      iconBgColor: Color(0xFFFBEBCD), // Krem Muda
-    ),
-    AppNotification(
-      title: 'Jangan lewatkan latihan tubuh Anda',
-      subtitle: 'Sekitar 3 jam yang lalu',
-      iconAsset: 'exercise',
-      iconColor: Color(0xFF6A82FF), // Biru
-      iconBgColor: Color(0xFFEBF0FF), // Biru Muda
-    ),
-    AppNotification(
-      title: 'Hei, mari tambahkan makanan untuk s...', // Judul terpotong
-      subtitle: 'Sekitar 3 jam yang lalu',
-      iconAsset: 'food_box',
-      iconColor: Color(0xFFE8963D),
-      iconBgColor: Color(0xFFFBEBCD),
-    ),
-    AppNotification(
-      title: 'Selamat, Anda telah menyelesaikan Ola...', // Judul terpotong
-      subtitle: '29 Okt', // Format tanggal lebih singkat
-      iconAsset: 'trophy',
-      iconColor: Color(0xFF6A82FF),
-      iconBgColor: Color(0xFFEBF0FF),
-    ),
-    AppNotification(
-      title: 'Waktunya minum air!',
-      subtitle: 'Kemarin',
-      iconAsset: 'water_drop', // Contoh ikon lain
-      iconColor: Colors.blueAccent,
-      iconBgColor: Colors.lightBlueAccent,
-    ),
-    // Tambahkan notifikasi lain jika perlu
-  ];
-  // --- Akhir Data Dummy ---
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
 
+class _NotificationScreenState extends State<NotificationScreen> {
+  // 1. Inisialisasi controller
+  late NotificationController _controller;
 
-  // Fungsi untuk menangani tap pada notifikasi
-  void _handleNotificationTap(BuildContext context, AppNotification notification) {
-    // TODO: Implementasi aksi saat notifikasi di-tap (misal, navigasi ke detail)
-    print('Notification tapped: ${notification.title}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Membuka notifikasi: ${notification.title} (Belum diimplementasi)')),
-    );
-  }
+  // --- Data Notifikasi Statis (PINDAH KE CONTROLLER) ---
+  // final List<AppNotification> notifications = const [ ... ];
 
-  // Fungsi untuk menangani tap pada ikon 'more'
-  void _handleMoreOptionsTap(BuildContext context, AppNotification notification) {
-    // TODO: Implementasi menu opsi (misal, tandai sudah dibaca, hapus)
-    print('More options tapped for: ${notification.title}');
-    // Contoh menampilkan bottom sheet sederhana
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Wrap( // Gunakan Wrap agar kontennya minimal
-        children: <Widget>[
-          ListTile(
-            leading: const Icon(Icons.mark_email_read_outlined),
-            title: const Text('Tandai sudah dibaca'),
-            onTap: () {
-              Navigator.pop(context); // Tutup bottom sheet
-              // Logika tandai dibaca
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.delete_outline, color: Colors.red.shade400),
-            title: Text('Hapus notifikasi', style: TextStyle(color: Colors.red.shade400)),
-            onTap: () {
-              Navigator.pop(context); // Tutup bottom sheet
-              // Logika hapus
-            },
-          ),
-        ],
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _controller = NotificationController();
+    // (Opsional) Tambahkan listener untuk error
+    _controller.addListener(_handleControllerChanges);
   }
 
   @override
+  void dispose() {
+    _controller.removeListener(_handleControllerChanges);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // (Opsional) Listener untuk menangani error
+  void _handleControllerChanges() {
+    if (_controller.status == NotificationStatus.failure &&
+        _controller.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_controller.errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
+    }
+  }
+
+  // --- Fungsi (PINDAH KE CONTROLLER) ---
+  // void _handleNotificationTap(BuildContext context, AppNotification notification) { ... }
+  // void _handleMoreOptionsTap(BuildContext context, AppNotification notification) { ... }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text('Notifikasi', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0.5, // Sedikit shadow tipis
-        shadowColor: Colors.grey.shade200,
-        actions: [
-          IconButton( // Gunakan IconButton untuk aksi
-            icon: const Icon(Icons.more_horiz, color: Colors.black87),
-            onPressed: () {
-              // TODO: Implementasi aksi 'more' di AppBar (misal, hapus semua, pengaturan)
-              print('App Bar More Options Tapped');
-            },
-            tooltip: 'Opsi Lainnya',
+    // 2. Gunakan ListenableBuilder untuk mendengarkan controller
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: const Text('Notifikasi',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.black87)),
+            centerTitle: true,
+            backgroundColor: Colors.white,
+            elevation: 0.5,
+            shadowColor: Colors.grey.shade200
           ),
-          const SizedBox(width: 8), // Padding kanan
-        ],
-      ),
-      // Gunakan ListView.separated untuk menambahkan divider secara otomatis
-      body: notifications.isEmpty // Tampilkan pesan jika tidak ada notifikasi
-          ? const Center(
+          // 3. Bangun body berdasarkan status controller
+          body: _buildBody(),
+        );
+      },
+    );
+  }
+
+  // Helper untuk membangun body berdasarkan status
+  Widget _buildBody() {
+    // 4. Ambil data dari controller
+    final notifications = _controller.notifications;
+
+    if (_controller.status == NotificationStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_controller.status == NotificationStatus.failure) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 50),
+              const SizedBox(height: 10),
+              Text(
+                _controller.errorMessage ?? 'Gagal memuat notifikasi.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.refresh),
+                label: const Text('Coba Lagi'),
+                onPressed: _controller.fetchNotifications,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (notifications.isEmpty) {
+      return const Center(
         child: Text(
           'Tidak ada notifikasi baru.',
           style: TextStyle(fontSize: 16, color: Colors.grey),
         ),
-      )
-          : ListView.separated(
-        itemCount: notifications.length,
-        padding: const EdgeInsets.symmetric(vertical: 10), // Padding atas/bawah untuk list
-        // Pemisah antar notifikasi
-        separatorBuilder: (context, index) => const Divider(
-          height: 1,
-          thickness: 1,
-          color: Color(0xFFF3F4F6), // Warna divider abu-abu muda
-          indent: 80, // Indentasi divider agar tidak full width (sesuaikan)
-        ),
-        itemBuilder: (context, index) {
-          final notification = notifications[index];
-          // Gunakan widget NotificationTile yang sudah dibuat
-          return NotificationTile(
-            notification: notification,
-            onTap: () => _handleNotificationTap(context, notification),
-            onMoreTap: () => _handleMoreOptionsTap(context, notification),
-          );
-        },
+      );
+    }
+
+    // Tampilkan ListView jika data sukses dan tidak kosong
+    return ListView.separated(
+      itemCount: notifications.length,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      separatorBuilder: (context, index) => const Divider(
+        height: 1,
+        thickness: 1,
+        color: Color(0xFFF3F4F6),
+        indent: 80,
       ),
+      itemBuilder: (context, index) {
+        final notification = notifications[index];
+        return NotificationTile(
+          notification: notification,
+          // 5. Panggil method dari controller
+          onTap: () => _controller.handleNotificationTap(context, notification),
+          onMoreTap: () =>
+              _controller.handleMoreOptionsTap(context, notification),
+        );
+      },
     );
   }
 }

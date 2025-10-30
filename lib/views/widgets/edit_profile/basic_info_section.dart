@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../controllers/edit_profile_controller.dart';
 import '../../widgets/questionnaire/question_widgets.dart'; // Untuk GenderButton
-import '../../widgets/edit_target_goals/picker_trigger_field.dart';
+import 'picker_trigger_field.dart';
 
 class BasicInfoSection extends StatelessWidget {
   final EditProfileController controller;

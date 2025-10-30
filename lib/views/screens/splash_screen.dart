@@ -1,12 +1,13 @@
+// lib/views/screens/splash_screen.dart
 import 'package:flutter/material.dart';
-// Hapus import SVG jika tidak digunakan langsung di sini
-// import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:async'; // Tetap diperlukan untuk Future.delayed
+import 'dart:async'; // Tetap diperlukan jika ada logic error/delay
 
 // --- Import yang Diperlukan ---
-import '../../models/storage_service.dart';
-import '../../models/api_service.dart';
-import '../../models/user_model.dart';
+// Hapus import service/model yang tidak perlu lagi di view
+// import '../../models/storage_service.dart';
+// import '../../models/api_service.dart';
+// import '../../models/user_model.dart';
+import '../../controllers/splash_controller.dart'; // Import controller baru
 // Import screen tujuan
 import 'onboarding_screen.dart';
 import 'main_app_screen.dart';
@@ -23,72 +24,70 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  // Timer tidak digunakan lagi
-  // Timer? _timer;
+  late SplashController _controller;
 
   @override
   void initState() {
     super.initState();
-    _checkSession(); // Langsung panggil pengecekan sesi
+    // 1. Inisialisasi controller
+    _controller = SplashController();
+    // 2. Tambahkan listener untuk bereaksi terhadap perubahan status
+    _controller.addListener(_handleNavigation);
   }
 
-  // --- Fungsi Cek Sesi (Logika Tetap di Screen) ---
-  void _checkSession() async {
-    // Beri sedikit delay agar splash screen terlihat
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Pastikan widget masih mounted sebelum melanjutkan
+  // 3. Buat fungsi listener untuk menangani navigasi
+  void _handleNavigation() {
+    // Pastikan widget masih mounted sebelum navigasi
     if (!mounted) return;
 
-    final storageService = StorageService();
-    // Idealnya ApiService didapat dari dependency injection
-    final apiService = ApiService();
-
-    final token = await storageService.getToken();
-
-    User? user; // Variabel untuk menyimpan data user jika berhasil fetch
-
-    if (token != null) {
-      print("Token found, trying to get profile...");
-      user = await apiService.getProfile(token); // Coba fetch profil
-    }
-
-    // --- Navigasi (Pastikan cek mounted lagi sebelum navigasi) ---
-    if (!mounted) return; // Cek mounted lagi setelah await
-
-    if (user != null) {
-      // Jika user berhasil didapatkan (token valid & profil ada)
-      print("Profile fetched successfully for ${user.name}");
-      if (user.profile != null) {
-        // Jika profil lengkap -> MainAppScreen
-        print("Profile complete, navigating to MainAppScreen");
+    switch (_controller.status) {
+      case SplashStatus.authenticated:
+      // Profil lengkap -> MainAppScreen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainAppScreen(user: user!)),
+          MaterialPageRoute(
+              builder: (context) => MainAppScreen(user: _controller.user!)),
         );
-      } else {
-        // Jika profil belum lengkap -> QuestionnaireScreen
-        print("Profile incomplete, navigating to QuestionnaireScreen");
+        break;
+      case SplashStatus.needsProfile:
+      // Profil belum lengkap -> QuestionnaireScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const QuestionnaireScreen()),
         );
-      }
-    } else {
-      // Jika token tidak ada ATAU token invalid (fetch profile gagal)
-      if (token != null) {
-        print("Failed to fetch profile with token, deleting invalid token.");
-        await storageService.deleteToken(); // Hapus token invalid
-      }
-      print("Navigating to OnboardingScreen");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-      );
+        break;
+      case SplashStatus.unauthenticated:
+      // Token tidak ada ATAU token invalid -> OnboardingScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        );
+        break;
+      case SplashStatus.failure:
+      // Opsional: Tampilkan error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(_controller.errorMessage ?? 'Terjadi kesalahan')),
+        );
+        // Anda bisa tambahkan tombol "Coba Lagi" di sini jika mau
+        break;
+      case SplashStatus.loading:
+      // Biarkan splash screen tetap tampil
+      default:
+        break;
     }
   }
-  // --- Akhir Fungsi Cek Sesi ---
 
+  // --- Fungsi Cek Sesi (Logika telah dipindah ke Controller) ---
+  // void _checkSession() async { ... } // <-- DIHAPUS
+
+  @override
+  void dispose() {
+    // 4. Hapus listener dan dispose controller
+    _controller.removeListener(_handleNavigation);
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

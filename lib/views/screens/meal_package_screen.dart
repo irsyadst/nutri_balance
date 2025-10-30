@@ -1,12 +1,15 @@
+// lib/views/screens/meal_package_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
-import '../../models/meal_models.dart';
-// Import widget baru
+import 'package:table_calendar/table_calendar.dart'; // Dibutuhkan oleh MealCalendar
+import '../../models/meal_models.dart'; // Masih dibutuhkan oleh DailyScheduleList
+// Import widget
 import '../widgets/meal_package/meal_calendar.dart';
 import '../widgets/meal_package/daily_schedule_list.dart';
 import '../widgets/meal_package/generate_menu_button.dart';
-// Import screen tujuan (jika belum)
+// Import controller baru
+import '../../controllers/meal_package_controller.dart';
 
 class MealPackageScreen extends StatefulWidget {
   const MealPackageScreen({super.key});
@@ -16,118 +19,156 @@ class MealPackageScreen extends StatefulWidget {
 }
 
 class _MealPackageScreenState extends State<MealPackageScreen> {
-  DateTime _focusedDay = DateTime.now();
-  DateTime _selectedDay = DateTime.now();
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  // Buat instance controller
+  late MealPackageController _controller;
 
-  // --- Data Dummy (Pindahkan ke Controller/State Management nantinya) ---
-  final Map<DateTime, Map<String, List<DailySchedule>>> _dailySchedules = {
-    // Contoh data untuk beberapa hari (gunakan DateTime tanpa informasi jam)
-    DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day): const {
-      'Sarapan': [DailySchedule(mealName: 'Sarapan', time: '07:00am', foodName: 'Honey Pancake', calories: 450, iconAsset: '')],
-      'Makan Siang': [DailySchedule(mealName: 'Makan Siang', time: '01:00pm', foodName: 'Chicken Steak', calories: 600, iconAsset: '')],
-      'Makan Malam': [DailySchedule(mealName: 'Makan Malam', time: '07:10pm', foodName: 'Salad', calories: 300, iconAsset: '')],
-    },
-    DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day + 1): const { // Besok
-      'Sarapan': [DailySchedule(mealName: 'Sarapan', time: '07:30am', foodName: 'Oatmeal Buah', calories: 350, iconAsset: '')],
-      'Makan Siang': [DailySchedule(mealName: 'Makan Siang', time: '12:30pm', foodName: 'Nasi Goreng Sehat', calories: 550, iconAsset: '')],
-    },
-    // Tambahkan data hari lain jika perlu
-  };
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi controller
+    _controller = MealPackageController();
 
-  // Fungsi untuk mendapatkan jadwal berdasarkan hari yang dipilih
-  Map<String, List<DailySchedule>> _getScheduleForDay(DateTime day) {
-    // Normalisasi DateTime ke UTC tanpa jam untuk key lookup
-    DateTime dayOnly = DateTime.utc(day.year, day.month, day.day);
-    // Kembalikan data untuk hari itu atau map kosong jika tidak ada
-    return _dailySchedules[dayOnly] ?? {};
+    // (Opsional) Tambahkan listener untuk menampilkan SnackBar jika ada error
+    _controller.addListener(_handleControllerChanges);
   }
-  // --- Akhir Data Dummy ---
 
-
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    // Hanya update state jika hari yang dipilih berbeda
-    if (!isSameDay(_selectedDay, selectedDay)) {
-      setState(() {
-        _selectedDay = selectedDay;
-        _focusedDay = focusedDay; // Update focusedDay juga
-        // Tidak perlu memanggil _getScheduleForDay di sini karena sudah dipanggil di build
+  // (Opsional) Listener untuk menampilkan SnackBar jika ada error
+  void _handleControllerChanges() {
+    if (_controller.status == MealPackageStatus.failure &&
+        _controller.errorMessage != null) {
+      // Tampilkan SnackBar setelah frame selesai dibangun
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_controller.errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       });
     }
   }
 
-  // Callback untuk onPageChanged di kalender
-  void _onCalendarPageChanged(DateTime focusedDay) {
-    setState(() { // Perlu setState agar UI kalender update bulannya
-      _focusedDay = focusedDay;
-    });
-  }
-
-  // Callback saat item jadwal di tap
-  void _handleScheduleItemTap(String mealType) {
-    // TODO: Implementasi navigasi ke detail jadwal makan atau layar lain
-    print("Tapped on meal type: $mealType for day: $_selectedDay");
-    // Contoh: Navigator.push(context, MaterialPageRoute(builder: (context) => MealDetailScreen(day: _selectedDay, mealType: mealType)));
+  @override
+  void dispose() {
+    _controller.removeListener(
+        _handleControllerChanges); // Hapus listener opsional
+    _controller.dispose(); // Jangan lupa dispose controller
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Ambil jadwal untuk hari yang sedang dipilih
-    final scheduleForSelectedDay = _getScheduleForDay(_selectedDay);
+    // Gunakan ListenableBuilder untuk mendengarkan perubahan dari controller
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, child) {
+        // Tentukan konten body berdasarkan status controller
+        Widget bodyContent;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Jadwal Makan', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18)), // Rename title
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 1,
-        shadowColor: Colors.grey.shade100,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gunakan MealCalendar widget
-            MealCalendar(
-              focusedDay: _focusedDay,
-              selectedDay: _selectedDay,
-              calendarFormat: _calendarFormat,
-              onDaySelected: _onDaySelected,
-              onPageChanged: _onCalendarPageChanged, // Tambahkan callback ini
-              // onFormatChanged: (format) => setState(() => _calendarFormat = format)), // Jika perlu ganti format
-            ),
-
-            // Judul "Hari ini" atau "Tanggal Terpilih"
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24.0, 25.0, 24.0, 15.0), // Tambah padding atas
-              child: Text(
-                // Gunakan DateUtils.isSameDay untuk perbandingan yang lebih aman
-                DateUtils.isSameDay(_selectedDay, DateTime.now())
-                    ? 'Jadwal Hari Ini' // Teks lebih deskriptif
-                    : DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_selectedDay), // Format tanggal lengkap
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        if (_controller.status == MealPackageStatus.loading) {
+          // Tampilkan loading indicator di tengah
+          bodyContent = const Center(child: CircularProgressIndicator());
+        } else if (_controller.status == MealPackageStatus.failure) {
+          // Tampilkan pesan error dan tombol refresh
+          bodyContent = Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 50),
+                  const SizedBox(height: 10),
+                  Text(
+                    _controller.errorMessage ?? 'Gagal memuat jadwal.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Coba Lagi'),
+                    onPressed:
+                    _controller.fetchSchedules, // Panggil fetchSchedules lagi
+                  ),
+                ],
               ),
             ),
+          );
+        } else {
+          // Konten utama jika status success
+          bodyContent = SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Gunakan MealCalendar widget, ambil data dari controller
+                MealCalendar(
+                  focusedDay: _controller.focusedDay,
+                  selectedDay: _controller.selectedDay,
+                  calendarFormat: _controller.calendarFormat,
+                  onDaySelected:
+                  _controller.onDaySelected, // Panggil method controller
+                  onPageChanged: _controller
+                      .onCalendarPageChanged, // Panggil method controller
+                  onFormatChanged:
+                  _controller.onFormatChanged, // Panggil method controller
+                ),
 
-            // Gunakan DailyScheduleList widget
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0), // Beri padding horizontal
-              child: DailyScheduleList(
-                schedule: scheduleForSelectedDay,
-                onItemTap: _handleScheduleItemTap, // Tambahkan callback tap
-              ),
+                // Judul "Hari ini" atau "Tanggal Terpilih"
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24.0, 25.0, 24.0, 15.0),
+                  child: Text(
+                    // Gunakan DateUtils untuk perbandingan yang lebih aman
+                    DateUtils.isSameDay(
+                        _controller.selectedDay, DateTime.now())
+                        ? 'Jadwal Hari Ini' // Teks lebih deskriptif
+                        : DateFormat('EEEE, d MMMM yyyy', 'id_ID')
+                        .format(_controller.selectedDay), // Format tanggal
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                // Gunakan DailyScheduleList widget, ambil data dari controller
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: DailyScheduleList(
+                    schedule: _controller
+                        .scheduleForSelectedDay, // Ambil data dari controller
+                    onItemTap: _controller
+                        .handleScheduleItemTap, // Panggil method controller
+                  ),
+                ),
+
+                const SizedBox(height: 30), // Jarak sebelum tombol
+
+                // Gunakan GenerateMenuButton widget
+                const GenerateMenuButton(),
+
+                const SizedBox(height: 30), // Padding bawah setelah tombol
+              ],
             ),
+          );
+        }
 
-            const SizedBox(height: 30), // Jarak sebelum tombol
-
-            // Gunakan GenerateMenuButton widget
-            const GenerateMenuButton(),
-
-            const SizedBox(height: 30), // Padding bawah setelah tombol
-          ],
-        ),
-      ),
+        // Scaffold (struktur layar) tetap di sini
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: const Text('Jadwal Makan',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    fontSize: 18)),
+            centerTitle: true,
+            backgroundColor: Colors.white,
+            elevation: 1,
+            shadowColor: Colors.grey.shade100,
+          ),
+          body: bodyContent, // Tampilkan konten yang sesuai (loading/error/data)
+        );
+      }, // Akhir builder ListenableBuilder
     );
   }
 }
