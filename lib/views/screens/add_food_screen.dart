@@ -1,12 +1,16 @@
-// lib/views/screens/add_food_screen.dart
-
 import 'package:flutter/material.dart';
-// Import controller baru
+import 'package:intl/intl.dart';
+import 'package:nutri_balance/models/meal_models.dart';
 import '../../controllers/add_food_controller.dart';
-// Import widget
 import '../widgets/add_food/food_search_bar.dart';
-import '../widgets/add_food/recent_food_chip.dart';
 import '../widgets/add_food/category_grid.dart';
+// Impor widget baru
+import '../widgets/add_food/food_result_tile.dart';
+import '../widgets/add_food/log_food_modal.dart';
+// --- IMPOR BARU ---
+import 'food_detail_screen.dart';
+// --- AKHIR IMPOR BARU ---
+
 
 class AddFoodScreen extends StatefulWidget {
   const AddFoodScreen({super.key});
@@ -15,36 +19,26 @@ class AddFoodScreen extends StatefulWidget {
   State<AddFoodScreen> createState() => _AddFoodScreenState();
 }
 
-class _AddFoodScreenState extends State<AddFoodScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  // TextEditingController tetap di state karena terkait erat dengan View
+class _AddFoodScreenState extends State<AddFoodScreen> {
   final TextEditingController _searchController = TextEditingController();
-
-  // Inisialisasi controller bisnis
   late AddFoodController _controller;
-
-  // --- Data Dummy dan Logika telah dipindah ke Controller ---
 
   @override
   void initState() {
     super.initState();
     _controller = AddFoodController();
-    _tabController = TabController(length: 1, vsync: this); // Hanya 1 tab
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
-    _controller.dispose(); // Dispose controller bisnis
+    _controller.dispose();
     super.dispose();
   }
 
-  // --- Fungsi _handle... telah dipindah ke controller ---
-
   @override
   Widget build(BuildContext context) {
+// ... (build method tetap sama)
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -58,122 +52,147 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Theme.of(context).primaryColor,
-          indicatorWeight: 3,
-          labelColor: Theme.of(context).primaryColor,
-          unselectedLabelColor: Colors.grey,
-          labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          tabs: const [
-            Tab(text: 'Rekomendasi'),
-            // Tab(text: 'Favorit'),
-          ],
-        ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Gunakan ListenableBuilder untuk update UI dari controller
-          ListenableBuilder(
-            listenable: _controller,
-            builder: (context, child) {
-              // Panggil builder tab dengan data dari controller
-              return _buildRecommendationTab(context, _controller);
-            },
-          ),
-          // _buildFavoritesTab(context),
-        ],
+      body: ListenableBuilder(
+        listenable: _controller,
+        builder: (context, child) {
+          return _buildBody(context, _controller);
+        },
       ),
     );
   }
 
-  // === WIDGET BUILDER UNTUK TAB REKOMENDASI ===
-  // Sekarang menerima controller sebagai parameter
-  Widget _buildRecommendationTab(
-      BuildContext context, AddFoodController controller) {
+  Widget _buildBody(BuildContext context, AddFoodController controller) {
+// ... (Fungsi _buildBody tetap sama)
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Gunakan widget FoodSearchBar
           FoodSearchBar(
             controller: _searchController,
             onChanged:
-            controller.handleSearch, // Panggil method dari controller
+            controller.handleSearchByName, // Panggil method pencarian nama
           ),
           const SizedBox(height: 25),
+          _buildContent(context, controller)
+        ],
+      ),
+    );
+  }
 
-          // Tampilkan bagian Terkini hanya jika tidak sedang mencari
-          // Gunakan 'isSearching' dari controller
-          if (!controller.isSearching) ...[
-            const Text('Terkini',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
-            Wrap(
-              spacing: 10.0,
-              runSpacing: 10.0,
-              // Gunakan widget RecentFoodChip
-              // Ambil data 'recentFoods' dari controller
-              children: controller.recentFoods
-                  .map((food) => RecentFoodChip(
-                foodName: food,
-                // Panggil method controller, kirim _searchController
-                onTap: () => controller.handleRecentFoodTap(
-                    food, _searchController),
-              ))
-                  .toList(),
-            ),
-            const SizedBox(height: 30),
-          ],
+  Widget _buildContent(BuildContext context, AddFoodController controller) {
+    if (controller.isSearching) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Hasil Pencarian',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 15),
 
-          // Tampilkan Kategori hanya jika tidak sedang mencari
-          if (!controller.isSearching) ...[
-            const Text('Kategori',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
-            // Gunakan widget CategoryGrid
-            CategoryGrid(
-              categories:
-              controller.categories, // Ambil data 'categories' dari controller
-              onCategoryTap:
-              controller.handleCategoryTap, // Panggil method controller
-            ),
-            const SizedBox(height: 30),
-          ],
+          if (controller.status == AddFoodStatus.loading)
+            const Center(child: CircularProgressIndicator()),
 
-          // Tampilkan hasil pencarian jika sedang mencari
-          if (controller.isSearching) ...[
-            const Text('Hasil Pencarian',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
-            // Tampilkan daftar hasil pencarian dari controller
+          if (controller.status == AddFoodStatus.error)
+            Center(child: Text(controller.errorMessage, style: const TextStyle(color: Colors.red))),
+
+          if (controller.status == AddFoodStatus.success) ...[
             if (controller.searchResults.isEmpty)
               const Center(
                   child:
                   Text('Makanan tidak ditemukan.', style: TextStyle(color: Colors.grey))),
-            // Render hasil pencarian
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.searchResults.length,
               itemBuilder: (context, index) {
-                final foodName = controller.searchResults[index];
-                // TODO: Ganti ini dengan widget FoodResultTile yang sesungguhnya
-                return ListTile(
-                  title: Text(foodName),
-                  leading: const Icon(Icons.restaurant_menu),
+                final food = controller.searchResults[index];
+                return FoodResultTile(
+                  food: food,
+                  // --- PERBAIKAN: Navigasi ke Detail Screen ---
                   onTap: () {
-                    // TODO: Implementasi logika saat hasil pencarian di-tap
-                    print('Memilih: $foodName');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FoodDetailScreen(
+                          food: food,
+                          controller: controller,
+                          // Kita tidak tahu meal type/qty di sini, jadi pakai default
+                          initialQuantity: 1.0,
+                        ),
+                      ),
+                    );
                   },
+                  // --- AKHIR PERBAIKAN ---
                 );
               },
             ),
           ]
         ],
-      ),
+      );
+    }
+
+    if (controller.status == AddFoodStatus.loading && controller.recommendedFoods.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (controller.status == AddFoodStatus.error && controller.recommendedFoods.isEmpty) {
+      return Center(child: Text(controller.errorMessage, style: const TextStyle(color: Colors.red)));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Rekomendasi Hari Ini',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 15),
+        if (controller.recommendedFoods.isEmpty)
+          const Center(
+              child: Text('Tidak ada rekomendasi hari ini.', style: TextStyle(color: Colors.grey))),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: controller.recommendedFoods.length,
+          itemBuilder: (context, index) {
+            final meal = controller.recommendedFoods[index];
+            final food = meal.food;
+            final subtitle = '${meal.displayQuantity.toStringAsFixed(0)} ${meal.displayUnit} • ${meal.mealType}';
+
+            return FoodResultTile(
+              food: food,
+              subtitle: subtitle,
+              // --- PERBAIKAN: Navigasi ke Detail Screen ---
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FoodDetailScreen(
+                      food: food,
+                      controller: controller,
+                      // Kirim data rekomendasi ke detail screen
+                      initialQuantity: meal.quantity,
+                      initialMealType: meal.mealType,
+                    ),
+                  ),
+                );
+              },
+              // --- AKHIR PERBAIKAN ---
+            );
+          },
+        ),
+        const SizedBox(height: 30),
+
+        const Text('Kategori',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 15),
+        CategoryGrid(
+          categories:
+          controller.categories,
+          onCategoryTap: (categoryName) => controller.handleSearchByCategory(categoryName, _searchController),
+        ),
+        const SizedBox(height: 30),
+      ],
     );
   }
 }
+

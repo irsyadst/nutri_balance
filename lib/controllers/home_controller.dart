@@ -1,19 +1,27 @@
-// lib/controllers/home_controller.dart
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/user_model.dart';
+// --- TAMBAHAN IMPOR ---
+import 'package:shared_preferences/shared_preferences.dart';
+// --- AKHIR TAMBAHAN ---
 import '../models/api_service.dart';
 import '../models/storage_service.dart';
+import '../views/screens/login_screen.dart';
+import '../models/user_model.dart';
 import '../models/food_log_model.dart';
-import '../views/screens/login_screen.dart'; // Untuk logout
+import '../views/screens/food_log_screen.dart';
 
-// Enum untuk status data fetching
+// --- DEFINISI ENUM (Perbaikan) ---
 enum HomeStatus { initial, loading, success, failure }
+// --- AKHIR DEFINISI ENUM ---
 
 class HomeController with ChangeNotifier {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
+
+  // --- TAMBAHAN KUNCI LOKAL ---
+  static const String _waterKey = 'consumed_water';
+  static const String _lastResetKey = 'last_water_reset';
+  // --- AKHIR TAMBAHAN ---
 
   // --- State ---
   HomeStatus _status = HomeStatus.initial;
@@ -31,26 +39,30 @@ class HomeController with ChangeNotifier {
   List<FoodLogEntry> _todayFoodLogs = [];
   List<FoodLogEntry> get todayFoodLogs => _todayFoodLogs;
 
+  String? _token;
+
   double _consumedCalories = 0;
   double get consumedCalories => _consumedCalories;
 
   double _consumedProtein = 0;
-  double get consumedProtein => _consumedProtein;
-
   double _consumedCarbs = 0;
-  double get consumedCarbs => _consumedCarbs;
-
   double _consumedFats = 0;
+
+  // --- TAMBAHAN STATE AIR ---
+  double _consumedWater = 0.0;
+  double get consumedWater => _consumedWater;
+  // --- AKHIR TAMBAHAN ---
+
+  double get consumedProtein => _consumedProtein;
+  double get consumedCarbs => _consumedCarbs;
   double get consumedFats => _consumedFats;
 
-  // Data konsumsi per meal type untuk MealTargetGrid
   final Map<String, double> _consumedDataForGrid = {
     'Sarapan': 0.0,
     'Makan Siang': 0.0,
     'Makan Malam': 0.0,
     'Snack': 0.0,
     'Air': 0.0,
-    // HAPUS 'Aktivitas': 0.0,
   };
   Map<String, double> get consumedDataForGrid => Map.unmodifiable(_consumedDataForGrid);
 
@@ -60,12 +72,13 @@ class HomeController with ChangeNotifier {
   double get targetCarbs => _userProfile?.targetCarbs?.toDouble() ?? 250.0;
   double get targetFats => _userProfile?.targetFats?.toDouble() ?? 60.0;
 
-  // Data target per meal type untuk MealTargetGrid
   Map<String, Map<String, dynamic>> get targetsForGrid {
-    final double breakfastTarget = targetCalories * 0.3;
-    final double lunchTarget = targetCalories * 0.4;
-    final double dinnerTarget = targetCalories * 0.3;
+    // Logika alokasi target Anda yang sudah benar
     const double snackTarget = 250.0;
+    final double mainMealCalories = (targetCalories - snackTarget) > 0 ? (targetCalories - snackTarget) : 0;
+    final double breakfastTarget = mainMealCalories * 0.3;
+    final double lunchTarget = mainMealCalories * 0.4;
+    final double dinnerTarget = mainMealCalories * 0.3;
 
     return {
       'Sarapan': {'icon': Icons.wb_sunny_outlined, 'target': breakfastTarget, 'unit': 'kkal'},
@@ -73,9 +86,9 @@ class HomeController with ChangeNotifier {
       'Makan Malam': {'icon': Icons.nights_stay_outlined, 'target': dinnerTarget, 'unit': 'kkal'},
       'Snack': {'icon': Icons.bakery_dining_outlined, 'target': snackTarget, 'unit': 'kkal'},
       'Air': {'icon': Icons.water_drop_outlined, 'target': 3.0, 'unit': 'L'},
-      // HAPUS 'Aktivitas': {'icon': Icons.fitness_center_outlined, 'target': 500.0, 'unit': 'kkal'},
     };
   }
+
 
   // --- Logic ---
   HomeController(User initialUser) {
@@ -89,18 +102,22 @@ class HomeController with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    String? token = await _storageService.getToken();
-    if (token == null) {
+    _token = await _storageService.getToken();
+    if (_token == null) {
       _handleError('Token tidak ditemukan. Silakan login kembali.');
       return;
     }
 
     try {
+      // --- TAMBAHAN: Muat data air ---
+      await _loadWaterIntake();
+      // --- AKHIR TAMBAHAN ---
+
       if (_currentUser == null) throw Exception('Data pengguna tidak valid.');
       _userProfile = _currentUser!.profile;
       if (_userProfile == null) throw Exception('Profil pengguna belum lengkap.');
 
-      List<FoodLogEntry> allLogs = await _apiService.getFoodLogHistory(token);
+      List<FoodLogEntry> allLogs = await _apiService.getFoodLogHistory(_token!);
       _calculateTodayConsumption(allLogs);
 
       _status = HomeStatus.success;
@@ -110,6 +127,80 @@ class HomeController with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // --- TAMBAHAN: FUNGSI-FUNGSI AIR ---
+
+  /// Memuat data air dari SharedPreferences dan me-reset jika beda hari
+  Future<void> _loadWaterIntake() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final todayString = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final lastResetDate = prefs.getString(_lastResetKey);
+
+      if (lastResetDate != todayString) {
+        // Jika hari telah berganti, reset data air
+        await _resetWaterIntake(prefs, todayString);
+      } else {
+        // Jika masih hari yang sama, muat data
+        _consumedWater = prefs.getDouble(_waterKey) ?? 0.0;
+      }
+    } catch (e) {
+      debugPrint("Gagal memuat data air: $e");
+      _consumedWater = 0.0; // Set default jika error
+    }
+    // (notifyListeners() tidak perlu di sini, akan dipanggil oleh fetchData)
+  }
+
+  /// Me-reset data air di SharedPreferences
+  Future<void> _resetWaterIntake(SharedPreferences prefs, String todayDate) async {
+    _consumedWater = 0.0;
+    await prefs.setDouble(_waterKey, 0.0);
+    await prefs.setString(_lastResetKey, todayDate);
+  }
+
+  /// Fungsi publik untuk menambah air (dipanggil oleh UI)
+  /// amountInLiters: jumlah air yang ditambahkan (misal: 0.25 untuk 250ml)
+  Future<void> addWater(double amountInLiters) async {
+    try {
+      _consumedWater += amountInLiters;
+
+      // Update di grid data
+      _consumedDataForGrid['Air'] = _consumedWater;
+
+      // Simpan ke lokal
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(_waterKey, _consumedWater);
+
+      notifyListeners(); // Perbarui UI
+    } catch (e) {
+      debugPrint("Gagal menambah air: $e");
+    }
+  }
+
+  /// Fungsi publik untuk mengurangi air (dipanggil oleh UI)
+  Future<void> removeWater(double amountInLiters) async {
+    try {
+      // Pastikan tidak negatif
+      _consumedWater -= amountInLiters;
+      if (_consumedWater < 0) {
+        _consumedWater = 0.0;
+      }
+
+      // Update di grid data
+      _consumedDataForGrid['Air'] = _consumedWater;
+
+      // Simpan ke lokal
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(_waterKey, _consumedWater);
+
+      notifyListeners(); // Perbarui UI
+    } catch (e) {
+      debugPrint("Gagal mengurangi air: $e");
+    }
+  }
+
+  // --- AKHIR TAMBAHAN FUNGSI AIR ---
+
 
   void _calculateTodayConsumption(List<FoodLogEntry> allLogs) {
     final todayString = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -136,8 +227,9 @@ class HomeController with ChangeNotifier {
       }
     }
 
-    _consumedDataForGrid['Air'] = 1.5; // Contoh
-    // HAPUS _consumedDataForGrid['Aktivitas'] = 350; // Contoh
+    // --- PERBAIKAN: Ganti data air 'Contoh' dengan data asli ---
+    _consumedDataForGrid['Air'] = _consumedWater;
+    // --- AKHIR PERBAIKAN ---
 
     print("Perhitungan Konsumsi Selesai:");
     print("Kalori: $_consumedCalories");
@@ -154,7 +246,23 @@ class HomeController with ChangeNotifier {
     print("Error di HomeController: $message");
   }
 
-  // Fungsi logout
+  // Ganti nama fungsi agar konsisten
+  void navigateToFoodLog(BuildContext context) {
+    if (_token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sesi tidak valid, silakan login ulang.')),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        // Kirim token ke FoodLogScreen
+        builder: (context) => FoodLogScreen(token: _token!),
+      ),
+    );
+  }
+
   Future<void> logout(BuildContext context) async {
     _setLoading(true);
     await _storageService.deleteToken();
@@ -162,6 +270,7 @@ class HomeController with ChangeNotifier {
     _userProfile = null;
     _todayFoodLogs = [];
     _status = HomeStatus.initial;
+    _token = null;
     _setLoading(false);
 
     if (context.mounted) {
@@ -182,3 +291,6 @@ class HomeController with ChangeNotifier {
     notifyListeners();
   }
 }
+
+
+

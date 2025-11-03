@@ -8,7 +8,8 @@ class LoggedFood {
   final double proteins;
   final double carbs;
   final double fats;
-  // Tambahkan field lain jika ada (misal: category)
+  final double servingQuantity;
+  final String servingUnit;
 
   LoggedFood({
     this.id,
@@ -17,6 +18,8 @@ class LoggedFood {
     required this.proteins,
     required this.carbs,
     required this.fats,
+    required this.servingQuantity,
+    required this.servingUnit,
   });
 
   // Konversi dari Map (JSON)
@@ -28,6 +31,8 @@ class LoggedFood {
       proteins: (json['proteins'] ?? 0.0).toDouble(),
       carbs: (json['carbs'] ?? 0.0).toDouble(),
       fats: (json['fats'] ?? 0.0).toDouble(),
+      servingQuantity: (json['servingQuantity'] ?? 1.0).toDouble(),
+      servingUnit: json['servingUnit'] ?? 'porsi',
     );
   }
 }
@@ -41,6 +46,8 @@ class FoodLogEntry {
   final double quantity; // Jumlah porsi/gram
   final String mealType; // Sarapan, Makan Siang, dll.
   final DateTime createdAt; // Waktu pencatatan
+  final double displayQuantity;
+  final String displayUnit;
 
   FoodLogEntry({
     required this.id,
@@ -50,6 +57,8 @@ class FoodLogEntry {
     required this.quantity,
     required this.mealType,
     required this.createdAt,
+    required this.displayQuantity,
+    required this.displayUnit,
   });
 
   // Factory constructor untuk membuat instance dari JSON
@@ -63,6 +72,8 @@ class FoodLogEntry {
       userIdString = userIdData['_id']; // Ambil _id jika dipopulate
     }
 
+    final qtyAsDouble = (json['quantity'] ?? 1.0).toDouble();
+
     return FoodLogEntry(
       id: json['_id'] ?? '', // ID log
       userId: userIdString,
@@ -72,6 +83,8 @@ class FoodLogEntry {
       mealType: json['mealType'] ?? 'Lainnya', // Default meal type
       // Parse createdAt, beri default jika gagal parse
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      displayQuantity: (json['displayQuantity'] ?? qtyAsDouble).toDouble(),
+      displayUnit: json['displayUnit'] ?? json['food']?['servingUnit'] ?? 'porsi',
     );
   }
 }

@@ -17,6 +17,7 @@ class MealPackageScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Paket Makanan'),
         backgroundColor: Colors.white,
+        centerTitle: true,
         elevation: 0,
         titleTextStyle: TextStyle(
           color: Colors.black,

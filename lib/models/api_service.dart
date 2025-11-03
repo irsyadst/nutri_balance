@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'user_model.dart';
 import 'dashboard_data.dart';
-import 'meal_models.dart'; // <-- Impor MealItem atau model log jika perlu
-import 'food_log_model.dart'; // <-- Tambahkan import model FoodLog
+import 'meal_models.dart'; // <-- Impor MealPlan dan Food
+import 'food_log_model.dart'; // <-- Impor model FoodLog
 
 // Service untuk Komunikasi dengan Backend
 class ApiService {
   final String _baseUrl = 'https://nutri-balance-backend.onrender.com/api';
 
+  // --- FUNGSI AUTH & USER (Tetap sama) ---
   Future<Map<String, dynamic>> register(String name, String email, String password) async {
     try {
       final response = await http.post(
@@ -73,13 +74,11 @@ class ApiService {
     }
   }
 
-  /// Mengirim data profil yang sudah diperbarui ke backend.
   Future<User?> updateProfile(String token, UserProfile profile) async {
     try {
       final response = await http.put(
         Uri.parse('$_baseUrl/user/profile'), // Endpoint PUT profile
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
-        // Gunakan toJson dari UserProfile
         body: jsonEncode(profile.toJson()),
       );
 
@@ -87,10 +86,8 @@ class ApiService {
       debugPrint("Update Profile Body: ${response.body}");
 
       if (response.statusCode == 200) {
-        // Parse user lengkap dari response (backend mengirim user utuh)
         return _parseUserFromJson(jsonDecode(response.body)['user']);
       }
-      // Handle error jika status code bukan 200
       print('Update profile failed: ${response.body}');
       return null;
     } catch (e) {
@@ -100,6 +97,8 @@ class ApiService {
   }
 
   Future<DashboardData?> getDashboardData(String token) async {
+    // CATATAN: Endpoint '/dashboard' tidak ada di routes Anda.
+    // Ini mungkin akan error nanti, tapi kita biarkan dulu.
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/dashboard'),
@@ -119,38 +118,39 @@ class ApiService {
     }
   }
 
+  // --- FUNGSI FOOD & MEAL PLAN (DIPERBAIKI) ---
+
   Future<List<FoodLogEntry>> getFoodLogHistory(String token) async {
     if (token.isEmpty) {
       debugPrint('Error di getFoodLogHistory: Token kosong.');
-      return []; // Kembalikan list kosong jika token tidak ada
+      return [];
     }
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/food/log/history'), // Endpoint: /api/food/log/history
+        Uri.parse('$_baseUrl/log/history'),
         headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 20)); // Timeout lebih lama mungkin diperlukan
+      ).timeout(const Duration(seconds: 20));
 
       debugPrint('Get History Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
-        // Ubah list JSON menjadi list objek FoodLogEntry
         List<FoodLogEntry> logs = body.map((dynamic item) => FoodLogEntry.fromJson(item)).toList();
         return logs;
       } else {
         debugPrint('Error di getFoodLogHistory: Status code ${response.statusCode}');
-        return []; // Kembalikan list kosong jika gagal
+        return [];
       }
     } catch (e) {
       debugPrint('Error di getFoodLogHistory (catch): $e');
-      return []; // Kembalikan list kosong jika terjadi exception
+      return [];
     }
   }
 
   Future<bool> generateMealPlan(String token, Map<String, dynamic> data) async {
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/food/generate-meal-plan'), // Endpoint: /api/food/generate-meal-plan
+        Uri.parse('$_baseUrl/food/generate-meal-plan'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -161,17 +161,16 @@ class ApiService {
       debugPrint("Generate Meal Plan Status: ${response.statusCode}");
       debugPrint("Generate Meal Plan Body: ${response.body}");
 
-      // Backend (foodController.js) mengembalikan status 201 (Created)
       return response.statusCode == 201;
     } catch (e) {
       debugPrint('Error di generateMealPlan: $e');
-      return false; // Gagal jika terjadi exception
+      return false;
     }
   }
 
   Future<List<MealPlan>> getMealPlan(String token, String date) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/meal-planner?date=$date'), // <-- Kirim tanggal sebagai query
+      Uri.parse('$_baseUrl/meal-planner?date=$date'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -179,7 +178,6 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      // Gunakan helper 'mealPlanFromJson' dari model kita
       return mealPlanFromJson(response.body);
     } else {
       print('Gagal mengambil meal plan: ${response.body}');
@@ -187,15 +185,100 @@ class ApiService {
     }
   }
 
-  // Fungsi helper internal untuk mem-parsing data User dari JSON secara aman
+  // --- FUNGSI BARU (FIX) ---
+
+  Future<List<String>> getFoodCategories() async { // Token tidak perlu
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/foods/categories'),
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> body = jsonDecode(response.body);
+        return body.cast<String>();
+      } else {
+        throw Exception('Gagal mengambil kategori: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di getFoodCategories: $e');
+      throw Exception('Gagal mengambil kategori');
+    }
+  }
+
+  // --- [PERBAIKAN DI SINI] ---
+  /// Mencari makanan di database berdasarkan nama ATAU kategori
+  Future<List<Food>> searchFoods({String? searchQuery, String? category}) async {
+    try {
+      // Buat map untuk query parameters
+      final Map<String, String> queryParameters = {};
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        queryParameters['search'] = searchQuery;
+      }
+      if (category != null && category.isNotEmpty) {
+        queryParameters['category'] = category;
+      }
+
+      // Buat URL dengan query parameters
+      final uri = Uri.parse('$_baseUrl/foods').replace(
+        queryParameters: queryParameters, // Endpoint: /api/foods?search=...&category=...
+      );
+
+      final response = await http.get(uri); // Tidak perlu token
+
+      if (response.statusCode == 200) {
+        List<dynamic> body = jsonDecode(response.body);
+        // Map hasil JSON ke List<Food>
+        return body.map((dynamic item) => Food.fromJson(item)).toList();
+      } else {
+        throw Exception('Gagal mencari makanan: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di searchFoods: $e');
+      throw Exception('Gagal mencari makanan');
+    }
+  }
+  // --- [AKHIR PERBAIKAN] ---
+
+  Future<void> logFood({
+    required String token,
+    required String foodId,
+    required double quantity,
+    required String mealType,
+    required String date,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/log/food'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode({
+          'foodId': foodId,
+          'quantity': quantity,
+          'mealType': mealType,
+          'date': date,
+        }),
+      );
+
+      if (response.statusCode != 201) {
+        throw Exception('Gagal mencatat makanan: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di logFood: $e');
+      throw Exception('Gagal mencatat makanan');
+    }
+  }
+
+  // --- Helper Internal ---
   User _parseUserFromJson(Map<String, dynamic> data) {
     var profileData = data['profile'];
     return User(
       id: data['_id'],
-      name: data['name'], // Ambil nama dari data user utama
+      name: data['name'],
       email: data['email'],
       profile: profileData != null ? UserProfile.fromJson(profileData) : null,
-      // UserProfile.fromJson akan memparsing semua field profile
     );
   }
 }
+

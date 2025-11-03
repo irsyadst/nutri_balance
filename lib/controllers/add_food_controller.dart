@@ -1,101 +1,175 @@
-// lib/controllers/add_food_controller.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:nutri_balance/models/api_service.dart';
+import 'package:nutri_balance/models/meal_models.dart';
+import 'package:nutri_balance/models/storage_service.dart';
 
-// Enum untuk status, bisa dikembangkan saat mengambil data dari API
-enum AddFoodStatus { initial, loading, success, failure }
+// Enum untuk status loading
+enum AddFoodStatus { initial, loading, success, error }
 
-class AddFoodController with ChangeNotifier {
-  // --- State ---
+class AddFoodController extends ChangeNotifier {
+  final ApiService _apiService = ApiService();
+  final StorageService _storageService = StorageService();
+
+  // --- STATE DATA ---
   AddFoodStatus _status = AddFoodStatus.initial;
-  String _searchQuery = '';
-
-  // Data (dummy, ganti dengan fetch API nanti)
-  List<String> _recentFoods = [];
-  List<Map<String, dynamic>> _categories = [];
-  List<String> _searchResults = []; // Untuk menampung hasil pencarian
-
-  // --- Getters untuk UI ---
   AddFoodStatus get status => _status;
-  List<String> get recentFoods => List.unmodifiable(_recentFoods);
-  List<Map<String, dynamic>> get categories => List.unmodifiable(_categories);
-  List<String> get searchResults => List.unmodifiable(_searchResults);
 
-  // Getter untuk menentukan apakah UI harus menampilkan hasil pencarian
-  bool get isSearching => _searchQuery.isNotEmpty;
-  String get searchQuery => _searchQuery;
+  String _errorMessage = '';
+  String get errorMessage => _errorMessage;
 
-  // --- Constructor ---
+  // --- STATE UI ---
+  bool _isSearching = false;
+  bool get isSearching => _isSearching;
+
+  // --- DATA LISTS ---
+  List<MealPlan> _recommendedFoods = [];
+  List<MealPlan> get recommendedFoods => _recommendedFoods;
+
+  List<Food> _searchResults = [];
+  List<Food> get searchResults => _searchResults;
+
+  List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> get categories => _categories;
+
+  // --- CONSTRUCTOR ---
   AddFoodController() {
-    // Muat data awal saat controller dibuat
-    _fetchInitialData();
+    fetchInitialData();
   }
 
-  // --- Logika Pengambilan Data ---
-  void _fetchInitialData() {
+  // --- FUNGSI PENGAMBILAN DATA ---
+
+  Future<void> fetchInitialData() async {
     _status = AddFoodStatus.loading;
-    // Simulasi fetch data
+    notifyListeners();
+
     try {
-      // Data dummy
-      _recentFoods = [
-        'Dada ayam',
-        'Beras merah',
-        'Brokoli',
-        'Alpukat',
-        'Ikan salmon'
-      ];
-      _categories = [
-        {'name': 'Salad', 'icon': Icons.spa_outlined},
-        {'name': 'Buah-buahan', 'icon': Icons.apple_outlined},
-        {'name': 'Sayuran', 'icon': Icons.local_florist_outlined},
-        {'name': 'Daging', 'icon': Icons.kebab_dining_outlined},
-        {'name': 'Produk susu', 'icon': Icons.egg_alt_outlined},
-        {'name': 'Biji-bijian', 'icon': Icons.grain_outlined},
-      ];
+      final token = await _storageService.getToken();
+      if (token == null) throw Exception('Token tidak ditemukan');
+
+      // 1. Ambil Kategori
+      final categoryNames = await _apiService.getFoodCategories();
+      _categories = categoryNames.map((name) {
+        // Pemetaan ikon sederhana
+        IconData icon;
+        switch (name) {
+          case 'Karbohidrat':
+            icon = Icons.rice_bowl_outlined;
+            break;
+          case 'Protein Hewani':
+            icon = Icons.kebab_dining_outlined;
+            break;
+          case 'Protein Nabati':
+            icon = Icons.eco_outlined;
+            break;
+          case 'Sayuran':
+            icon = Icons.local_florist_outlined;
+            break;
+          case 'Buah':
+            icon = Icons.apple_outlined;
+            break;
+          case 'Susu & Olahan':
+            icon = Icons.egg_alt_outlined;
+            break;
+          case 'Minuman':
+            icon = Icons.local_cafe_outlined;
+            break;
+          default:
+            icon = Icons.fastfood_outlined;
+        }
+        return {'name': name, 'icon': icon};
+      }).toList();
+
+      // 2. Ambil Rekomendasi Hari Ini
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      _recommendedFoods = await _apiService.getMealPlan(token, today);
+
       _status = AddFoodStatus.success;
     } catch (e) {
-      _status = AddFoodStatus.failure;
+      _errorMessage = "Gagal memuat data: $e";
+      _status = AddFoodStatus.error;
+    } finally {
+      notifyListeners();
     }
-    // Tidak perlu notifyListeners() di sini karena ini di constructor,
-    // tapi jika ini adalah fungsi async, Anda harus memanggilnya.
   }
 
-  // --- Event Handler (Dipanggil oleh View) ---
-
-  /// Dipanggil saat teks di search bar berubah
-  void handleSearch(String query) {
-    _searchQuery = query.trim();
-
-    if (_searchQuery.isEmpty) {
+  // --- [PERBAIKAN DI SINI] ---
+  /// Menangani pencarian berdasarkan nama (dari search bar)
+  Future<void> handleSearchByName(String query) async {
+    if (query.isEmpty) {
+      _isSearching = false;
       _searchResults = [];
-    } else {
-      // Logika pencarian (dummy): filter dari recent foods
-      _searchResults = _recentFoods
-          .where(
-              (food) => food.toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
-      // TODO: Ganti ini dengan panggilan API untuk pencarian makanan
+      notifyListeners();
+      return;
     }
 
-    notifyListeners(); // Beri tahu UI untuk update
+    _isSearching = true;
+    _status = AddFoodStatus.loading;
+    notifyListeners();
+
+    try {
+      _searchResults = await _apiService.searchFoods(searchQuery: query); // Hanya kirim searchQuery
+      _status = AddFoodStatus.success;
+    } catch (e) {
+      _errorMessage = "Gagal mencari makanan: $e";
+      _status = AddFoodStatus.error;
+    } finally {
+      notifyListeners();
+    }
   }
 
-  /// Dipanggil saat chip makanan terkini di-tap
-  void handleRecentFoodTap(
-      String foodName, TextEditingController searchController) {
-    // Set teks di search bar (yang ada di view)
-    searchController.text = foodName;
-    // Pindahkan cursor ke akhir
-    searchController.selection =
-        TextSelection.fromPosition(TextPosition(offset: foodName.length));
-    // Panggil handleSearch untuk memicu UI pencarian
-    handleSearch(foodName);
-  }
+  /// Menangani pencarian berdasarkan KATEGORI (dari klik kategori)
+  Future<void> handleSearchByCategory(String categoryName, TextEditingController searchController) async {
+    // 1. Set search bar agar user tahu apa yang sedang dicari
+    searchController.text = categoryName;
 
-  /// Dipanggil saat kartu kategori di-tap
-  void handleCategoryTap(String categoryName) {
-    // TODO: Implementasi navigasi ke halaman detail kategori atau filter makanan
-    print('Kategori diklik: $categoryName');
-    // Contoh:
-    // _navigationService.navigateTo(Routes.categoryDetail, arguments: categoryName);
+    _isSearching = true;
+    _status = AddFoodStatus.loading;
+    notifyListeners();
+
+    try {
+      // 2. Panggil API hanya dengan parameter kategori
+      _searchResults = await _apiService.searchFoods(category: categoryName);
+      _status = AddFoodStatus.success;
+    } catch (e) {
+      _errorMessage = "Gagal memuat kategori: $e";
+      _status = AddFoodStatus.error;
+    } finally {
+      notifyListeners();
+    }
+  }
+  // --- [AKHIR PERBAIKAN] ---
+
+  // --- FUNGSI PENCATATAN MAKANAN (LOGGING) ---
+
+  Future<bool> logFood({
+    required String foodId,
+    required double quantity,
+    required String mealType,
+    required String date,
+  }) async {
+    _status = AddFoodStatus.loading;
+    notifyListeners();
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) throw Exception('Token tidak ditemukan');
+
+      await _apiService.logFood(
+        token: token,
+        foodId: foodId,
+        quantity: quantity,
+        mealType: mealType,
+        date: date,
+      );
+      _status = AddFoodStatus.success;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = "Gagal mencatat makanan: $e";
+      _status = AddFoodStatus.error;
+      notifyListeners();
+      return false;
+    }
   }
 }
+

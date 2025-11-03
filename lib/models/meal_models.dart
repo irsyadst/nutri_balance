@@ -10,6 +10,8 @@ class Food {
   final double carbs;
   final double fats;
   final String category;
+  final double servingQuantity;
+  final String servingUnit;
 
   Food({
     required this.id,
@@ -19,6 +21,8 @@ class Food {
     required this.carbs,
     required this.fats,
     required this.category,
+    required this.servingQuantity,
+    required this.servingUnit,
   });
 
   factory Food.fromJson(Map<String, dynamic> json) {
@@ -30,6 +34,8 @@ class Food {
       carbs: (json['carbs'] ?? 0.0).toDouble(),
       fats: (json['fats'] ?? 0.0).toDouble(),
       category: json['category'] ?? 'Uncategorized',
+      servingQuantity: (json['servingQuantity'] ?? 1.0).toDouble(),
+      servingUnit: json['servingUnit'] ?? 'porsi',
     );
   }
 }
@@ -41,6 +47,8 @@ class MealPlan {
   final String time;
   final Food food;
   final double quantity;
+  final double displayQuantity;
+  final String displayUnit;
 
   MealPlan({
     required this.id,
@@ -49,10 +57,11 @@ class MealPlan {
     required this.time,
     required this.food,
     required this.quantity,
+    required this.displayQuantity,
+    required this.displayUnit,
   });
 
   factory MealPlan.fromJson(Map<String, dynamic> json) {
-    // --- PERBAIKAN DI SINI ---
     final foodData = json['food'];
     Food parsedFood;
 
@@ -62,6 +71,8 @@ class MealPlan {
       parsedFood = Food.fromJson({}); // Buat food kosong jika error
     }
 
+    final qtyAsDouble = (json['quantity'] ?? 1.0).toDouble();
+
     return MealPlan(
       id: json['_id'] ?? '',
       date: json['date'] ?? '',
@@ -69,6 +80,8 @@ class MealPlan {
       time: json['time'] ?? '00:00',
       food: parsedFood,
       quantity: (json['quantity'] ?? 1.0).toDouble(),
+      displayQuantity: (json['displayQuantity'] ?? qtyAsDouble).toDouble(),
+      displayUnit: json['displayUnit'] ?? parsedFood.servingUnit,
     );
   }
 }
