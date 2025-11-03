@@ -1,12 +1,5 @@
 // lib/views/screens/splash_screen.dart
 import 'package:flutter/material.dart';
-import 'dart:async'; // Tetap diperlukan jika ada logic error/delay
-
-// --- Import yang Diperlukan ---
-// Hapus import service/model yang tidak perlu lagi di view
-// import '../../models/storage_service.dart';
-// import '../../models/api_service.dart';
-// import '../../models/user_model.dart';
 import '../../controllers/splash_controller.dart'; // Import controller baru
 // Import screen tujuan
 import 'onboarding_screen.dart';
@@ -72,9 +65,7 @@ class _SplashScreenState extends State<SplashScreen> {
         // Anda bisa tambahkan tombol "Coba Lagi" di sini jika mau
         break;
       case SplashStatus.loading:
-      // Biarkan splash screen tetap tampil
-      default:
-        break;
+      break;
     }
   }
 

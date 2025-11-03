@@ -1,5 +1,4 @@
 // lib/controllers/statistics_controller.dart
-import 'dart:math'; // Untuk Random
 import 'package:fl_chart/fl_chart.dart'; // Dibutuhkan untuk FlSpot
 import 'package:flutter/material.dart';
 

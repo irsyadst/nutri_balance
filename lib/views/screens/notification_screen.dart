@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-// Import model notifikasi
-import '../../models/notification_model.dart'; // Sesuaikan path jika berbeda
 // Import widget tile notifikasi
 import '../widgets/notification/notification_tile.dart';
 // Import controller baru
