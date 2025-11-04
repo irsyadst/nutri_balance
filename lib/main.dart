@@ -13,7 +13,6 @@ void main() async {
 
   // --- INISIALISASI NOTIFIKASI ---
   await NotificationService().init(); // Inisialisasi service
-  await NotificationService().requestPermissions(); // Minta izin
   // --- AKHIR INISIALISASI ---
 
   // Inisialisasi format tanggal
