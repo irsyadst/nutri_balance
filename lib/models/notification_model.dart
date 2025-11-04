@@ -1,3 +1,4 @@
+// lib/models/notification_model.dart
 import 'package:flutter/material.dart';
 
 class AppNotification {
@@ -5,10 +6,8 @@ class AppNotification {
   final String title;
   final String subtitle; // Ini akan diisi dari 'body' di backend
   final String iconAsset;
-  final bool isRead;
+  late bool isRead; // <-- HAPUS 'final' di sini
   final DateTime createdAt;
-
-  // Hapus: iconColor dan iconBgColor (ini akan ditangani di UI)
 
   AppNotification({
     required this.id,
@@ -20,16 +19,27 @@ class AppNotification {
   });
 
   // Factory constructor untuk parsing JSON dari API
-  // Pastikan file ini di-impor di api_service.dart dan notification_tile.dart
   factory AppNotification.fromJson(Map<String, dynamic> json) {
+    // --- PERBAIKIKAN PARSER 'isRead' ---
+    // Agar bisa menerima String 'read'/'unread' ATAU boolean true/false
+    bool readStatus = false;
+    if (json['isRead'] != null) {
+      if (json['isRead'] is bool) {
+        readStatus = json['isRead'];
+      } else if (json['isRead'] is String) {
+        readStatus = json['isRead'].toLowerCase() == 'read';
+      }
+    }
+    // --- AKHIR PERBAIKAN ---
+
     return AppNotification(
       id: json['_id'] ?? '',
       title: json['title'] ?? 'Tanpa Judul',
-      subtitle: json['body'] ?? '', // 'body' dari backend menjadi 'subtitle' di app
+      subtitle:
+      json['body'] ?? '', // 'body' dari backend menjadi 'subtitle' di app
       iconAsset: json['iconAsset'] ?? 'notification',
-      isRead: json['isRead'] ?? false,
+      isRead: readStatus, // Gunakan status yang sudah diparsing
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
     );
   }
 }
-

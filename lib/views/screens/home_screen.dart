@@ -9,6 +9,7 @@ import '../widgets/home/calorie_macro_card.dart';
 import '../widgets/home/meal_target_grid.dart';
 import '../widgets/home/add_food_button.dart';
 import '../widgets/home/view_log_button.dart'; // Impor tombol log
+import 'notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final User initialUser;
@@ -79,7 +80,19 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  HomeHeader(userName: _controller.currentUser?.name ?? 'Pengguna'),
+                  HomeHeader(
+                    userName: _controller.currentUser?.name ?? 'Pengguna',
+                    hasUnreadNotifications: _controller.hasUnreadNotifications,
+                    onNotificationTap: () async {
+                      // Pindah ke NotificationScreen
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => NotificationScreen()),
+                      );
+                      // Saat kembali (pop), panggil fetchData() untuk refresh badge
+                      _controller.fetchData();
+                    },
+                  ),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),

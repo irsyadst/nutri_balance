@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'user_model.dart';
-import 'dashboard_data.dart';
 import 'meal_models.dart'; // <-- Impor MealPlan dan Food
 import 'food_log_model.dart'; // <-- Impor model FoodLog
 import 'notification_model.dart';
@@ -93,28 +92,6 @@ class ApiService {
       return null;
     } catch (e) {
       debugPrint('Error di updateProfile: $e');
-      return null;
-    }
-  }
-
-  Future<DashboardData?> getDashboardData(String token) async {
-    // CATATAN: Endpoint '/dashboard' tidak ada di routes Anda.
-    // Ini mungkin akan error nanti, tapi kita biarkan dulu.
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/dashboard'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return DashboardData(
-          consumedKcal: (data['consumed']['calories'] ?? 0).toInt(),
-          targetKcal: (data['targets']['targetCalories'] ?? 0).toInt(),
-        );
-      }
-      return null;
-    } catch (e) {
-      debugPrint('Error di getDashboardData: $e');
       return null;
     }
   }
@@ -280,8 +257,9 @@ class ApiService {
 
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
-        List<AppNotification> notifications = body.map((dynamic item) =>
-            AppNotification.fromJson(item)).toList(); // <-- Error terjadi di sini
+        List<AppNotification> notifications = body
+            .map((dynamic item) => AppNotification.fromJson(item))
+            .toList();
         return notifications;
       } else {
         throw Exception('Gagal memuat notifikasi: ${response.body}');
@@ -289,6 +267,74 @@ class ApiService {
     } catch (e) {
       debugPrint('Error di getNotifications: $e');
       throw Exception('Gagal memuat notifikasi');
+    }
+  }
+
+  // --- TAMBAHAN 1: MARK AS READ ---
+  Future<AppNotification> markNotificationAsRead(
+      String token, String notificationId) async {
+    try {
+      final response = await http.put(
+        Uri.parse(
+            '$_baseUrl/user/notifications/$notificationId'), // PUT /api/user/notifications/:id
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        return AppNotification.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Gagal menandai notifikasi: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di markNotificationAsRead: $e');
+      throw Exception('Gagal menandai notifikasi');
+    }
+  }
+
+  // --- TAMBAHAN 2: DELETE NOTIFICATION ---
+  Future<void> deleteNotification(String token, String notificationId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse(
+            '$_baseUrl/user/notifications/$notificationId'), // DELETE /api/user/notifications/:id
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Gagal menghapus notifikasi: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di deleteNotification: $e');
+      throw Exception('Gagal menghapus notifikasi');
+    }
+  }
+
+  // --- TAMBAHAN 3: CREATE NOTIFICATION (UNTUK DISIMPAN KE DB) ---
+  Future<AppNotification> createNotification(String token, String title,
+      String message, String iconAsset) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+            '$_baseUrl/user/notifications'), // POST /api/user/notifications
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode({
+          'title': title,
+          'message': message, // Backend akan mapping ini ke 'body'
+          'iconAsset': iconAsset,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return AppNotification.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Gagal menyimpan notifikasi: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di createNotification: $e');
+      throw Exception('Gagal menyimpan notifikasi');
     }
   }
 

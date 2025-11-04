@@ -1,18 +1,17 @@
+// lib/controllers/notification_controller.dart
+
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
-// --- IMPOR BARU ---
 import '../models/api_service.dart';
 import '../models/storage_service.dart';
-// --- AKHIR IMPOR ---
 
 // Enum untuk status
 enum NotificationStatus { loading, success, failure }
 
 class NotificationController with ChangeNotifier {
-  // --- TAMBAHAN BARU ---
+  // --- Dependensi ---
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
-  // --- AKHIR TAMBAHAN ---
 
   // --- State ---
   NotificationStatus _status = NotificationStatus.loading;
@@ -29,22 +28,35 @@ class NotificationController with ChangeNotifier {
     fetchNotifications(); // Muat data saat controller dibuat
   }
 
-  // --- Logika Fetch Data (Diperbarui) ---
+  // --- Helper ---
+  Future<String> _getAuthToken() async {
+    final token = await _storageService.getToken();
+    if (token == null) {
+      throw Exception("Sesi tidak valid. Silakan login kembali.");
+    }
+    return token;
+  }
+
+  void _showErrorSnackbar(BuildContext context, String message) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message.replaceAll("Exception: ", "")),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // --- Logika Fetch Data ---
   Future<void> fetchNotifications() async {
     _status = NotificationStatus.loading;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // 1. Ambil token
-      final token = await _storageService.getToken();
-      if (token == null) {
-        throw Exception("Sesi tidak valid. Silakan login kembali.");
-      }
-
-      // 2. Panggil API
+      final token = await _getAuthToken();
       _notifications = await _apiService.getNotifications(token);
-
       _status = NotificationStatus.success;
     } catch (e) {
       _errorMessage = e.toString().replaceAll("Exception: ", "");
@@ -52,40 +64,90 @@ class NotificationController with ChangeNotifier {
     }
     notifyListeners();
   }
-  // --- Akhir Perbaruan ---
 
-  // --- Logika Event Handler (Dipanggil dari View) ---
+  // --- Logika Aksi (Mark as Read) ---
+  Future<void> markAsRead(BuildContext context, String notificationId) async {
+    final index = _notifications.indexWhere((n) => n.id == notificationId);
 
-  void handleNotificationTap(
-      BuildContext context, AppNotification notification) {
-    // TODO: Implementasi aksi (misal: tandai sudah dibaca di API)
-    print('Notification tapped: ${notification.title}');
-    // Panggil API untuk menandai 'isRead = true'
+    // Jika tidak ditemukan atau sudah dibaca, abaikan
+    if (index == -1 || _notifications[index].isRead == true) return;
+
+    final bool oldStatus = _notifications[index].isRead;
+
+    // Optimistic UI update: langsung ubah di UI
+    _notifications[index].isRead = true;
+    notifyListeners();
+
+    try {
+      final token = await _getAuthToken();
+      // Panggil API
+      await _apiService.markNotificationAsRead(token, notificationId);
+    } catch (e) {
+      // Rollback jika API gagal
+      _notifications[index].isRead = oldStatus;
+      notifyListeners();
+      _showErrorSnackbar(context, "Gagal menandai notifikasi: ${e.toString()}");
+    }
   }
 
-  void handleMoreOptionsTap(
-      BuildContext context, AppNotification notification) {
+  // --- Logika Aksi (Delete) ---
+  Future<void> deleteNotification(BuildContext context, String notificationId) async {
+    final index = _notifications.indexWhere((n) => n.id == notificationId);
+    if (index == -1) return;
+
+    // Simpan notifikasi untuk rollback
+    final notificationToRemove = _notifications.removeAt(index);
+    notifyListeners(); // Update UI
+
+    try {
+      final token = await _getAuthToken();
+      // Panggil API
+      await _apiService.deleteNotification(token, notificationId);
+    } catch (e) {
+      // Rollback jika API gagal
+      _notifications.insert(index, notificationToRemove);
+      notifyListeners();
+      _showErrorSnackbar(context, "Gagal menghapus notifikasi: ${e.toString()}");
+    }
+  }
+
+  // --- Event Handler (Dipanggil dari View) ---
+
+  /// Dipanggil saat tile notifikasi di-tap
+  void handleNotificationTap(BuildContext context, AppNotification notification) {
+    // --- PERBAIKAN: Hapus TODO dan panggil fungsi ---
+    print('Notification tapped: ${notification.title}');
+    markAsRead(context, notification.id);
+    // TODO: Tambahkan navigasi jika diperlukan
+  }
+
+  /// Dipanggil saat ikon titik tiga di-tap
+  void handleMoreOptionsTap(BuildContext context, AppNotification notification) {
     print('More options tapped for: ${notification.title}');
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       builder: (context) => Wrap(
         children: <Widget>[
-          ListTile(
-            leading: const Icon(Icons.mark_email_read_outlined),
-            title: const Text('Tandai sudah dibaca'),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Panggil API 'markAsRead(notification.id)'
-            },
-          ),
+          // Hanya tampilkan jika belum dibaca
+          if (notification.isRead != true)
+            ListTile(
+              leading: const Icon(Icons.mark_email_read_outlined),
+              title: const Text('Tandai sudah dibaca'),
+              onTap: () {
+                Navigator.pop(context);
+                // --- PERBAIKAN: Hapus TODO dan panggil fungsi ---
+                markAsRead(context, notification.id);
+              },
+            ),
           ListTile(
             leading: Icon(Icons.delete_outline, color: Colors.red.shade400),
             title: Text('Hapus notifikasi',
                 style: TextStyle(color: Colors.red.shade400)),
             onTap: () {
               Navigator.pop(context);
-              // TODO: Panggil API 'deleteNotification(notification.id)'
+              // --- PERBAIKAN: Hapus TODO dan panggil fungsi ---
+              deleteNotification(context, notification.id);
             },
           ),
         ],
@@ -93,7 +155,23 @@ class NotificationController with ChangeNotifier {
     );
   }
 
-// --- HAPUS: Data Dummy tidak diperlukan lagi ---
-// List<AppNotification> _getDummyData() { ... }
-}
+  // --- Logika untuk menyimpan notifikasi BARU ---
+  Future<void> createNotification(BuildContext context, String title,
+      String message, String iconAsset) async {
+    try {
+      final token = await _getAuthToken();
+      final newNotification = await _apiService.createNotification(
+        token,
+        title,
+        message,
+        iconAsset,
+      );
 
+      _notifications.insert(0, newNotification);
+      notifyListeners();
+    } catch (e) {
+      _showErrorSnackbar(
+          context, "Gagal menyimpan notifikasi: ${e.toString()}");
+    }
+  }
+}

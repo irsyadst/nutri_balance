@@ -83,13 +83,9 @@ class NotificationService {
       _plugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
 
-      // ===================================================================
-      // !! PERBAIKAN ERROR 2 DI SINI !!
       // Method yang benar adalah 'requestNotificationsPermission()'
-      // ===================================================================
       final bool? result = await androidPlugin?.requestNotificationsPermission();
       isAllowed = result ?? false;
-
     } else {
       // Untuk platform selain Android, asumsikan diizinkan
       isAllowed = true;
@@ -107,8 +103,7 @@ class NotificationService {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'daily_reminder_channel_id_01', // ID Channel
       'Pengingat Harian NutriBalance', // Nama Channel
-      channelDescription:
-      'Pengingat harian untuk mencatat asupan makanan.',
+      channelDescription: 'Pengingat harian untuk mencatat asupan makanan.',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
@@ -142,10 +137,6 @@ class NotificationService {
     }
   }
 
-  // ===================================================================
-  // !! TAMBAHAN METHOD UNTUK ERROR 1 !!
-  // Method ini sekarang bisa dipanggil dari meal_package_controller.dart
-  // ===================================================================
   /// Menjadwalkan notifikasi untuk waktu makan tertentu (misal: sarapan, makan siang)
   Future<void> scheduleMealNotification({
     required int id,
@@ -156,12 +147,13 @@ class NotificationService {
   }) async {
     try {
       final tz.TZDateTime scheduledTZTime = tz.TZDateTime.from(
-          scheduledTime,
-          tz.local,
+        scheduledTime,
+        tz.local,
       );
       // Pastikan waktu yang dijadwalkan ada di masa depan
       if (scheduledTZTime.isBefore(tz.TZDateTime.now(tz.local))) {
-        print("Waktu penjadwalan $title (ID: $id) sudah lewat. Notifikasi dilewati.");
+        print(
+            "Waktu penjadwalan $title (ID: $id) sudah lewat. Notifikasi dilewati.");
         return;
       }
 
@@ -176,15 +168,12 @@ class NotificationService {
         UILocalNotificationDateInterpretation.absoluteTime,
         payload: payload,
       );
-      print("Notifikasi '$title' (ID: $id) berhasil dijadwalkan untuk $scheduledTime.");
+      print(
+          "Notifikasi '$title' (ID: $id) berhasil dijadwalkan untuk $scheduledTime.");
     } catch (e) {
       print("Error scheduling meal notification (ID: $id): $e");
     }
   }
-  // ===================================================================
-  // !! AKHIR TAMBAHAN METHOD !!
-  // ===================================================================
-
 
   /// Helper untuk mendapatkan instance waktu berikutnya
   tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {

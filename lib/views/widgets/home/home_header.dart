@@ -3,10 +3,14 @@ import '../../screens/notification_screen.dart'; // For navigation
 
 class HomeHeader extends StatelessWidget {
   final String userName;
+  final bool hasUnreadNotifications;
+  final VoidCallback onNotificationTap;
 
   const HomeHeader({
     super.key,
     required this.userName,
+    required this.hasUnreadNotifications,
+    required this.onNotificationTap,
   });
 
   @override
@@ -42,26 +46,21 @@ class HomeHeader extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.notifications_none_outlined, size: 30, color: Colors.black54), // Use outlined icon
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                        );
-                      },
+                      onPressed: onNotificationTap,
                     ),
-                    // Notification Badge (Optional)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFCC00), // Example badge color
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
+                    if (hasUnreadNotifications)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFCC00), // Example badge color
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ],

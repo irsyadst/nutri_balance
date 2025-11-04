@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-// --- IMPOR YANG HILANG ---
-import '../../../models/notification_model.dart';
-import 'package:intl/intl.dart'; // Untuk format waktu
-// --- AKHIR IMPOR ---
+// lib/views/widgets/notification/notification_tile.dart
 
-// Widget untuk menampilkan satu baris notifikasi
+import 'package:flutter/material.dart';
+import '../../../models/notification_model.dart';
+import 'package:intl/intl.dart';
+
 class NotificationTile extends StatelessWidget {
   final AppNotification notification;
   final VoidCallback onTap;
@@ -17,7 +16,8 @@ class NotificationTile extends StatelessWidget {
     required this.onMoreTap,
   });
 
-  // Fungsi helper internal untuk memilih ikon Material
+  // (Fungsi helper _getIconData, _getIconColor, _getIconBgColor, _formatTimestamp...)
+  // ... (Salin 4 fungsi helper dari file Anda) ...
   IconData _getIconData(String asset) {
     switch (asset) {
       case 'food_plate':
@@ -35,7 +35,6 @@ class NotificationTile extends StatelessWidget {
     }
   }
 
-  // --- TAMBAHAN: Helper untuk warna ikon ---
   Color _getIconColor(String asset) {
     switch (asset) {
       case 'food_plate':
@@ -51,7 +50,6 @@ class NotificationTile extends StatelessWidget {
     }
   }
 
-  // --- TAMBAHAN: Helper untuk warna background ikon ---
   Color _getIconBgColor(String asset) {
     switch (asset) {
       case 'food_plate':
@@ -67,8 +65,8 @@ class NotificationTile extends StatelessWidget {
     }
   }
 
-  // --- TAMBAHAN: Helper untuk format waktu ---
   String _formatTimestamp(DateTime createdAt) {
+    Intl.defaultLocale = 'id_ID';
     final now = DateTime.now();
     final difference = now.difference(createdAt);
 
@@ -81,71 +79,62 @@ class NotificationTile extends StatelessWidget {
     } else if (difference.inDays == 1) {
       return 'Kemarin';
     } else {
-      // Tampilkan tanggal (misal: 30 Okt)
       return DateFormat('d MMM', 'id_ID').format(createdAt);
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    // --- Panggil helper baru ---
     final iconData = _getIconData(notification.iconAsset);
     final iconColor = _getIconColor(notification.iconAsset);
     final iconBgColor = _getIconBgColor(notification.iconAsset);
-    // Error 'createdAt' terjadi di sini
     final timestamp = _formatTimestamp(notification.createdAt);
 
+    // --- PERBAIKAN: Gunakan boolean 'isRead' ---
+    final bool isNotificationRead = notification.isRead;
+
     return ListTile(
-      // Avatar (Lingkaran Ikon)
       leading: CircleAvatar(
         radius: 28,
-        backgroundColor: iconBgColor, // Warna background dari helper
-        child: Icon(
-          iconData, // Ikon dari helper
-          color: iconColor, // Warna ikon dari helper
-          size: 28,
-        ),
+        backgroundColor: iconBgColor,
+        child: Icon(iconData, color: iconColor, size: 28),
       ),
-
-      // Judul Notifikasi
       title: Text(
         notification.title,
         style: TextStyle(
-          // Error 'isRead' terjadi di sini
-            fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.bold,
+          // --- PERBAIKAN DI SINI ---
+            fontWeight:
+            isNotificationRead ? FontWeight.w500 : FontWeight.bold,
             color: Colors.black87,
-            fontSize: 15
+            fontSize: 15),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        // Gunakan subtitle dari model (yang di-map dari 'body')
+        notification.subtitle.isNotEmpty ? notification.subtitle : timestamp,
+        style: TextStyle(
+          // --- PERBAIKAN DI SINI ---
+          color: isNotificationRead
+              ? Colors.grey[500]
+              : Theme.of(context).primaryColor,
+          fontSize: 13,
+          fontWeight: isNotificationRead ? FontWeight.normal : FontWeight.w500,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-
-      // Subtitle (Waktu/Detail Tambahan)
-      subtitle: Text(
-        // Ganti subtitle dari model dengan timestamp
-        timestamp,
-        style: TextStyle(
-          // Error 'isRead' terjadi di sini
-          color: notification.isRead ? Colors.grey[500] : Theme.of(context).primaryColor,
-          fontSize: 13,
-          fontWeight: notification.isRead ? FontWeight.normal : FontWeight.w500,
-        ),
-      ),
-
-      // Aksi (Ikon Titik Tiga Vertikal)
       trailing: IconButton(
         icon: const Icon(Icons.more_vert, color: Colors.grey, size: 20),
         onPressed: onMoreTap,
         tooltip: 'Opsi lainnya',
       ),
-
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       onTap: onTap,
       dense: false,
-      // Error 'isRead' terjadi di sini
-      tileColor: notification.isRead ? Colors.white : const Color(0xFFF6F8FF),
+      // --- PERBAIKAN DI SINI ---
+      tileColor:
+      isNotificationRead ? Colors.white : const Color(0xFFF6F8FF),
     );
   }
 }
-
