@@ -1,11 +1,19 @@
-// lib/controllers/notification_controller.dart
 import 'package:flutter/material.dart';
-import '../models/notification_model.dart'; // Sesuaikan path jika berbeda
+import '../models/notification_model.dart';
+// --- IMPOR BARU ---
+import '../models/api_service.dart';
+import '../models/storage_service.dart';
+// --- AKHIR IMPOR ---
 
 // Enum untuk status
 enum NotificationStatus { loading, success, failure }
 
 class NotificationController with ChangeNotifier {
+  // --- TAMBAHAN BARU ---
+  final ApiService _apiService = ApiService();
+  final StorageService _storageService = StorageService();
+  // --- AKHIR TAMBAHAN ---
+
   // --- State ---
   NotificationStatus _status = NotificationStatus.loading;
   NotificationStatus get status => _status;
@@ -21,55 +29,54 @@ class NotificationController with ChangeNotifier {
     fetchNotifications(); // Muat data saat controller dibuat
   }
 
-  // --- Logika Fetch Data ---
+  // --- Logika Fetch Data (Diperbarui) ---
   Future<void> fetchNotifications() async {
     _status = NotificationStatus.loading;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // TODO: Ganti dengan logika fetch API
-      await Future.delayed(const Duration(milliseconds: 300)); // Simulasi
-      _notifications = _getDummyData();
+      // 1. Ambil token
+      final token = await _storageService.getToken();
+      if (token == null) {
+        throw Exception("Sesi tidak valid. Silakan login kembali.");
+      }
+
+      // 2. Panggil API
+      _notifications = await _apiService.getNotifications(token);
+
       _status = NotificationStatus.success;
     } catch (e) {
-      _errorMessage = "Gagal memuat notifikasi.";
+      _errorMessage = e.toString().replaceAll("Exception: ", "");
       _status = NotificationStatus.failure;
     }
     notifyListeners();
   }
+  // --- Akhir Perbaruan ---
 
   // --- Logika Event Handler (Dipanggil dari View) ---
 
-  /// Menangani tap pada notifikasi
   void handleNotificationTap(
       BuildContext context, AppNotification notification) {
-    // TODO: Implementasi aksi saat notifikasi di-tap (misal, navigasi ke detail)
+    // TODO: Implementasi aksi (misal: tandai sudah dibaca di API)
     print('Notification tapped: ${notification.title}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(
-              'Membuka notifikasi: ${notification.title} (Belum diimplementasi)')),
-    );
+    // Panggil API untuk menandai 'isRead = true'
   }
 
-  /// Menangani tap pada ikon 'more'
   void handleMoreOptionsTap(
       BuildContext context, AppNotification notification) {
-    // TODO: Implementasi menu opsi (misal, tandai sudah dibaca, hapus)
     print('More options tapped for: ${notification.title}');
-    // Logika bottom sheet tetap di sini karena memerlukan BuildContext
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       builder: (context) => Wrap(
         children: <Widget>[
           ListTile(
             leading: const Icon(Icons.mark_email_read_outlined),
             title: const Text('Tandai sudah dibaca'),
             onTap: () {
-              Navigator.pop(context); // Tutup bottom sheet
-              // TODO: Panggil logika controller untuk tandai dibaca
-              // markAsRead(notification.id);
+              Navigator.pop(context);
+              // TODO: Panggil API 'markAsRead(notification.id)'
             },
           ),
           ListTile(
@@ -77,9 +84,8 @@ class NotificationController with ChangeNotifier {
             title: Text('Hapus notifikasi',
                 style: TextStyle(color: Colors.red.shade400)),
             onTap: () {
-              Navigator.pop(context); // Tutup bottom sheet
-              // TODO: Panggil logika controller untuk hapus
-              // deleteNotification(notification.id);
+              Navigator.pop(context);
+              // TODO: Panggil API 'deleteNotification(notification.id)'
             },
           ),
         ],
@@ -87,46 +93,7 @@ class NotificationController with ChangeNotifier {
     );
   }
 
-  // --- Data Dummy (Pindahkan dari view) ---
-  final List<AppNotification> _dummyData = const [
-    AppNotification(
-      title: 'Hei, sudah waktunya makan siang',
-      subtitle: 'Sekitar 1 menit yang lalu',
-      iconAsset: 'food_plate',
-      iconColor: Color(0xFFE8963D), // Oranye
-      iconBgColor: Color(0xFFFBEBCD), // Krem Muda
-    ),
-    AppNotification(
-      title: 'Jangan lewatkan latihan tubuh Anda',
-      subtitle: 'Sekitar 3 jam yang lalu',
-      iconAsset: 'exercise',
-      iconColor: Color(0xFF6A82FF), // Biru
-      iconBgColor: Color(0xFFEBF0FF), // Biru Muda
-    ),
-    AppNotification(
-      title: 'Hei, mari tambahkan makanan untuk s...', // Judul terpotong
-      subtitle: 'Sekitar 3 jam yang lalu',
-      iconAsset: 'food_box',
-      iconColor: Color(0xFFE8963D),
-      iconBgColor: Color(0xFFFBEBCD),
-    ),
-    AppNotification(
-      title: 'Selamat, Anda telah menyelesaikan Ola...', // Judul terpotong
-      subtitle: '29 Okt', // Format tanggal lebih singkat
-      iconAsset: 'trophy',
-      iconColor: Color(0xFF6A82FF),
-      iconBgColor: Color(0xFFEBF0FF),
-    ),
-    AppNotification(
-      title: 'Waktunya minum air!',
-      subtitle: 'Kemarin',
-      iconAsset: 'water_drop', // Contoh ikon lain
-      iconColor: Colors.blueAccent,
-      iconBgColor: Colors.lightBlueAccent,
-    ),
-  ];
-
-  List<AppNotification> _getDummyData() {
-    return _dummyData;
-  }
+// --- HAPUS: Data Dummy tidak diperlukan lagi ---
+// List<AppNotification> _getDummyData() { ... }
 }
+

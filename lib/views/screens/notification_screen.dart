@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../widgets/notification/notification_tile.dart';
 // Import controller baru
 import '../../controllers/notification_controller.dart';
+import '../../models/notification_model.dart'; // Impor model
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -14,9 +15,6 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   // 1. Inisialisasi controller
   late NotificationController _controller;
-
-  // --- Data Notifikasi Statis (PINDAH KE CONTROLLER) ---
-  // final List<AppNotification> notifications = const [ ... ];
 
   @override
   void initState() {
@@ -37,6 +35,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   void _handleControllerChanges() {
     if (_controller.status == NotificationStatus.failure &&
         _controller.errorMessage != null) {
+      // Pastikan build sudah selesai sebelum menampilkan SnackBar
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -50,10 +49,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  // --- Fungsi (PINDAH KE CONTROLLER) ---
-  // void _handleNotificationTap(BuildContext context, AppNotification notification) { ... }
-  // void _handleMoreOptionsTap(BuildContext context, AppNotification notification) { ... }
-
   @override
   Widget build(BuildContext context) {
     // 2. Gunakan ListenableBuilder untuk mendengarkan controller
@@ -63,17 +58,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: const Text('Notifikasi',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, color: Colors.black87)),
-            centerTitle: true,
-            backgroundColor: Colors.white,
-            elevation: 0.5,
-            shadowColor: Colors.grey.shade200
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              title: const Text('Notifikasi',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.black87)),
+              centerTitle: true,
+              backgroundColor: Colors.white,
+              elevation: 0.5,
+              shadowColor: Colors.grey.shade200
           ),
           // 3. Bangun body berdasarkan status controller
           body: _buildBody(),
@@ -109,7 +104,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh),
                 label: const Text('Coba Lagi'),
-                onPressed: _controller.fetchNotifications,
+                onPressed: _controller.fetchNotifications, // Panggil fungsi fetch
               ),
             ],
           ),
@@ -119,9 +114,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     if (notifications.isEmpty) {
       return const Center(
-        child: Text(
-          'Tidak ada notifikasi baru.',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.notifications_off_outlined, size: 60, color: Colors.grey),
+            SizedBox(height: 10),
+            Text(
+              'Tidak ada notifikasi baru.',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
         ),
       );
     }
@@ -134,7 +136,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         height: 1,
         thickness: 1,
         color: Color(0xFFF3F4F6),
-        indent: 80,
+        indent: 80, // Beri indentasi agar pemisah tidak kena avatar
       ),
       itemBuilder: (context, index) {
         final notification = notifications[index];

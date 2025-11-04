@@ -6,6 +6,7 @@ import 'user_model.dart';
 import 'dashboard_data.dart';
 import 'meal_models.dart'; // <-- Impor MealPlan dan Food
 import 'food_log_model.dart'; // <-- Impor model FoodLog
+import 'notification_model.dart';
 
 // Service untuk Komunikasi dengan Backend
 class ApiService {
@@ -267,6 +268,27 @@ class ApiService {
     } catch (e) {
       debugPrint('Error di logFood: $e');
       throw Exception('Gagal mencatat makanan');
+    }
+  }
+
+  Future<List<AppNotification>> getNotifications(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/user/notifications'), // Endpoint: /api/user/notifications
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> body = jsonDecode(response.body);
+        List<AppNotification> notifications = body.map((dynamic item) =>
+            AppNotification.fromJson(item)).toList(); // <-- Error terjadi di sini
+        return notifications;
+      } else {
+        throw Exception('Gagal memuat notifikasi: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di getNotifications: $e');
+      throw Exception('Gagal memuat notifikasi');
     }
   }
 

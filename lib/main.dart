@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // <-- Import ini
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'views/screens/splash_screen.dart';
+// --- IMPOR BARU ---
+import 'utils/notification_service.dart';
+// --- AKHIR IMPOR ---
 
 void main() async {
+  // Pastikan binding Flutter siap
   WidgetsFlutterBinding.ensureInitialized();
+
+  // --- INISIALISASI NOTIFIKASI ---
+  await NotificationService().init(); // Inisialisasi service
+  await NotificationService().requestPermissions(); // Minta izin
+  // --- AKHIR INISIALISASI ---
+
+  // Inisialisasi format tanggal
   await initializeDateFormatting('id_ID', null);
+
   runApp(const NutriBalanceApp());
 }
 
 class NutriBalanceApp extends StatelessWidget {
+// ... (sisa file Anda tetap sama) ...
   const NutriBalanceApp({super.key});
 
   @override
