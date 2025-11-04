@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nutri_balance/controllers/meal_package_controller.dart';
-// Hapus import model lama jika ada
+// --- IMPOR BARU ---
+import 'package:nutri_balance/views/screens/food_detail_screen.dart';
+// --- AKHIR IMPOR BARU ---
 
 class DailyScheduleList extends StatelessWidget {
   final MealPackageController controller = Get.find();
@@ -78,6 +80,18 @@ class DailyScheduleList extends StatelessWidget {
                       Text(meal.time),
                     ],
                   ),
+                  // --- TAMBAHAN ONTAP ---
+                  onTap: () {
+                    // Navigasi ke FoodDetailScreen
+                    // Kita passing 'null' untuk controller karena ini mode "view-only"
+                    Get.to(() => FoodDetailScreen(
+                      food: meal.food,
+                      controller: null, // <-- Perubahan di sini
+                      initialQuantity: meal.quantity,
+                      initialMealType: meal.mealType,
+                    ));
+                  },
+                  // --- AKHIR TAMBAHAN ---
                 );
               },
             );

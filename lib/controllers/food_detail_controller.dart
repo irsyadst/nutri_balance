@@ -9,13 +9,15 @@ import 'package:nutri_balance/views/widgets/add_food/log_food_modal.dart';
 /// Ini bertindak sebagai pengelola logika khusus untuk FoodDetailScreen.
 class FoodDetailController {
   final Food food;
-  final AddFoodController addFoodController;
+  // --- PERUBAHAN: Buat addFoodController nullable ---
+  final AddFoodController? addFoodController;
+  // --- AKHIR PERUBAHAN ---
   final double initialQuantity;
   final String initialMealType;
 
   FoodDetailController({
     required this.food,
-    required this.addFoodController,
+    this.addFoodController, // --- PERUBAHAN: Hapus 'required' ---
     required this.initialQuantity,
     required this.initialMealType,
   });
@@ -39,6 +41,13 @@ class FoodDetailController {
 
   // Fungsi untuk menampilkan modal log
   void showLogFoodModal(BuildContext context) {
+    // --- PERUBAHAN: Cek jika controller null (tombol seharusnya tidak terlihat, tapi untuk keamanan) ---
+    if (addFoodController == null) {
+      debugPrint("showLogFoodModal dipanggil tanpa AddFoodController. Ini seharusnya tidak terjadi.");
+      return;
+    }
+    // --- AKHIR PERUBAHAN ---
+
     String mealType = _getMealTypeFromTime();
 
     showModalBottomSheet(
@@ -50,8 +59,8 @@ class FoodDetailController {
           initialQuantity: initialQuantity,
           initialMealType: mealType,
           onLog: (quantity, mealType) async {
-            // Panggil AddFoodController untuk benar-benar mencatat data
-            final success = await addFoodController.logFood(
+            // --- PERUBAHAN: Tambahkan null check (!) ---
+            final success = await addFoodController!.logFood(
               foodId: food.id,
               quantity: quantity,
               mealType: mealType,
@@ -70,10 +79,10 @@ class FoodDetailController {
                 // Pop dua kali: 1. tutup modal (di atas), 2. tutup detail screen
                 Navigator.of(context).pop(true); // Kirim 'true' untuk refresh
               } else {
-                // Tampilkan error dari addFoodController
+                // --- PERUBAHAN: Tambahkan null check (!) ---
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Error: ${addFoodController.errorMessage}'),
+                    content: Text('Error: ${addFoodController!.errorMessage}'),
                     backgroundColor: Colors.red,
                   ),
                 );

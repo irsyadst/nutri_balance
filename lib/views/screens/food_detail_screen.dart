@@ -9,14 +9,16 @@ import '../widgets/food_detail/log_food_button.dart';
 
 class FoodDetailScreen extends StatefulWidget {
   final Food food;
-  final AddFoodController controller; // Tetap butuh AddFoodController
+  // --- PERUBAHAN: Buat controller nullable ---
+  final AddFoodController? controller;
+  // --- AKHIR PERUBAHAN ---
   final double initialQuantity;
   final String initialMealType;
 
   const FoodDetailScreen({
     super.key,
     required this.food,
-    required this.controller,
+    this.controller, // --- PERUBAHAN: Hapus 'required' ---
     this.initialQuantity = 1.0,
     this.initialMealType = 'Sarapan',
   });
@@ -34,7 +36,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     // Inisialisasi controller baru
     _controller = FoodDetailController(
       food: widget.food,
-      addFoodController: widget.controller,
+      addFoodController: widget.controller, // Ini sekarang bisa null
       initialQuantity: widget.initialQuantity,
       initialMealType: widget.initialMealType,
     );
@@ -74,16 +76,18 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             ),
           ),
 
-          // 3. Gunakan Widget Tombol Log
-          LogFoodButton(
-            onPressed: () {
-              // Panggil fungsi dari controller
-              _controller.showLogFoodModal(context);
-            },
-          )
+          // --- PERUBAHAN: Tampilkan tombol hanya jika controller ada ---
+          // 3. Gunakan Widget Tombol Log (Secara Kondisional)
+          if (widget.controller != null)
+            LogFoodButton(
+              onPressed: () {
+                // Panggil fungsi dari controller
+                _controller.showLogFoodModal(context);
+              },
+            )
+          // --- AKHIR PERUBAHAN ---
         ],
       ),
     );
   }
 }
-
