@@ -8,6 +8,7 @@ import '../widgets/profile/info_card_row.dart';
 import '../widgets/profile/profile_section.dart';
 import '../widgets/profile/profile_list_tile.dart';
 import '../widgets/profile/logout_button.dart';
+import 'about_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User initialUser;
@@ -135,7 +136,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: Icons.info_outline_rounded,
                             title: 'Tentang Aplikasi',
                             onTap: () {
-                              print("Tapped Tentang Aplikasi");
+                              // --- PERBAIKAN DI SINI ---
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const AboutScreen(),
+                                ),
+                              );
+                              // --- AKHIR PERBAIKAN ---
                             }),
                       ],
                     ),

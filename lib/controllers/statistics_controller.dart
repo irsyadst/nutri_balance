@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 // Enum untuk status data
 enum StatisticsStatus { initial, loading, success, failure }
 
-// Enum untuk kategori detail
-enum DetailCategory { calories, weight, macros, water }
+// Enum untuk kategori detail (opsional)
+enum DetailCategory { calories, macros, water } // <-- Hapus 'weight'
 
 class StatisticsController with ChangeNotifier {
   // --- State ---
@@ -17,14 +17,18 @@ class StatisticsController with ChangeNotifier {
   String? _selectedDetailCategory;
 
   // --- Data State (Dummy, ganti dengan fetch API) ---
-  double _currentWeight = 68.5;
-  double _weightChangePercent = -1.2;
-  String _weightPeriod = "7 Hari Terakhir";
+
+  // --- HAPUS DATA BERAT BADAN ---
+  // double _currentWeight = 68.5;
+  // double _weightChangePercent = -1.2;
+  // String _weightPeriod = "7 Hari Terakhir";
+  // List<FlSpot> _weightSpots = [];
+  // --- AKHIR HAPUS ---
+
   int _caloriesToday = 1850;
   double _calorieChangePercent = -3.5;
   String _macroRatio = "45/30/25";
   double _macroChangePercent = 2.1;
-  List<FlSpot> _weightSpots = [];
   Map<String, double> _calorieDataPerMeal = {};
   double _maxCaloriePerMeal = 700;
   Map<String, double> _macroDataPercentage = {};
@@ -36,25 +40,30 @@ class StatisticsController with ChangeNotifier {
   String? get selectedDetailCategory => _selectedDetailCategory;
 
   // Getters untuk Data Ringkasan
-  double get currentWeight => _currentWeight;
-  double get weightChangePercent => _weightChangePercent;
-  String get weightPeriod => _weightPeriod;
+  // --- HAPUS GETTERS BERAT BADAN ---
+  // double get currentWeight => _currentWeight;
+  // double get weightChangePercent => _weightChangePercent;
+  // String get weightPeriod => _weightPeriod;
+  // List<FlSpot> get weightSpots => _weightSpots;
+  // --- AKHIR HAPUS ---
+
   int get caloriesToday => _caloriesToday;
   double get calorieChangePercent => _calorieChangePercent;
   String get macroRatio => _macroRatio;
   double get macroChangePercent => _macroChangePercent;
-  List<FlSpot> get weightSpots => _weightSpots; // Diperlukan oleh WeightProgressCard
   Map<String, double> get calorieDataPerMeal => _calorieDataPerMeal;
   double get maxCaloriePerMeal => _maxCaloriePerMeal;
   Map<String, double> get macroDataPercentage => _macroDataPercentage;
 
   // --- Data Statis ---
+  // --- PERBARUI DAFTAR KATEGORI ---
   final List<Map<String, dynamic>> detailCategories = const [
     {'title': 'Kalori', 'icon': Icons.local_fire_department_outlined},
     {'title': 'Makronutrien', 'icon': Icons.pie_chart_outline_rounded},
     {'title': 'Asupan Air', 'icon': Icons.water_drop_outlined},
-    {'title': 'Berat Badan', 'icon': Icons.monitor_weight_outlined}, // Ditambahkan
+    // {'title': 'Berat Badan', 'icon': Icons.monitor_weight_outlined}, // <-- DIHAPUS
   ];
+  // --- AKHIR PERBARUAN ---
 
   // --- Constructor ---
   StatisticsController() {
@@ -72,23 +81,28 @@ class StatisticsController with ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 500)); // Simulasi
 
       // Muat data dummy
-      _currentWeight = 68.5;
-      _weightChangePercent = -1.2;
-      _weightPeriod = "7 Hari Terakhir";
+      // --- HAPUS DATA BERAT BADAN ---
+      // _currentWeight = 68.5;
+      // _weightChangePercent = -1.2;
+      // _weightPeriod = "7 Hari Terakhir";
+      // _weightSpots = [ ... ];
+      // --- AKHIR HAPUS ---
+
       _caloriesToday = 1850;
       _calorieChangePercent = -3.5;
       _macroRatio = "45/30/25";
       _macroChangePercent = 2.1;
-      _weightSpots = [
-        FlSpot(0, 70), FlSpot(1, 69.8), FlSpot(2, 69.5), FlSpot(3, 69.6),
-        FlSpot(4, 69.2), FlSpot(5, 68.8), FlSpot(6, 68.5),
-      ];
       _calorieDataPerMeal = {
-        'Sarapan': 450, 'Makan Siang': 600, 'Makan Malam': 550, 'Snack': 250,
+        'Sarapan': 450,
+        'Makan Siang': 600,
+        'Makan Malam': 550,
+        'Snack': 250,
       };
       _maxCaloriePerMeal = 700;
       _macroDataPercentage = {
-        'Karbohidrat': 45, 'Protein': 30, 'Lemak': 25,
+        'Karbohidrat': 45,
+        'Protein': 30,
+        'Lemak': 25,
       };
 
       _status = StatisticsStatus.success;
