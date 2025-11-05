@@ -10,7 +10,6 @@ import '../widgets/profile/profile_list_tile.dart';
 import '../widgets/profile/logout_button.dart';
 
 class ProfileScreen extends StatefulWidget {
-  // ... (kode asli) ...
   final User initialUser;
   const ProfileScreen({super.key, required this.initialUser});
 
@@ -42,22 +41,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final UserProfile profile = _controller.profile;
 
         return Scaffold(
-          // ... (kode AppBar dan bagian atas body) ...
+          appBar: AppBar(
+            title: const Text('Profil Saya',
+                style: TextStyle(
+                    color: Colors.black87, fontWeight: FontWeight.bold)),
+            backgroundColor: Colors.white,
+            centerTitle: true,
+            elevation: 0.5,
+            shadowColor: Colors.grey.shade200,
+          ),
+          backgroundColor: Colors.white,
           body: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
+              // Kurangi padding vertikal di sini, karena header sudah punya
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ... (ProfileHeader, InfoCardRow, Account Section) ...
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: ProfileHeader(
-                      user: currentUser,
-                      onEditPressed: () => _controller.navigateToEditProfile(context),
-                    ),
+
+                  // --- PERBAIKAN: Hapus Padding di sini ---
+                  ProfileHeader(
+                    user: currentUser,
+                    onEditPressed: () =>
+                        _controller.navigateToEditProfile(context),
                   ),
-                  const SizedBox(height: 25),
+                  // --- AKHIR PERBAIKAN ---
+
+                  const SizedBox(height: 15), // Sesuaikan jarak
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -69,6 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 30),
 
+                  // ... (Sisa kode Anda: Account Section, Notification, dll.) ...
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: ProfileSection(
@@ -77,56 +88,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ProfileListTile(
                           icon: Icons.person_outline_rounded,
                           title: 'Data Pribadi',
-                          onTap: () => _controller.navigateToEditProfile(context),
+                          onTap: () =>
+                              _controller.navigateToEditProfile(context),
                         ),
                       ],
                     ),
                   ),
-
-                  // --- Notification Section (DIPERBARUI) ---
+                  const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: ProfileSection(
                       title: 'Notifikasi',
                       children: [
-                        // Tampilkan loading indicator atau switch
                         _controller.isNotificationLoading
                             ? const ListTile(
-                          leading: Icon(Icons.notifications_outlined),
-                          title: Text('Notifikasi Pop-up'),
-                          trailing: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 3),
-                          ),
+                          // ... (loading indicator)
                         )
                             : SwitchListTile(
+                          // ... (switch tile)
                           secondary: Icon(Icons.notifications_outlined,
                               color: Colors.grey[600], size: 24),
                           title: const Text('Notifikasi Pop-up',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w500)),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500)),
                           value: _controller.isNotificationEnabled,
-                          // Kirim 'context' ke controller
                           onChanged: (bool value) =>
                               _controller.toggleNotification(context, value),
                           activeColor: Theme.of(context).primaryColor,
-                          contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          inactiveThumbColor: Colors.white,
+                          inactiveTrackColor: Colors.grey.shade300,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
                           visualDensity: VisualDensity.compact,
                         )
                       ],
                     ),
                   ),
-                  // --- End of Notification Section ---
-
-                  // ... (Other Section dan Logout Button) ...
+                  const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: ProfileSection(
                       title: 'Lainnya',
                       children: [
-                        const ProfileListDivider(),
                         ProfileListTile(
                             icon: Icons.info_outline_rounded,
                             title: 'Tentang Aplikasi',
@@ -137,7 +141,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-
                   LogoutButton(
                     onPressed: () => _controller.logout(context),
                   ),
@@ -152,8 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// Ekstensi UserProfile (jika diperlukan oleh EditDataPribadiScreen/EditTargetGoalsScreen)
-// Pastikan field ini ada di model asli Anda
+// (Ekstensi UserProfile Anda)
 extension UserProfileExtension on UserProfile {
   String? get phoneNumber => null;
   DateTime? get dateOfBirth => null;
