@@ -327,7 +327,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // === WIDGET BUILDER UNTUK TAB DETAIL ===
+// === WIDGET BUILDER UNTUK TAB DETAIL ===
   Widget _buildDetailTab() {
     if (_controller.selectedDetailCategory == null) {
       return ListView.separated(
@@ -347,13 +347,17 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       Widget detailContent;
       switch (_controller.selectedDetailCategory) {
         case 'Kalori':
-          detailContent = const CalorieDetailContent();
+        // --- PERUBAHAN DI SINI ---
+          detailContent = CalorieDetailContent(controller: _controller);
           break;
         case 'Makronutrien':
-          detailContent = const MacroDetailContent();
+        // --- PERUBAHAN DI SINI ---
+          detailContent = MacroDetailContent(controller: _controller);
           break;
         case 'Asupan Air':
-          detailContent = const WaterDetailContent();
+        // --- PERUBAHAN DI SINI ---
+        // Kita berikan controller juga, meskipun belum di-build
+          detailContent = WaterDetailContent(controller: _controller);
           break;
         default:
           detailContent =

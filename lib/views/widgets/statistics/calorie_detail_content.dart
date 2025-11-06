@@ -1,78 +1,161 @@
-import 'package:flutter/material.dart';
+// lib/views/widgets/statistics/calorie_detail_content.dart
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:nutri_balance/controllers/statistics_controller.dart';
 
 class CalorieDetailContent extends StatelessWidget {
-  const CalorieDetailContent({super.key});
+  final StatisticsController controller;
 
-  // --- Data Dummy (Pindahkan ke sini atau terima dari parent) ---
-  final List<FlSpot> dailyCalorieSpots = const [
-    FlSpot(0, 1800), FlSpot(1, 2000), FlSpot(2, 1700),
-    FlSpot(3, 1900), FlSpot(4, 2100), FlSpot(5, 1600),
-    FlSpot(6, 1850),
-  ];
-  final Map<String, List<Map<String, dynamic>>> dailyIntake = const {
-    'Sarapan': [{'name': 'Oatmeal', 'cal': 250}, {'name': 'Roti', 'cal': 150}],
-    'Makan Siang': [{'name': 'Ayam Bakar', 'cal': 500}, {'name': 'Salad', 'cal': 150}],
-    'Makan Malam': [{'name': 'Salmon', 'cal': 400}],
-    'Makanan Ringan': [{'name': 'Apel', 'cal': 95}, {'name': 'Yoghurt', 'cal': 105}],
-  };
-  // --- Akhir Data Dummy ---
+  const CalorieDetailContent({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).primaryColor;
+    // Ambil data dari controller
+    final mealData = controller.calorieDataPerMeal;
+    final totalCalories = controller.caloriesToday;
+
+    // Siapkan data untuk Bar Chart
+    final List<BarChartGroupData> barGroups = [];
+    int i = 0;
+
+    // Tentukan urutan meal
+    final mealOrder = ['Sarapan', 'Makan Siang', 'Makan Malam', 'Snack'];
+
+    for (var mealType in mealOrder) {
+      final value = mealData[mealType] ?? 0.0;
+      if (value > 0) { // Hanya tampilkan jika ada data
+        barGroups.add(
+          BarChartGroupData(
+            x: i,
+            barRods: [
+              BarChartRodData(
+                toY: value,
+                color: _getColorForMeal(mealType),
+                width: 20,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(4),
+                ),
+              ),
+            ],
+          ),
+        );
+        i++;
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Grafik Kalori Harian (7 Hari)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 15),
-        SizedBox(
-          height: 200,
-          child: LineChart(
-            LineChartData(
-              minY: 0,
-              gridData: FlGridData(
-                show: true, drawVerticalLine: false,
-                getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade200, strokeWidth: 1),
-                horizontalInterval: 500,
-              ),
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40, interval: 500, getTitlesWidget: (v,m) => Text('${v.toInt()}'))),
-                bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 25, interval: 1, getTitlesWidget: (v,m) => Text('H-${6-v.toInt()}'))),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              borderData: FlBorderData(show: false),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: dailyCalorieSpots, isCurved: true, color: primaryColor, barWidth: 3,
-                  dotData: const FlDotData(show: true), // Tampilkan titik di detail
-                  belowBarData: BarAreaData(show: true, gradient: LinearGradient( colors: [primaryColor.withOpacity(0.3), primaryColor.withOpacity(0.0)], begin: Alignment.topCenter, end: Alignment.bottomCenter, ),),
-                ),
-              ],
-              lineTouchData: const LineTouchData(enabled: true),
-            ),
+        // 1. Judul Total Kalori
+        Text(
+          'Total Asupan Kalori',
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          '${totalCalories.round()} kkal',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 30),
-        const Text('Riwayat Asupan Hari Ini', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        ...dailyIntake.entries.expand((entry) {
-          return [
-            Padding(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 5.0),
-              child: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.w600)),
+
+        // 2. Bar Chart
+        Text(
+          'Rincian per Waktu Makan',
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 250,
+          child: barGroups.isEmpty
+              ? Center(child: Text('Tidak ada data kalori untuk periode ini.'))
+              : BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: controller.maxCaloriePerMeal, // Ambil dari controller
+              barGroups: barGroups,
+              titlesData: FlTitlesData(
+                show: true,
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      String text = '';
+                      int index = value.toInt();
+                      var activeMeals = mealOrder.where((m) => (mealData[m] ?? 0.0) > 0).toList();
+                      if (index < activeMeals.length) {
+                        text = activeMeals[index];
+                      }
+                      return SideTitleWidget(
+                        axisSide: meta.axisSide,
+                        space: 4,
+                        child: Text(text.split(' ').first, style: const TextStyle(fontSize: 12)),
+                      );
+                    },
+                    reservedSize: 30,
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) {
+                      if (value == 0) return const Text('');
+                      if (value % (controller.maxCaloriePerMeal / 5) < 100) {
+                        return Text(value.toInt().toString(), style: const TextStyle(fontSize: 10));
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (value) {
+                  return FlLine(
+                    color: Colors.grey.shade200,
+                    strokeWidth: 1,
+                  );
+                },
+              ),
             ),
-            ...entry.value.map((food) => ListTile(
-              dense: true,
-              title: Text(food['name']),
-              trailing: Text('${food['cal']} kkal', style: TextStyle(color: Colors.grey.shade600)),
-              contentPadding: EdgeInsets.zero,
-            )),
-          ];
-        }),
+          ),
+        ),
       ],
     );
+  }
+
+  Color _getColorForMeal(String mealType) {
+    switch (mealType) {
+      case 'Sarapan':
+        return Colors.blue.shade300;
+      case 'Makan Siang':
+        return Colors.green.shade400;
+      case 'Makan Malam':
+        return Colors.orange.shade400;
+      case 'Snack':
+        return Colors.purple.shade300;
+      default:
+        return Colors.grey.shade400;
+    }
   }
 }

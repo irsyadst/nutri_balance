@@ -1,103 +1,235 @@
+// lib/views/widgets/meal_package/daily_schedule_list.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nutri_balance/controllers/meal_package_controller.dart';
-// --- IMPOR BARU ---
+import 'package:nutri_balance/models/meal_models.dart';
 import 'package:nutri_balance/views/screens/food_detail_screen.dart';
-// --- AKHIR IMPOR BARU ---
 
 class DailyScheduleList extends StatelessWidget {
-  final MealPackageController controller = Get.find();
+  // Ambil controller yang sudah di-init oleh MealPackageScreen
+  final MealPackageController controller = Get.find<MealPackageController>();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-          child: Text(
-            'Jadwal Hari Ini',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+    // Obx akan otomatis me-refresh UI saat data di controller berubah
+    return Obx(() {
+      // Tampilkan loading
+      if (controller.isLoading.isTrue) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      // --- PERBAIKAN 1: Gunakan errorMessage ---
+      // Tampilkan error
+      if (controller.errorMessage.isNotEmpty) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(
+              controller.errorMessage.value,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.red),
             ),
           ),
-        ),
-        Expanded(
-          // Gunakan Obx untuk mendengarkan perubahan state
-          child: Obx(() {
-            if (controller.isLoading.value) {
-              return Center(child: CircularProgressIndicator());
-            }
+        );
+      }
 
-            if (controller.errorMessage.isNotEmpty) {
-              return Center(
-                child: Text('Error: ${controller.errorMessage.value}'),
-              );
-            }
+      // --- PERBAIKAN 2: Gunakan dailySchedule ---
+      // Ambil daftar makanan untuk tanggal yang dipilih
+      final meals = controller.dailySchedule;
+      // --- AKHIR PERBAIKAN 2 ---
 
-            if (controller.dailySchedule.isEmpty) {
-              return Center(
-                child: Text(
-                  'Tidak ada rencana makan untuk hari ini.\nCoba generate menu.',
-                  textAlign: TextAlign.center,
+      // Tampilkan jika kosong
+      if (meals.isEmpty) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(30.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.calendar_month_outlined,
+                    size: 60, color: Colors.grey[300]),
+                const SizedBox(height: 16),
+                Text(
+                  'Belum ada menu',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700]),
                 ),
-              );
-            }
+                const SizedBox(height: 8),
+                Text(
+                  'Coba generate menu untuk tanggal ini atau pilih tanggal lain.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 15),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
 
-            // Jika data ada, tampilkan ListView
-            return ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: controller.dailySchedule.length,
-              itemBuilder: (context, index) {
-                final meal = controller.dailySchedule[index];
+      // --- LOGIKA PENGELOMPOKAN ---
+      // Filter list berdasarkan mealType
+      final sarapanMeals =
+      meals.where((m) => m.mealType == 'Sarapan').toList();
+      final makanSiangMeals =
+      meals.where((m) => m.mealType == 'Makan Siang').toList();
+      final makanMalamMeals =
+      meals.where((m) => m.mealType == 'Makan Malam').toList();
+      final snackMeals = meals.where((m) => m.mealType == 'Snack').toList();
+      // --- AKHIR LOGIKA PENGELOMPOKAN ---
 
-                // Kalkulasi kalori total masih benar
-                // (Kalori dasar * pengali)
-                final totalCalories = meal.food.calories * meal.quantity;
-
-                // misal: "150 g" atau "1 butir"
-                String quantityText =
-                    "${meal.displayQuantity.toStringAsFixed(0)} ${meal.displayUnit}";
-
-                return ListTile(
-                  leading: CircleAvatar(
-                    child: Icon(Icons.restaurant),
-                  ),
-                  // Tampilkan nama makanan
-                  title: Text(meal.food.name),
-                  // Tampilkan Tipe Makanan • Kuantitas (misal: "Makan Siang • 150 g")
-                  subtitle: Text("${meal.mealType} • $quantityText"),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        // Tampilkan kalori yang sudah dikalikan
-                        '${totalCalories.toStringAsFixed(0)} kkal',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(meal.time),
-                    ],
-                  ),
-                  // --- TAMBAHAN ONTAP ---
-                  onTap: () {
-                    // Navigasi ke FoodDetailScreen
-                    // Kita passing 'null' untuk controller karena ini mode "view-only"
-                    Get.to(() => FoodDetailScreen(
-                      food: meal.food,
-                      controller: null, // <-- Perubahan di sini
-                      initialQuantity: meal.quantity,
-                      initialMealType: meal.mealType,
-                    ));
-                  },
-                  // --- AKHIR TAMBAHAN ---
-                );
-              },
-            );
-          }),
+      // --- TAMPILAN BARU (Mengganti ListView.builder) ---
+      return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildMealSection(
+              title: 'Sarapan',
+              icon: Icons.breakfast_dining_outlined,
+              meals: sarapanMeals,
+            ),
+            _buildMealSection(
+              title: 'Makan Siang',
+              icon: Icons.lunch_dining_outlined,
+              meals: makanSiangMeals,
+            ),
+            _buildMealSection(
+              title: 'Makan Malam',
+              icon: Icons.dinner_dining_outlined,
+              meals: makanMalamMeals,
+            ),
+            _buildMealSection(
+              title: 'Snack',
+              icon: Icons.fastfood_outlined,
+              meals: snackMeals,
+            ),
+          ],
         ),
-      ],
+      );
+      // --- AKHIR TAMPILAN BARU ---
+    });
+  }
+
+  /// Widget helper untuk membuat satu section (misal: "Sarapan" + list-nya)
+  Widget _buildMealSection({
+    required String title,
+    required IconData icon,
+    required List<MealPlan> meals,
+  }) {
+    // Jangan tampilkan section jika tidak ada makanan
+    if (meals.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Judul Section (e.g., "Sarapan")
+          Row(
+            children: [
+              Icon(icon, color: Colors.grey[700], size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // List makanan untuk section ini
+          Column(
+            children: meals.map((meal) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: _buildMealTile(meal), // Gunakan tile kustom
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Widget helper untuk membuat tampilan satu makanan
+  Widget _buildMealTile(MealPlan meal) {
+    // Dapatkan data food dari meal plan
+    final food = meal.food;
+
+    return InkWell(
+      onTap: () {
+        // Navigasi ke detail makanan
+        Get.to(() => FoodDetailScreen(food: food));
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade200.withOpacity(0.7),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Gambar Placeholder
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.restaurant_menu, color: Colors.grey[400], size: 30),
+            ),
+            const SizedBox(width: 12),
+
+            // Info Makanan
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    food.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    // Tampilkan kalori * porsi
+                    '${(food.calories * meal.quantity).round()} kkal • ${meal.quantity.round()} porsi',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Icon panah
+            Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey[400]),
+          ],
+        ),
+      ),
     );
   }
 }

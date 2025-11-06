@@ -1,214 +1,212 @@
-import 'package:flutter/material.dart';
+// lib/views/widgets/statistics/macro_detail_content.dart
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:nutri_balance/controllers/statistics_controller.dart';
 
 class MacroDetailContent extends StatelessWidget {
-  const MacroDetailContent({super.key});
+  final StatisticsController controller;
 
-  // --- Data Dummy ---
-  final Map<String, double> macroData = const {
-    'Protein': 40,
-    'Karbohidrat': 35,
-    'Lemak': 25,
-  };
-
-  final Map<String, int> avgGramData = const {
-    'Protein': 110,
-    'Karbohidrat': 190,
-    'Lemak': 55,
-  };
-  // --- Akhir Data Dummy ---
+  const MacroDetailContent({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).primaryColor;
+    // Ambil data persentase dari controller
+    final percentages = controller.macroDataPercentage;
+    final totalCalories = controller.caloriesToday;
 
-    // Data dummy untuk Bar Chart mingguan (7 hari)
-    final List<BarChartGroupData> weeklyMacroBars = List.generate(7, (index) {
-      final prot = Random().nextDouble() * 100 + 50; // Gram
-      final carb = Random().nextDouble() * 150 + 80;
-      final fat = Random().nextDouble() * 50 + 20;
-      return BarChartGroupData(
-        x: index,
-        barRods: [
-          BarChartRodData(
-            toY: prot,
-            color: primaryColor,
-            width: 8,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-          ), // Protein
-          BarChartRodData(
-            toY: carb,
-            color: Colors.green.shade400,
-            width: 8,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-          ), // Karbo
-          BarChartRodData(
-            toY: fat,
-            color: Colors.amber.shade400,
-            width: 8,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-          ), // Lemak
-        ],
-        barsSpace: 4, // Jarak antar bar dalam grup
-      );
+    // Siapkan data untuk Pie Chart
+    final List<PieChartSectionData> sections = [];
+
+    // Tentukan urutan dan warna
+    final macroData = {
+      'Karbohidrat': {'value': percentages['Karbohidrat'] ?? 0.0, 'color': Colors.blue.shade400},
+      'Protein': {'value': percentages['Protein'] ?? 0.0, 'color': Colors.green.shade400},
+      'Lemak': {'value': percentages['Lemak'] ?? 0.0, 'color': Colors.orange.shade400},
+    };
+
+    // --- PERBAIKAN DI 3 BARIS BERIKUT ---
+    // Kita perlu melakukan cast (as double) karena Dart menganggap 'value' sebagai 'Object'
+    final double totalCarbs = (totalCalories * ((macroData['Karbohidrat']!['value']! as double) / 100)) / 4;
+    final double totalProtein = (totalCalories * ((macroData['Protein']!['value']! as double) / 100)) / 4;
+    final double totalFats = (totalCalories * ((macroData['Lemak']!['value']! as double) / 100)) / 9;
+    // --- AKHIR PERBAIKAN ---
+
+    final double totalGrams = totalCarbs + totalProtein + totalFats;
+
+    macroData.forEach((key, data) {
+      final value = data['value'] as double; // Cast di sini juga untuk Pie Chart
+      if (value > 0) {
+        sections.add(
+          PieChartSectionData(
+            color: data['color'] as Color,
+            value: value,
+            title: '${value.toStringAsFixed(0)}%',
+            radius: 80,
+            titleStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        );
+      }
     });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Distribusi Makro Hari Ini (%)',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 15),
-
-        // === PIE CHART ===
+        // 1. Pie Chart
         SizedBox(
-          height: 200,
-          child: PieChart(
+          height: 250,
+          child: totalGrams <= 0
+              ? Center(child: Text('Tidak ada data makro untuk periode ini.'))
+              : PieChart(
             PieChartData(
-              sectionsSpace: 3,
-              centerSpaceRadius: 40,
-              sections: macroData.entries.map((entry) {
-                Color color;
-                if (entry.key == 'Protein') {
-                  color = primaryColor;
-                } else if (entry.key == 'Karbohidrat') {
-                  color = Colors.green.shade400;
-                } else {
-                  color = Colors.amber.shade400;
-                }
-
-                return PieChartSectionData(
-                  value: entry.value,
-                  color: color,
-                  title: '${entry.value.toStringAsFixed(0)}%',
-                  radius: 60,
-                  titleStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [Shadow(blurRadius: 2)],
-                  ),
-                );
-              }).toList(),
-              pieTouchData: PieTouchData(
-                touchCallback: (event, response) {},
-              ),
+              sections: sections,
+              centerSpaceRadius: 60,
+              sectionsSpace: 2,
             ),
           ),
         ),
+        const SizedBox(height: 20),
 
+        // 2. Legenda Chart
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: macroData.entries.map((entry) {
+            return _Indicator(
+              color: entry.value['color'] as Color,
+              text: entry.key,
+              isSquare: false,
+              size: 14,
+            );
+          }).toList(),
+        ),
         const SizedBox(height: 30),
 
-        // === RATA-RATA MINGGUAN ===
-        const Text(
-          'Rata-rata Mingguan (Gram)',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 15),
-        ...avgGramData.entries.map(
-              (entry) => ListTile(
-            dense: true,
-            title: Text(entry.key),
-            trailing: Text(
-              '${entry.value} g',
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-            contentPadding: EdgeInsets.zero,
+        // 3. Rincian Gram
+        Text(
+          'Rincian Total (Rata-rata Harian)',
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
-
-        const SizedBox(height: 30),
-
-        // === BAR CHART ===
-        const Text(
-          'Asupan Makro Mingguan (Gram)',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        const SizedBox(height: 16),
+        _MacroInfoCard(
+          title: 'Karbohidrat',
+          grams: totalCarbs,
+          color: Colors.blue.shade400,
         ),
-        const SizedBox(height: 15),
-
-        SizedBox(
-          height: 220,
-          child: BarChart(
-            BarChartData(
-              alignment: BarChartAlignment.spaceAround,
-              maxY: 300,
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: false,
-                getDrawingHorizontalLine: (v) => FlLine(
-                  color: Colors.grey.shade200,
-                  strokeWidth: 1,
-                ),
-                horizontalInterval: 50,
-              ),
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 35,
-                    interval: 50,
-                    getTitlesWidget: (v, meta) =>
-                        Text('${v.toInt()}g', style: const TextStyle(fontSize: 12)),
-                  ),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 25,
-                    getTitlesWidget: (v, meta) {
-                      const days = ['S', 'S', 'R', 'K', 'J', 'S', 'M'];
-                      final index = v.toInt();
-                      if (index >= 0 && index < days.length) {
-                        return Text(
-                          days[index],
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    },
-                  ),
-                ),
-                topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              borderData: FlBorderData(show: false),
-              barGroups: weeklyMacroBars,
-              barTouchData: BarTouchData(
-                enabled: true,
-                touchTooltipData: BarTouchTooltipData(
-                  getTooltipColor: (group) =>
-                      Colors.black.withOpacity(0.7),
-                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    String label;
-                    if (rod.color == primaryColor) {
-                      label = 'Protein';
-                    } else if (rod.color == Colors.green.shade400) {
-                      label = 'Karbohidrat';
-                    } else {
-                      label = 'Lemak';
-                    }
-                    return BarTooltipItem(
-                      '$label: ${rod.toY.toStringAsFixed(0)} g',
-                      const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
+        _MacroInfoCard(
+          title: 'Protein',
+          grams: totalProtein,
+          color: Colors.green.shade400,
+        ),
+        _MacroInfoCard(
+          title: 'Lemak',
+          grams: totalFats,
+          color: Colors.orange.shade400,
         ),
       ],
+    );
+  }
+}
+
+// Widget Helper untuk Legenda Pie Chart
+class _Indicator extends StatelessWidget {
+  final Color color;
+  final String text;
+  final bool isSquare;
+  final double size;
+
+  const _Indicator({
+    required this.color,
+    required this.text,
+    this.isSquare = false,
+    this.size = 16,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: isSquare ? BoxShape.rectangle : BoxShape.circle,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+// Widget Helper untuk Kartu Info Gram
+class _MacroInfoCard extends StatelessWidget {
+  final String title;
+  final double grams;
+  final Color color;
+
+  const _MacroInfoCard({
+    required this.title,
+    required this.grams,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${grams.toStringAsFixed(1)} g',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
