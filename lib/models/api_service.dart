@@ -6,6 +6,9 @@ import 'user_model.dart';
 import 'meal_models.dart'; // <-- Impor MealPlan dan Food
 import 'food_log_model.dart'; // <-- Impor model FoodLog
 import 'notification_model.dart';
+import 'statistics_summary_model.dart';
+import 'package:intl/intl.dart';
+
 
 // Service untuk Komunikasi dengan Backend
 class ApiService {
@@ -24,6 +27,28 @@ class ApiService {
     } catch (e) {
       debugPrint('Error di register: $e');
       return {'success': false, 'message': 'Tidak dapat terhubung ke server.'};
+    }
+  }
+
+  Future<StatisticsSummary> getStatisticsSummary(String token, DateTime date, String period) async {
+    try {
+      final dateString = DateFormat('yyyy-MM-dd').format(date);
+      // Tambahkan 'period' sebagai query parameter
+      final uri = Uri.parse('$_baseUrl/statistics/summary?date=$dateString&period=$period');
+
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        return statisticsSummaryFromJson(response.body);
+      } else {
+        throw Exception('Gagal memuat data statistik: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di getStatisticsSummary: $e');
+      throw Exception('Gagal memuat data statistik');
     }
   }
 

@@ -1,9 +1,6 @@
 // lib/views/screens/statistics_screen.dart
-
 import 'package:flutter/material.dart';
-// Import controller
 import '../../controllers/statistics_controller.dart';
-// Import widget-widget
 import '../widgets/statistics/calorie_detail_content.dart';
 import '../widgets/statistics/macro_detail_content.dart';
 import '../widgets/statistics/water_detail_content.dart';
@@ -11,6 +8,10 @@ import '../widgets/shared/section_title.dart';
 import '../widgets/statistics/summary/calorie_intake_card.dart';
 import '../widgets/statistics/summary/macro_breakdown_card.dart';
 import '../widgets/statistics/detail/detail_category_tile.dart';
+import 'package:nutri_balance/models/api_service.dart';
+import 'package:nutri_balance/models/storage_service.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
+
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -22,32 +23,69 @@ class StatisticsScreen extends StatefulWidget {
 class _StatisticsScreenState extends State<StatisticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late StatisticsController _controller; // Deklarasi controller
+  late StatisticsController _controller;
+
+  bool _isControllerInitialized = false;
+  final StorageService _storage = StorageService();
 
   @override
   void initState() {
     super.initState();
-    _controller = StatisticsController();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
+
+    _initializeController();
+  }
+
+  Future<void> _initializeController() async {
+    final token = await _storage.getToken();
+
+    if (token == null || token.isEmpty) {
+      debugPrint("Token tidak ditemukan untuk StatisticsController");
+      if (mounted) {
+        setState(() {
+          _isControllerInitialized = false;
+        });
+      }
+      return;
+    }
+
+    _controller = StatisticsController(
+      apiService: ApiService(),
+      token: token,
+    );
+
     _controller.addListener(_handleControllerChanges);
+
+    if (mounted) {
+      setState(() {
+        _isControllerInitialized = true;
+      });
+    }
   }
 
   @override
   void dispose() {
     _tabController.removeListener(_handleTabChange);
-    _controller.removeListener(_handleControllerChanges);
+    if (_isControllerInitialized) {
+      _controller.removeListener(_handleControllerChanges);
+      _controller.dispose();
+    }
     _tabController.dispose();
-    _controller.dispose();
     super.dispose();
   }
 
   void _handleTabChange() {
-    _controller.handleTabChange(_tabController);
+    // Pastikan controller sudah ada sebelum memanggil
+    if (_isControllerInitialized) {
+      _controller.handleTabChange(_tabController);
+    }
   }
 
   void _handleControllerChanges() {
-    if (_controller.status == StatisticsStatus.failure &&
+    // Pastikan controller sudah ada sebelum memanggil
+    if (_isControllerInitialized &&
+        _controller.status == StatisticsStatus.failure &&
         _controller.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -64,6 +102,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Tampilkan loading jika controller belum siap
+    if (!_isControllerInitialized) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Statistik')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, child) {
@@ -168,7 +214,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- BLOK BERAT BADAN DIHAPUS DARI SINI ---
+          _buildFilterControls(),
+          const SizedBox(height: 25),
 
           const SectionTitle('Asupan Kalori'),
           CalorieIntakeCard(
@@ -188,6 +235,95 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  // --- WIDGET BARU UNTUK FILTER ---
+  Widget _buildFilterControls() {
+    // Tentukan fungsi onTap yang benar berdasarkan periode
+    VoidCallback onTapAction;
+    switch (_controller.selectedPeriod) {
+      case StatisticsPeriod.daily:
+        onTapAction = () => _controller.changeDailyDate(context);
+        break;
+      case StatisticsPeriod.weekly:
+        onTapAction = () => _controller.changeWeek(context); // <-- Ini error di tempat Anda
+        break;
+      case StatisticsPeriod.monthly:
+        onTapAction = () => _controller.changeMonth(context);
+        break;
+    }
+
+    return Column(
+      children: [
+        // 1. Segmented Button
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<StatisticsPeriod>(
+            segments: const [
+              ButtonSegment(
+                value: StatisticsPeriod.daily,
+                label: Text('Harian'),
+                icon: Icon(Icons.calendar_view_day),
+              ),
+              ButtonSegment(
+                value: StatisticsPeriod.weekly,
+                label: Text('Mingguan'),
+                icon: Icon(Icons.calendar_view_week),
+              ),
+              ButtonSegment(
+                value: StatisticsPeriod.monthly,
+                label: Text('Bulanan'),
+                icon: Icon(Icons.calendar_month),
+              ),
+            ],
+            selected: {_controller.selectedPeriod},
+            onSelectionChanged: (Set<StatisticsPeriod> newSelection) {
+              _controller.changePeriod(newSelection.first);
+            },
+            style: SegmentedButton.styleFrom(
+              selectedBackgroundColor: Theme.of(context).primaryColor.withAlpha(50),
+              selectedForegroundColor: Theme.of(context).primaryColor,
+            ),
+          ),
+        ),
+
+        // 2. Tombol Date / Week / Month Picker
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          height: 50, // Selalu 50
+          clipBehavior: Clip.hardEdge,
+          decoration: const BoxDecoration(),
+          child: Opacity(
+            opacity: 1.0, // Selalu 1.0
+            child: InkWell(
+              onTap: onTapAction, // <-- Menggunakan fungsi yang benar
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_today, size: 18, color: Colors.grey[700]),
+                    const SizedBox(width: 8),
+                    Flexible( // Gunakan Flexible agar teks tidak overflow
+                      child: Text(
+                        _controller.selectedDateFormatted,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Icon(Icons.arrow_drop_down, size: 24, color: Colors.grey[700]),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -219,7 +355,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         case 'Asupan Air':
           detailContent = const WaterDetailContent();
           break;
-      // --- CASE 'BERAT BADAN' DIHAPUS DARI SINI ---
         default:
           detailContent =
           const Center(child: Text('Konten detail tidak ditemukan'));

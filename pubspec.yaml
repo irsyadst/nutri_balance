@@ -28,6 +28,7 @@ dependencies:
   timezone: ^0.9.4
   permission_handler: ^11.3.1
   package_info_plus: ^8.0.0
+  month_picker_dialog: ^6.6.0
 #================ DEV DEPENDENCIES ================#
 dev_dependencies:
   flutter_test:
