@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
-import '../../../controllers/home_controller.dart';
+import 'package:nutri_balance/controllers/home_controller.dart';
+import 'dart:math'; // Diperlukan untuk min()
 
 class MealTargetGrid extends StatelessWidget {
-// ... (Kode build() dan _buildCard() tetap sama) ...
+  // --- FIX 1: Tipe parameter 'targets' diubah ---
   final Map<String, Map<String, dynamic>> targets;
   final Map<String, double> consumedData;
   final HomeController controller;
@@ -15,212 +15,71 @@ class MealTargetGrid extends StatelessWidget {
     required this.controller,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    // Kita tidak lagi menggunakan GridView.builder
-    // Kita susun manual menggunakan Column dan Row
-    return Column(
-      children: [
-        // Baris 1: Sarapan & Makan Siang
-        Row(
-          children: [
-            Expanded(
-              child: _buildCard('Sarapan'),
-            ),
-            const SizedBox(width: 15), // Jarak antar card
-            Expanded(
-              child: _buildCard('Makan Siang'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 15), // Jarak antar baris
-
-        // Baris 2: Makan Malam & Snack
-        Row(
-          children: [
-            Expanded(
-              child: _buildCard('Makan Malam'),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: _buildCard('Snack'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 15),
-
-        // Baris 3: Air (Full Width)
-        _buildCard('Air'),
-      ],
-    );
-  }
-
-  // Helper untuk membangun data card
-  Widget _buildCard(String title) {
-    final targetData = targets[title];
-    if (targetData == null) return const SizedBox.shrink();
-
-    final currentConsumed = consumedData[title] ?? 0.0;
-    final bool isWater = (title == 'Air');
-
-    return _MealTargetCard(
-      title: title,
-      icon: targetData['icon'] as IconData? ?? Icons.error_outline,
-      consumed: currentConsumed,
-      target: (targetData['target'] as num?)?.toDouble() ?? 0.0,
-      unit: targetData['unit'] as String? ?? '',
-      isWaterCard: isWater,
-      onAddWater: isWater ? () => controller.addWater(0.25) : null,
-      onRemoveWater: isWater ? () => controller.removeWater(0.25) : null,
-    );
-  }
-}
-
-// _MealTargetCard (internal widget)
-// Widget ini sekarang memiliki DUA layout: satu untuk meal, satu untuk air.
-class _MealTargetCard extends StatelessWidget {
-// ... (Properti tetap sama) ...
-  final String title;
-  final IconData icon;
-  final double consumed;
-  final double target;
-  final String unit;
-  final bool isWaterCard;
-  final VoidCallback? onAddWater;
-  final VoidCallback? onRemoveWater;
-
-  const _MealTargetCard({
-    required this.title,
-    required this.icon,
-    required this.consumed,
-    required this.target,
-    required this.unit,
-    this.isWaterCard = false,
-    this.onAddWater,
-    this.onRemoveWater,
-  });
-
+  // Map untuk ikon
+  static const Map<String, IconData> mealIcons = {
+    'Sarapan': Icons.wb_sunny_outlined,
+    'Makan Siang': Icons.restaurant_menu_outlined,
+    'Makan Malam': Icons.nights_stay_outlined,
+    'Makanan Ringan': Icons.bakery_dining_outlined,
+  };
 
   @override
   Widget build(BuildContext context) {
-    // Pilih layout berdasarkan apakah ini card Air atau bukan
-    if (isWaterCard) {
-      return _buildWaterLayout(context);
-    } else {
-      return _buildMealLayout(context);
-    }
-  }
+    final mealTitles = ['Sarapan', 'Makan Siang', 'Makan Malam', 'Makanan Ringan'];
 
-  // --- LAYOUT BARU UNTUK AIR (DENGAN PROGRESS BAR) ---
-  Widget _buildWaterLayout(BuildContext context) {
-    final progressColor = Colors.lightBlue.shade400;
-    // --- TAMBAHAN: Hitung progres air ---
-    final double progress = (target > 0) ? min(1.0, consumed / target) : 0.0;
-
-    return Container(
-      // Padding di dalam card
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: mealTitles.length, // Hanya 4 item
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // 2 kolom
+        crossAxisSpacing: 15, // Jarak antar kolom
+        mainAxisSpacing: 15, // Jarak antar baris
+        childAspectRatio: 1.8, // Rasio lebar/tinggi kartu
       ),
-      // --- TAMBAHAN: Bungkus dengan Column ---
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Icon dan Judul
-              Icon(icon, color: Colors.grey.shade600, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87),
-              ),
-              const Spacer(), // Mendorong tombol ke kanan
+      itemBuilder: (context, index) {
+        final title = mealTitles[index];
 
-              // Tombol-tombol Aksi
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Tombol (-)
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: IconButton.filled(
-                      padding: EdgeInsets.zero,
-                      iconSize: 18,
-                      icon: const Icon(Icons.remove),
-                      onPressed: onRemoveWater,
-                      style: IconButton.styleFrom(
-                        backgroundColor: progressColor.withOpacity(0.2),
-                        foregroundColor: progressColor,
-                      ),
-                    ),
-                  ),
-                  // Teks Kuantitas
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      '${consumed.toStringAsFixed(1)} / ${target.toStringAsFixed(1)} L',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87),
-                    ),
-                  ),
-                  // Tombol (+)
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: IconButton.filled(
-                      padding: EdgeInsets.zero,
-                      iconSize: 18,
-                      icon: const Icon(Icons.add),
-                      onPressed: onAddWater,
-                      style: IconButton.styleFrom(
-                        backgroundColor: progressColor.withOpacity(0.2),
-                        foregroundColor: progressColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          // --- TAMBAHAN: Progress Bar ---
-          const SizedBox(height: 12), // Jarak dari row ke progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(5),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-              minHeight: 6, // Sesuaikan tinggi bar
-            ),
-          ),
-          // --- AKHIR TAMBAHAN ---
-        ],
-      ),
+        // --- FIX 1 (Lanjutan): Ekstrak data dari Map yang kompleks ---
+        final targetMap = targets[title]; // Ini adalah Map<String, dynamic>?
+        final target = (targetMap?['target'] as num?)?.toDouble() ?? 0.0;
+        final unit = (targetMap?['unit'] as String?) ?? 'kkal';
+        // --- Akhir Fix 1 ---
+
+        final consumed = consumedData[title] ?? 0.0;
+        final icon = mealIcons[title] ?? Icons.help_outline;
+
+        return _buildMealTargetCard(
+          context: context,
+          title: title,
+          icon: icon,
+          consumed: consumed,
+          target: target,
+          unit: unit,
+        );
+      },
     );
   }
 
-  // --- LAYOUT LAMA UNTUK MEAL (KOTAK & VERTIKAL) ---
-  Widget _buildMealLayout(BuildContext context) {
-    final double progress = (target > 0) ? min(1.0, consumed / target) : 0.0;
-    final progressColor = const Color(0xFF007BFF); // Warna biru
+  Widget _buildMealTargetCard({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required double consumed,
+    required double target,
+    required String unit,
+  }) {
+    // Clamp progress antara 0.0 dan 1.0
+    final double progress = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
 
+    // --- [IMPLEMENTASI PERMINTAAN ANDA: Ubah warna jika melebihi target] ---
+    final bool isOverTarget = consumed > target && target > 0;
+    final Color progressColor = isOverTarget ? Colors.red.shade600 : const Color(0xFF007BFF);
+    final Color textColor = isOverTarget ? Colors.red.shade600 : Colors.black54;
+    final FontWeight textWeight = isOverTarget ? FontWeight.bold : FontWeight.normal;
+    // --- [AKHIR IMPLEMENTASI] ---
+
+    // --- FIX 2: Hapus InkWell, karena navigasi ditangani oleh tombol "View Log" ---
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -235,60 +94,51 @@ class _MealTargetCard extends StatelessWidget {
           ),
         ],
       ),
-      child: AspectRatio(
-        aspectRatio: 1.7, // Rasio yang sama dengan yang kita hapus
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // Baris Atas (Ikon, Judul)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(icon, color: Colors.grey.shade600, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            // Bagian Bawah (Teks Progress & Bar)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${consumed.round()} / ${target.round()} $unit',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Agar rapi
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Colors.grey.shade600, size: 20),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  title,
                   style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w500),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 5),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(5),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                    minHeight: 6,
-                  ),
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${consumed.round()} / ${target.round()} $unit',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: textColor, // Warna dinamis
+                  fontWeight: textWeight, // Ketebalan dinamis
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              const SizedBox(height: 5),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor: AlwaysStoppedAnimation<Color>(progressColor), // Warna dinamis
+                  minHeight: 6,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
-

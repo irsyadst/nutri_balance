@@ -108,27 +108,36 @@ class _HomeScreenState extends State<HomeScreen> {
                           carbsEaten: _controller.consumedCarbs.round(),
                           carbsGoal: _controller.targetCarbs.round(),
                         ),
-                        const SizedBox(height: 25),
 
-                        // --- [PERBAIKAN DI SINI] ---
+                        // --- [PERUBAHAN DIMULAI DI SINI] ---
+
+                        // Mengurangi jarak atas
+                        const SizedBox(height: 10), // Jarak dari card ke tombol
+
+                        // Tombol Lihat Catatan Harian (Dipindahkan ke kanan)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ViewLogButton(
+                            onPressed: () => _controller.navigateToFoodLog(context),
+                          ),
+                        ),
+
+                        // Jarak bawah dihapus untuk membuatnya rapat
+                        // const SizedBox(height: 8), // <-- DIHAPUS
+
+                        // Grid Target Makanan
                         MealTargetGrid(
                           targets: _controller.targetsForGrid,
                           consumedData: _controller.consumedDataForGrid,
-                          controller: _controller, // <-- KIRIM CONTROLLER
+                          controller: _controller,
                         ),
-                        // --- [AKHIR PERBAIKAN] ---
 
-                        const SizedBox(height: 25),
+                        const SizedBox(height: 25), // Spasi setelah grid
 
                         // Tombol Tambah Makanan
                         const AddFoodButton(),
 
-                        const SizedBox(height: 15),
-
-                        // Tombol Lihat Catatan Harian
-                        ViewLogButton(
-                          onPressed: () => _controller.navigateToFoodLog(context),
-                        ),
+                        // --- [AKHIR PERUBAHAN] ---
                       ],
                     ),
                   ),
@@ -147,4 +156,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
