@@ -1,13 +1,12 @@
+// lib/views/widgets/statistics/summary/calorie_intake_card.dart
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Untuk format angka
-import 'dart:math'; // Untuk min/max
 
-// Widget untuk menampilkan kartu asupan kalori di tab ringkasan
 class CalorieIntakeCard extends StatelessWidget {
   final int caloriesToday;
   final double calorieChangePercent;
-  final Map<String, double> calorieDataPerMeal; // Data kalori per jenis makanan
-  final double maxCaloriePerMeal; // Nilai maksimum untuk skala bar
+  final Map<String, double> calorieDataPerMeal;
+  final double maxCaloriePerMeal;
 
   const CalorieIntakeCard({
     super.key,
@@ -19,106 +18,155 @@ class CalorieIntakeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tentukan warna dan teks persen
-    final percentColor = calorieChangePercent >= 0 ? Colors.green.shade500 : Colors.red.shade400;
-    final percentText = '${calorieChangePercent >= 0 ? '+' : ''}${calorieChangePercent.toStringAsFixed(1)}%';
-
-    return Column(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(), // Header Anda yang sudah tanpa persentase
+          const SizedBox(height: 24),
+          _buildChart(), // Chart yang sudah diperbaiki
+        ],
+      ),
+    );
+  }
+  Widget _buildHeader() {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Info Kalori Hari Ini
-        const Text('Kalori', style: TextStyle(fontSize: 15, color: Colors.grey)),
-        const SizedBox(height: 2),
-        Text(
-          // Format angka dengan pemisah ribuan (Indonesia)
-          NumberFormat.decimalPattern('id_ID').format(caloriesToday),
-          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Hari ini $percentText', // Tampilkan persen perubahan
-          style: TextStyle( fontSize: 14, color: percentColor, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 20),
-
-        // Bar Chart Per Meal
-        SizedBox(
-          height: 125, // Tinggi bar chart container
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Beri jarak antar bar
-            crossAxisAlignment: CrossAxisAlignment.end, // Align bar ke bawah
-            // Buat bar untuk setiap item di calorieDataPerMeal
-            children: calorieDataPerMeal.entries.map((entry) {
-              return Expanded( // Gunakan Expanded agar lebar bar fleksibel
-                child: _CalorieBar( // Gunakan widget internal _CalorieBar
-                  label: entry.key,
-                  value: entry.value,
-                  maxValue: maxCaloriePerMeal,
-                  color: Theme.of(context).primaryColor, // Warna bar
-                ),
-              );
-            }).toList(),
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${caloriesToday.round()}',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'kkal (Rata-rata)',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
-}
 
+  Widget _buildChart() {
+    final mealOrder = ['Sarapan', 'Makan Siang', 'Makan Malam', 'Snack'];
+    final List<BarChartGroupData> barGroups = [];
 
-// Widget internal untuk satu batang kalori
-class _CalorieBar extends StatelessWidget {
-  final String label;
-  final double value;
-  final double maxValue;
-  final Color color;
+    // PERBAIKAN 1: Buat semua 4 bar, meskipun datanya 0
+    for (int i = 0; i < mealOrder.length; i++) {
+      final mealType = mealOrder[i];
+      final value = calorieDataPerMeal[mealType] ?? 0.0;
 
-  const _CalorieBar({
-    required this.label,
-    required this.value,
-    required this.maxValue,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Hitung progres (0.0 - 1.0), pastikan maxValue > 0
-    final double progress = maxValue > 0 ? max(0.0, min(1.0, value / maxValue)) : 0.0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0), // Jarak horizontal antar bar
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end, // Mulai dari bawah
-        children: [
-          // Bar Stack (Background & Progress)
-          Container(
-            width: 50, // Lebar bar (bisa disesuaikan)
-            height: 80, // Tinggi maksimum bar
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200, // Warna background bar
-              borderRadius: const BorderRadius.all(Radius.circular(8)), // Rounded corner
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: value,
+              color: _getColorForMeal(mealType),
+              width: 14, // Bar lebih ramping untuk summary
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+              ),
             ),
-            // Gunakan alignment untuk menempatkan progress bar di bawah
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              height: 80 * progress, // Tinggi progress bar sesuai nilai
-              decoration: BoxDecoration(
-                color: color, // Warna progress bar
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ],
+        ),
+      );
+    }
+
+    // Tentukan nilai Y maksimum
+    final double maxY = maxCaloriePerMeal == 0 ? 100 : maxCaloriePerMeal * 1.2;
+
+    return AspectRatio(
+      aspectRatio: 1.6,
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: maxY,
+          barGroups: barGroups,
+          titlesData: FlTitlesData(
+            show: true,
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  // PERBAIKAN 2: Logika label yang benar
+                  String shortText = '';
+                  int index = value.toInt();
+                  if (index >= 0 && index < mealOrder.length) {
+                    String fullText = mealOrder[index];
+                    switch (fullText) {
+                      case 'Sarapan':
+                        shortText = 'Pagi';
+                        break;
+                      case 'Makan Siang':
+                        shortText = 'Siang';
+                        break;
+                      case 'Makan Malam':
+                        shortText = 'Malam';
+                        break;
+                      case 'Snack':
+                        shortText = 'Snack';
+                        break;
+                    }
+                  }
+                  return SideTitleWidget(
+                    axisSide: meta.axisSide,
+                    space: 4,
+                    child: Text(shortText, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                  );
+                },
+                reservedSize: 20,
               ),
             ),
           ),
-          const SizedBox(height: 8), // Jarak bar ke label
-          // Label Meal (Sarapan, dll.)
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-          ),
-        ],
+          borderData: FlBorderData(show: false),
+          gridData: FlGridData(show: false), // Sembunyikan grid di summary
+          barTouchData: BarTouchData(enabled: false),
+        ),
       ),
     );
+  }
+
+  // Helper untuk warna bar
+  Color _getColorForMeal(String mealType) {
+    switch (mealType) {
+      case 'Sarapan':
+        return Colors.blue.shade300;
+      case 'Makan Siang':
+        return Colors.green.shade400;
+      case 'Makan Malam':
+        return Colors.orange.shade400;
+      case 'Snack':
+        return Colors.purple.shade300;
+      default:
+        return Colors.grey.shade400;
+    }
   }
 }

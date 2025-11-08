@@ -7,7 +7,7 @@ import 'package:nutri_balance/models/statistics_summary_model.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 enum StatisticsStatus { initial, loading, success, failure }
-enum DetailCategory { calories, macros, water }
+enum DetailCategory { calories, macros }
 enum StatisticsPeriod { daily, weekly, monthly }
 
 class StatisticsController with ChangeNotifier {
@@ -54,7 +54,6 @@ class StatisticsController with ChangeNotifier {
   final List<Map<String, dynamic>> detailCategories = const [
     {'title': 'Kalori', 'icon': Icons.local_fire_department_outlined},
     {'title': 'Makronutrien', 'icon': Icons.pie_chart_outline_rounded},
-    {'title': 'Asupan Air', 'icon': Icons.water_drop_outlined},
   ];
 
   // --- Constructor ---

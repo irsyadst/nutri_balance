@@ -1,9 +1,9 @@
 // lib/views/screens/statistics_screen.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // <-- Pastikan import intl ada
 import '../../controllers/statistics_controller.dart';
 import '../widgets/statistics/calorie_detail_content.dart';
 import '../widgets/statistics/macro_detail_content.dart';
-import '../widgets/statistics/water_detail_content.dart';
 import '../widgets/shared/section_title.dart';
 import '../widgets/statistics/summary/calorie_intake_card.dart';
 import '../widgets/statistics/summary/macro_breakdown_card.dart';
@@ -76,14 +76,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   void _handleTabChange() {
-    // Pastikan controller sudah ada sebelum memanggil
     if (_isControllerInitialized) {
       _controller.handleTabChange(_tabController);
     }
   }
 
   void _handleControllerChanges() {
-    // Pastikan controller sudah ada sebelum memanggil
     if (_isControllerInitialized &&
         _controller.status == StatisticsStatus.failure &&
         _controller.errorMessage != null) {
@@ -102,7 +100,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Tampilkan loading jika controller belum siap
     if (!_isControllerInitialized) {
       return Scaffold(
         appBar: AppBar(title: const Text('Statistik')),
@@ -207,15 +204,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     }
   }
 
-  // === WIDGET BUILDER UNTUK TAB RINGKASAN ===
+  // === WIDGET BUILDER UNTUK TAB RINGKASAN (PERBAIKAN DI SINI) ===
   Widget _buildSummaryTab() {
     return SingleChildScrollView(
+      // Padding utama untuk sekeliling layar
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildFilterControls(),
-          const SizedBox(height: 25),
 
           const SectionTitle('Asupan Kalori'),
           CalorieIntakeCard(
@@ -224,7 +221,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             calorieDataPerMeal: _controller.calorieDataPerMeal,
             maxCaloriePerMeal: _controller.maxCaloriePerMeal,
           ),
-          const SizedBox(height: 25),
 
           const SectionTitle('Rincian Makronutrien'),
           MacroBreakdownCard(
@@ -232,22 +228,21 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             macroChangePercent: _controller.macroChangePercent,
             macroDataPercentage: _controller.macroDataPercentage,
           ),
-          const SizedBox(height: 20),
+
         ],
       ),
     );
   }
 
-  // --- WIDGET BARU UNTUK FILTER ---
+  // --- WIDGET UNTUK FILTER ---
   Widget _buildFilterControls() {
-    // Tentukan fungsi onTap yang benar berdasarkan periode
     VoidCallback onTapAction;
     switch (_controller.selectedPeriod) {
       case StatisticsPeriod.daily:
         onTapAction = () => _controller.changeDailyDate(context);
         break;
       case StatisticsPeriod.weekly:
-        onTapAction = () => _controller.changeWeek(context); // <-- Ini error di tempat Anda
+        onTapAction = () => _controller.changeWeek(context);
         break;
       case StatisticsPeriod.monthly:
         onTapAction = () => _controller.changeMonth(context);
@@ -256,7 +251,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
     return Column(
       children: [
-        // 1. Segmented Button
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<StatisticsPeriod>(
@@ -287,17 +281,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ),
           ),
         ),
-
-        // 2. Tombol Date / Week / Month Picker
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          height: 50, // Selalu 50
+          height: 50,
           clipBehavior: Clip.hardEdge,
           decoration: const BoxDecoration(),
           child: Opacity(
-            opacity: 1.0, // Selalu 1.0
+            opacity: 1.0,
             child: InkWell(
-              onTap: onTapAction, // <-- Menggunakan fungsi yang benar
+              onTap: onTapAction,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 15.0),
                 child: Row(
@@ -305,7 +297,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   children: [
                     Icon(Icons.calendar_today, size: 18, color: Colors.grey[700]),
                     const SizedBox(width: 8),
-                    Flexible( // Gunakan Flexible agar teks tidak overflow
+                    Flexible(
                       child: Text(
                         _controller.selectedDateFormatted,
                         style: TextStyle(
@@ -331,7 +323,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Widget _buildDetailTab() {
     if (_controller.selectedDetailCategory == null) {
       return ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 25.0, horizontal: 24.0),
+        padding: const EdgeInsets.all(24.0),
         itemCount: _controller.detailCategories.length,
         itemBuilder: (context, index) {
           final category = _controller.detailCategories[index];
@@ -341,23 +333,16 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             onTap: () => _controller.onDetailCategoryTap(category['title']),
           );
         },
-        separatorBuilder: (context, index) => const SizedBox(height: 18),
+        separatorBuilder: (context, index) => const SizedBox(height: 16),
       );
     } else {
       Widget detailContent;
       switch (_controller.selectedDetailCategory) {
         case 'Kalori':
-        // --- PERUBAHAN DI SINI ---
           detailContent = CalorieDetailContent(controller: _controller);
           break;
         case 'Makronutrien':
-        // --- PERUBAHAN DI SINI ---
           detailContent = MacroDetailContent(controller: _controller);
-          break;
-        case 'Asupan Air':
-        // --- PERUBAHAN DI SINI ---
-        // Kita berikan controller juga, meskipun belum di-build
-          detailContent = WaterDetailContent(controller: _controller);
           break;
         default:
           detailContent =
