@@ -28,7 +28,6 @@ class CategoryTabView extends StatelessWidget {
               style: const TextStyle(color: Colors.red)));
     }
 
-    // Bungkus dengan SingleChildScrollView agar bisa di-scroll
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(

@@ -4,7 +4,6 @@ import 'package:nutri_balance/models/api_service.dart';
 import 'package:nutri_balance/models/meal_models.dart';
 import 'package:nutri_balance/models/storage_service.dart';
 
-// Enum untuk status loading
 enum AddFoodStatus { initial, loading, success, error }
 
 class AddFoodController extends ChangeNotifier {
@@ -32,12 +31,10 @@ class AddFoodController extends ChangeNotifier {
   List<Map<String, dynamic>> _categories = [];
   List<Map<String, dynamic>> get categories => _categories;
 
-  // --- CONSTRUCTOR ---
+
   AddFoodController() {
     fetchInitialData();
   }
-
-  // --- FUNGSI PENGAMBILAN DATA ---
 
   Future<void> fetchInitialData() async {
     _status = AddFoodStatus.loading;
@@ -47,10 +44,8 @@ class AddFoodController extends ChangeNotifier {
       final token = await _storageService.getToken();
       if (token == null) throw Exception('Token tidak ditemukan');
 
-      // 1. Ambil Kategori
       final categoryNames = await _apiService.getFoodCategories();
       _categories = categoryNames.map((name) {
-        // Pemetaan ikon sederhana
         IconData icon;
         switch (name) {
           case 'Karbohidrat':
@@ -80,7 +75,6 @@ class AddFoodController extends ChangeNotifier {
         return {'name': name, 'icon': icon};
       }).toList();
 
-      // 2. Ambil Rekomendasi Hari Ini
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
       _recommendedFoods = await _apiService.getMealPlan(token, today);
 
@@ -93,8 +87,6 @@ class AddFoodController extends ChangeNotifier {
     }
   }
 
-  // --- [PERBAIKAN DI SINI] ---
-  /// Menangani pencarian berdasarkan nama (dari search bar)
   Future<void> handleSearchByName(String query) async {
     if (query.isEmpty) {
       _isSearching = false;
@@ -108,7 +100,7 @@ class AddFoodController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _searchResults = await _apiService.searchFoods(searchQuery: query); // Hanya kirim searchQuery
+      _searchResults = await _apiService.searchFoods(searchQuery: query);
       _status = AddFoodStatus.success;
     } catch (e) {
       _errorMessage = "Gagal mencari makanan: $e";
@@ -118,9 +110,8 @@ class AddFoodController extends ChangeNotifier {
     }
   }
 
-  /// Menangani pencarian berdasarkan KATEGORI (dari klik kategori)
   Future<void> handleSearchByCategory(String categoryName, TextEditingController searchController) async {
-    // 1. Set search bar agar user tahu apa yang sedang dicari
+
     searchController.text = categoryName;
 
     _isSearching = true;
@@ -138,9 +129,6 @@ class AddFoodController extends ChangeNotifier {
       notifyListeners();
     }
   }
-  // --- [AKHIR PERBAIKAN] ---
-
-  // --- FUNGSI PENCATATAN MAKANAN (LOGGING) ---
 
   Future<bool> logFood({
     required String foodId,

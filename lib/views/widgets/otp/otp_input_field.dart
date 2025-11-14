@@ -7,12 +7,12 @@ class OtpInputField extends StatelessWidget {
   final Function(String)? onCompleted;
   final PinTheme? defaultPinTheme;
   final PinTheme? focusedPinTheme;
-  final PinTheme? errorPinTheme; // Opsional: tema untuk error
+  final PinTheme? errorPinTheme;
 
   const OtpInputField({
     super.key,
     required this.controller,
-    this.length = 6, // Default panjang OTP 6
+    this.length = 6,
     this.onCompleted,
     this.defaultPinTheme,
     this.focusedPinTheme,
@@ -21,30 +21,27 @@ class OtpInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tema default jika tidak disediakan dari luar
     final defaultTheme = defaultPinTheme ?? PinTheme(
       width: 56,
       height: 60,
       textStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.black87),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100, // Warna background field
-        borderRadius: BorderRadius.circular(12), // Radius lebih besar
-        border: Border.all(color: Colors.transparent), // Tanpa border default
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.transparent),
       ),
     );
 
-    // Tema saat field aktif (fokus)
     final focusedTheme = focusedPinTheme ?? defaultTheme.copyWith(
       decoration: defaultTheme.decoration!.copyWith(
-        border: Border.all(color: Theme.of(context).primaryColor, width: 1.5), // Border biru
-        color: Colors.white, // Background putih saat fokus
+        border: Border.all(color: Theme.of(context).primaryColor, width: 1.5),
+        color: Colors.white,
       ),
     );
 
-    // Tema saat terjadi error (opsional)
     final errorTheme = errorPinTheme ?? defaultTheme.copyWith(
       decoration: defaultTheme.decoration!.copyWith(
-        border: Border.all(color: Colors.redAccent, width: 1.5), // Border merah
+        border: Border.all(color: Colors.redAccent, width: 1.5),
       ),
     );
 
@@ -54,11 +51,11 @@ class OtpInputField extends StatelessWidget {
       controller: controller,
       defaultPinTheme: defaultTheme,
       focusedPinTheme: focusedTheme,
-      errorPinTheme: errorTheme, // Terapkan tema error
+      errorPinTheme: errorTheme,
       onCompleted: onCompleted,
-      autofocus: true, // Fokus otomatis saat layar tampil
-      pinputAutovalidateMode: PinputAutovalidateMode.onSubmit, // Validasi saat selesai
-      showCursor: true, // Tampilkan kursor
+      autofocus: true,
+      pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+      showCursor: true,
     );
   }
 }

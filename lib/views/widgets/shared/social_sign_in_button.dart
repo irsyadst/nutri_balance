@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // Import SVG
+import 'package:flutter_svg/flutter_svg.dart';
 
-// Widget Tombol untuk Social Sign In (Google, dll.)
 class SocialSignInButton extends StatelessWidget {
   final String label;
-  final String iconAssetPath; // Path ke aset SVG atau PNG
+  final String iconAssetPath;
   final VoidCallback onPressed;
   final Color backgroundColor;
   final Color foregroundColor;
@@ -17,7 +16,7 @@ class SocialSignInButton extends StatelessWidget {
     required this.onPressed,
     this.backgroundColor = Colors.white,
     this.foregroundColor = Colors.black87,
-    this.borderColor = const Color(0xFFDDDDDD), // Warna border abu-abu
+    this.borderColor = const Color(0xFFDDDDDD),
   });
 
   @override
@@ -28,20 +27,20 @@ class SocialSignInButton extends StatelessWidget {
       onPressed: onPressed,
       icon: isSvg
           ? SvgPicture.asset(iconAssetPath, height: 22)
-          : Image.asset(iconAssetPath, height: 22), // Tampilkan PNG jika bukan SVG
+          : Image.asset(iconAssetPath, height: 22),
       label: Text(
         label,
         style: TextStyle(color: foregroundColor, fontWeight: FontWeight.bold, fontSize: 16),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor,
-        foregroundColor: foregroundColor, // Warna ripple effect
-        elevation: 0, // Tanpa shadow
-        side: BorderSide(color: borderColor, width: 1.5), // Border
+        foregroundColor: foregroundColor,
+        elevation: 0,
+        side: BorderSide(color: borderColor, width: 1.5),
         padding: const EdgeInsets.symmetric(vertical: 14),
-        minimumSize: const Size(double.infinity, 50), // Lebar penuh
+        minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12), // Sesuaikan radius
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
     );

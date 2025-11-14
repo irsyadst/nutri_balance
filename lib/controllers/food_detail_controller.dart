@@ -4,33 +4,26 @@ import 'package:nutri_balance/models/meal_models.dart';
 import 'package:nutri_balance/controllers/add_food_controller.dart';
 import 'package:nutri_balance/views/widgets/add_food/log_food_modal.dart';
 
-/// Controller ini tidak menggunakan ChangeNotifier karena
-/// state utamanya (seperti isLoading) dikelola oleh AddFoodController.
-/// Ini bertindak sebagai pengelola logika khusus untuk FoodDetailScreen.
+
 class FoodDetailController {
   final Food food;
-  // --- PERUBAHAN: Buat addFoodController nullable ---
+
   final AddFoodController? addFoodController;
-  // --- AKHIR PERUBAHAN ---
   final double initialQuantity;
   final String initialMealType;
 
   FoodDetailController({
     required this.food,
-    this.addFoodController, // --- PERUBAHAN: Hapus 'required' ---
+    this.addFoodController,
     required this.initialQuantity,
     required this.initialMealType,
   });
 
-  // Fungsi untuk menentukan meal type default berdasarkan waktu
   String _getMealTypeFromTime() {
-    // Jika initialQuantity BUKAN default (artinya dari rekomendasi),
-    // gunakan initialMealType dari rekomendasi tersebut.
     if (initialQuantity != 1.0) {
       return initialMealType;
     }
 
-    // Jika tidak, tentukan berdasarkan waktu saat ini
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 10) return 'Sarapan';
     if (hour >= 10 && hour < 14) return 'Makan Siang';
@@ -39,14 +32,11 @@ class FoodDetailController {
     return 'Snack'; // Default
   }
 
-  // Fungsi untuk menampilkan modal log
   void showLogFoodModal(BuildContext context) {
-    // --- PERUBAHAN: Cek jika controller null (tombol seharusnya tidak terlihat, tapi untuk keamanan) ---
     if (addFoodController == null) {
       debugPrint("showLogFoodModal dipanggil tanpa AddFoodController. Ini seharusnya tidak terjadi.");
       return;
     }
-    // --- AKHIR PERUBAHAN ---
 
     String mealType = _getMealTypeFromTime();
 
@@ -59,7 +49,6 @@ class FoodDetailController {
           initialQuantity: initialQuantity,
           initialMealType: mealType,
           onLog: (quantity, mealType) async {
-            // --- PERUBAHAN: Tambahkan null check (!) ---
             final success = await addFoodController!.logFood(
               foodId: food.id,
               quantity: quantity,
@@ -76,10 +65,8 @@ class FoodDetailController {
                     backgroundColor: Colors.green,
                   ),
                 );
-                // Pop dua kali: 1. tutup modal (di atas), 2. tutup detail screen
-                Navigator.of(context).pop(true); // Kirim 'true' untuk refresh
+                Navigator.of(context).pop(true);
               } else {
-                // --- PERUBAHAN: Tambahkan null check (!) ---
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Error: ${addFoodController!.errorMessage}'),

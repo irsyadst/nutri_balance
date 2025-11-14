@@ -98,10 +98,8 @@ class _FoodLogScreenState extends State<FoodLogScreen> {
       groupedLogs[log.mealType]!.add(FoodLogTile(log: log));
     }
 
-    // Urutkan meal types
     final sortedKeys = groupedLogs.keys.toList()
       ..sort((a, b) {
-        // Urutan custom
         const order = {'Sarapan': 1, 'Makan Siang': 2, 'Makan Malam': 3, 'Snack': 4};
         return (order[a] ?? 99).compareTo(order[b] ?? 99);
       });
@@ -112,7 +110,6 @@ class _FoodLogScreenState extends State<FoodLogScreen> {
         final mealType = sortedKeys[index];
         final items = groupedLogs[mealType]!;
 
-        // Hitung total kalori per meal type
         double totalCalories = 0;
         for (var log in _controller.logsForSelectedDate.where((l) => l.mealType == mealType)) {
           totalCalories += (log.food.calories * log.quantity);
@@ -123,7 +120,6 @@ class _FoodLogScreenState extends State<FoodLogScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Meal Type
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0, top: 8.0),
                 child: Row(
@@ -146,7 +142,6 @@ class _FoodLogScreenState extends State<FoodLogScreen> {
                   ],
                 ),
               ),
-              // Daftar Makanan
               Card(
                 elevation: 0,
                 shape: RoundedRectangleBorder(

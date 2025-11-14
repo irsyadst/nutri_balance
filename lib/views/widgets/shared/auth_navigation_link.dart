@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Text link for navigating between Auth screens (Login <-> Signup)
 class AuthNavigationLink extends StatelessWidget {
   final String leadingText;
   final String linkText;
@@ -20,15 +19,13 @@ class AuthNavigationLink extends StatelessWidget {
       children: [
         Text(leadingText, style: const TextStyle(color: Colors.grey)),
         GestureDetector(
-          onTap: onTap, // Use the provided callback
+          onTap: onTap,
           child: Text(
             linkText,
             style: TextStyle(
-              // Use primary color from theme
               color: Theme.of(context).primaryColor,
               fontWeight: FontWeight.bold,
-              // Optional: Add underline
-              // decoration: TextDecoration.underline,
+
             ),
           ),
         ),

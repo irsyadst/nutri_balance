@@ -1,20 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../models/user_model.dart'; // Import User model
-import 'auth_controller.dart'; // Import AuthController untuk logic verifikasi
+import '../models/user_model.dart';
+import 'auth_controller.dart';
 
-// Enum untuk status verifikasi OTP
 enum OtpStatus { initial, loading, success, failure }
 
 class OtpController with ChangeNotifier {
-  // Deklarasikan field _authController
   final AuthController _authController;
   final String email;
 
-  // Perbaiki constructor untuk menginisialisasi field _authController
   OtpController({required AuthController authController, required this.email})
-      : _authController = authController { // Inisialisasi field di sini
-    startTimer(); // Mulai timer saat controller dibuat
+      : _authController = authController {
+    startTimer();
   }
 
   // --- State ---
@@ -38,27 +35,26 @@ class OtpController with ChangeNotifier {
   // --- Logic ---
   void setOtpValue(String value) {
     _otpValue = value;
-    // Tidak perlu notifyListeners() di sini jika input field dikelola di UI
   }
 
   void startTimer() {
     _timer?.cancel();
     _countdown = 59;
-    _status = OtpStatus.initial; // Reset status
+    _status = OtpStatus.initial;
     _errorMessage = null;
-    notifyListeners(); // Update UI untuk countdown awal
+    notifyListeners();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdown > 0) {
         _countdown--;
       } else {
         timer.cancel();
       }
-      notifyListeners(); // Update UI setiap detik
+      notifyListeners();
     });
   }
 
   Future<bool> verifyOtp({String? pin}) async {
-    final otpToVerify = pin ?? _otpValue; // Gunakan pin dari parameter atau state
+    final otpToVerify = pin ?? _otpValue;
 
     if (otpToVerify.length != 6) {
       _status = OtpStatus.failure;
@@ -67,14 +63,13 @@ class OtpController with ChangeNotifier {
       return false;
     }
 
-    if (_status == OtpStatus.loading) return false; // Hindari multiple calls
+    if (_status == OtpStatus.loading) return false;
 
     _status = OtpStatus.loading;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Panggil verifyOtpAndLogin dari instance _authController
       final success = await _authController.verifyOtpAndLogin(email, otpToVerify);
       if (success) {
         _status = OtpStatus.success;
@@ -97,19 +92,8 @@ class OtpController with ChangeNotifier {
   // Fungsi untuk mengirim ulang OTP
   void resendOtp() {
     if (!canResend || _status == OtpStatus.loading) return;
-
-    // TODO: Implementasi logika request kirim ulang OTP ke API
     print('Requesting OTP resend for $email');
-    // Tampilkan loading atau feedback sementara (opsional)
-    // _status = OtpStatus.loading; notifyListeners();
 
-    // Setelah request berhasil (atau gagal), restart timer
-    // Contoh: Panggil API, jika sukses:
-    // startTimer();
-    // Jika gagal, tampilkan pesan error
-    // _status = OtpStatus.failure; _errorMessage = "Gagal mengirim ulang"; notifyListeners();
-
-    // Untuk sekarang, kita restart timer saja
     startTimer();
   }
 
@@ -117,6 +101,6 @@ class OtpController with ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     super.dispose();
-    // Jangan dispose _authController di sini jika itu shared
+
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-// Import widget baru
-import '../widgets/onboarding/onboarding_content.dart'; // Ini sudah ada sebelumnya
+import '../widgets/onboarding/onboarding_content.dart';
 import '../widgets/onboarding/page_indicator.dart';
 import '../widgets/onboarding/action_buttons.dart';
 
@@ -13,29 +12,29 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0; // State untuk halaman aktif
+  int _currentPage = 0;
 
-  // Data onboarding (bisa dipindah ke model atau konstanta terpisah)
+
   final List<Map<String, String>> onboardingData = [
     {
-      "image": "assets/images/onboarding1.png", // Pastikan path gambar benar
-      "title": "Lacak Nutrisi & Capai Tujuan Sehatmu", // Judul lebih singkat
+      "image": "assets/images/onboarding1.png",
+      "title": "Lacak Nutrisi & Capai Tujuan Sehatmu",
       "description": "Selamat datang di NutriBalance! Mulai pantau kalori, makro, dan progres target idealmu dengan mudah.",
     },
     {
-      "image": "assets/images/onboarding1.png", // Ganti gambar jika ada
+      "image": "assets/images/onboarding1.png",
       "title": "Rencanakan Menu Harianmu Sendiri",
       "description": "Temukan resep sehat, buat jadwal makan personal, dan capai keseimbangan nutrisi setiap hari.",
     },
     {
-      "image": "assets/images/onboarding1.png", // Ganti gambar jika ada
+      "image": "assets/images/onboarding1.png",
       "title": "Mulai Perjalanan Sehatmu Sekarang!",
       "description": "Siap untuk transformasi? Tekan 'Get Started' untuk mengatur profil dan memulai gaya hidup sehatmu.",
     },
   ];
 
   @override
-  void dispose() { // Jangan lupa dispose PageController
+  void dispose() {
     _pageController.dispose();
     super.dispose();
   }
@@ -48,11 +47,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Fungsi untuk pindah ke halaman berikutnya
   void _nextPage() {
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
-      curve: Curves.easeIn, // Gunakan kurva animasi
+      curve: Curves.easeIn,
     );
   }
 
@@ -63,7 +61,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Konten Onboarding (PageView)
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -76,32 +73,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     image: onboardingData[index]['image']!,
                     title: onboardingData[index]['title']!,
                     description: onboardingData[index]['description']!,
-                    // isLastPage tidak perlu diteruskan ke sini lagi
                   );
                 },
               ),
             ),
 
-            // Indikator Halaman dan Tombol Aksi
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0), // Sesuaikan padding
               child: Column(
                 children: [
-                  // Gunakan PageIndicator widget
                   PageIndicator(
                     pageCount: onboardingData.length,
                     currentPage: _currentPage,
-                    activeColor: Theme.of(context).primaryColor, // Gunakan warna tema
-                    inactiveColor: Colors.grey.shade300, // Warna inactive
+                    activeColor: Theme.of(context).primaryColor,
+                    inactiveColor: Colors.grey.shade300,
                   ),
-                  const SizedBox(height: 50), // Jarak antara indikator dan tombol
+                  const SizedBox(height: 50),
 
-                  // Gunakan OnboardingActionButtons widget
                   OnboardingActionButtons(
                     isLastPage: _currentPage == onboardingData.length - 1,
-                    onSkip: _navigateToAuth, // Langsung ke auth saat skip
-                    onContinue: _nextPage, // Pindah halaman saat continue
-                    onGetStarted: _navigateToAuth, // Ke auth saat get started
+                    onSkip: _navigateToAuth,
+                    onContinue: _nextPage,
+                    onGetStarted: _navigateToAuth,
                   ),
                 ],
               ),

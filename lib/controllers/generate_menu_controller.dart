@@ -33,18 +33,12 @@ class GenerateMenuController with ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  // --- Logic ---
-
-  // Dipanggil saat radio button diubah (HANYA MENGUBAH STATE)
   void selectPeriod(String? newValue) {
     if (newValue == null || newValue == _selectedPeriod) return;
 
     _selectedPeriod = newValue;
 
-    // Jika user kembali dari 'rentang_khusus' tanpa memilih tanggal,
-    // kita mungkin ingin mereset dateRange (opsional).
     if (_selectedPeriod != 'rentang_khusus') {
-      // _dateRange = null; // Opsional: reset jika pindah
     }
 
     notifyListeners();
@@ -56,7 +50,6 @@ class GenerateMenuController with ChangeNotifier {
       _dateRange = newRange;
       print('Rentang tanggal di-set: ${_dateRange!.start} - ${_dateRange!.end}');
     } else {
-      // Jika user membatalkan, reset pilihan radio kembali ke 'hanya_hari_ini'
       _selectedPeriod = 'hanya_hari_ini';
       _dateRange = null;
       print('Pemilihan rentang tanggal dibatalkan.');
@@ -74,8 +67,6 @@ class GenerateMenuController with ChangeNotifier {
       final token = await _storageService.getToken();
       if (token == null) throw Exception('Token tidak ditemukan');
 
-      // (Logika 'backendPeriod' dan 'body' Anda sudah benar)
-      // ...
       String backendPeriod;
       switch (_selectedPeriod) {
         case '3_hari':
@@ -110,21 +101,17 @@ class GenerateMenuController with ChangeNotifier {
 
       if (success) {
         _status = GenerateMenuStatus.success;
-        // --- PERUBAHAN DI SINI ---
-        // Jangan panggil notifyListeners() lagi.
-        // Langsung tutup layar dan kirim 'true' sebagai hasil.
         Get.back(result: true);
         // -------------------------
       } else {
         _errorMessage = 'Gagal membuat rencana makan di server.';
         _status = GenerateMenuStatus.failure;
-        notifyListeners(); // Tetap notify di sini untuk menampilkan error
+        notifyListeners();
       }
     } catch (e) {
       _errorMessage = e.toString().replaceFirst("Exception: ", "");
       _status = GenerateMenuStatus.failure;
-      notifyListeners(); // Tetap notify di sini untuk menampilkan error
+      notifyListeners();
     }
-    // Hapus notifyListeners() dari sini jika ada
-  }
+}
 }

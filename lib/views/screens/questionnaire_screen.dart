@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-// Import controllers
 import '../../controllers/questionnaire_controller.dart';
-// Import widget
 import '../widgets/questionnaire/question_widgets.dart';
 import '../widgets/questionnaire/summary_page.dart';
-// Import screen tujuan
 import 'main_app_screen.dart';
 
 class QuestionnaireScreen extends StatefulWidget {
@@ -15,14 +12,12 @@ class QuestionnaireScreen extends StatefulWidget {
 }
 
 class _QuestionScreenState extends State<QuestionnaireScreen> {
-  // Inisialisasi controller
   late QuestionnaireController _controller;
 
   @override
   void initState() {
     super.initState();
     _controller = QuestionnaireController();
-    // Listener untuk navigasi setelah save berhasil
     _controller.addListener(_handleControllerStateChange);
   }
 
@@ -56,9 +51,7 @@ class _QuestionScreenState extends State<QuestionnaireScreen> {
     super.dispose();
   }
 
-  // Widget untuk CupertinoPicker (Tetap di sini atau pindah ke file widgets jika reusable)
   Widget _buildInlineCupertinoPicker(int step, int min, int max) {
-    // Ambil nilai awal dari controller
     int initialValue = (_controller.answers[step] as int?) ?? min;
     int calculatedInitialItem = (initialValue - min).clamp(0, max - min);
 
@@ -79,7 +72,6 @@ class _QuestionScreenState extends State<QuestionnaireScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan ListenableBuilder untuk mendengarkan perubahan step dan status
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, child) {
@@ -92,7 +84,6 @@ class _QuestionScreenState extends State<QuestionnaireScreen> {
             backgroundColor: isSummaryPage ? Colors.grey[50] : Colors.white,
             leading: IconButton(
               icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.grey[600]),
-              // Panggil _controller.previousPage() atau pop jika di step 0
               onPressed: _controller.currentStep == 0
                   ? () => Navigator.of(context).pop()
                   : _controller.previousPage,
@@ -129,21 +120,17 @@ class _QuestionScreenState extends State<QuestionnaireScreen> {
               // PageView
               Expanded(
                 child: PageView.builder(
-                  controller: _controller.pageController, // Gunakan pageController dari controller
+                  controller: _controller.pageController,
                   physics: const NeverScrollableScrollPhysics(),
-                  // Update currentStep di controller saat halaman berganti
                   onPageChanged: (page) => _controller.updateCurrentStep(page),
                   itemCount: _controller.questionDefinitions.length + 1,
                   itemBuilder: (context, index) {
-                    // Halaman Summary
                     if (index == _controller.questionDefinitions.length) {
                       return SummaryPage(
-                          answers: _controller.answers, // Ambil jawaban dari controller
-                          onConfirm: isSaving ? (){} : _controller.saveProfile // Panggil saveProfile dari controller
-                        // TODO: Handle loading state di tombol SummaryPage
+                          answers: _controller.answers,
+                          onConfirm: isSaving ? (){} : _controller.saveProfile
                       );
                     }
-                    // Halaman Pertanyaan
                     else {
                       final definition = _controller.questionDefinitions[index];
                       Widget questionWidget;
@@ -151,9 +138,8 @@ class _QuestionScreenState extends State<QuestionnaireScreen> {
                       switch (definition['type']) {
                         case 'gender':
                           questionWidget = SimpleGenderSelection(
-                            // Panggil updateAnswer di controller
                             onChanged: (val) => _controller.updateAnswer(index, val),
-                            initialValue: _controller.answers[index], // Ambil nilai awal dari controller
+                            initialValue: _controller.answers[index],
                           );
                           break;
                         case 'picker':
@@ -166,21 +152,18 @@ class _QuestionScreenState extends State<QuestionnaireScreen> {
                             options: definition['options'],
                             // Panggil updateAnswer di controller
                             onChanged: (val) => _controller.updateAnswer(index, val),
-                            initialValue: _controller.answers[index], // Ambil nilai awal dari controller
+                            initialValue: _controller.answers[index],
                           );
                           break;
                         case 'multiselect':
                           questionWidget = MultiSelectSection(
                             description: definition['description'],
-                            // Ambil nilai awal dari controller
                             initialSelected: _controller.answers[index] as List<String>,
                             sections: [
                               MultiSelectCheckbox(
                                 title: definition['sectionTitle'],
                                 options: definition['options'],
-                                // Ambil nilai awal dari controller
                                 initialSelected: _controller.answers[index] as List<String>,
-                                // Panggil updateAnswer di controller
                                 onChanged: (selected) => _controller.updateAnswer(index, selected),
                               ),
                             ],
@@ -192,8 +175,7 @@ class _QuestionScreenState extends State<QuestionnaireScreen> {
 
                       return QuestionPageContent(
                         title: definition['title'],
-                        onContinue: _controller.nextPage, // Panggil nextPage dari controller
-                        // Panggil _controller.previousPage() atau pop jika di step 0
+                        onContinue: _controller.nextPage,
                         onBack: _controller.currentStep == 0
                             ? () => Navigator.of(context).pop()
                             : _controller.previousPage,

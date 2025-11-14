@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class GenerateMenuButton extends StatelessWidget {
-  // TAMBAHKAN DUA BARIS INI
+
   final VoidCallback onPressed;
 
   const GenerateMenuButton({
     Key? key,
-    required this.onPressed, // TAMBAHKAN INI
+    required this.onPressed,
   }) : super(key: key);
 
   @override
@@ -20,7 +20,6 @@ class GenerateMenuButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        // GUNAKAN 'onPressed' DARI KONSTRUKTOR
         onPressed: onPressed,
         child: Text('Generate Menu Makanan'),
       ),

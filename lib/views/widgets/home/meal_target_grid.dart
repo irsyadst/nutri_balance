@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_balance/controllers/home_controller.dart';
-import 'dart:math'; // Diperlukan untuk min()
 
 class MealTargetGrid extends StatelessWidget {
-  // --- FIX 1: Tipe parameter 'targets' diubah ---
   final Map<String, Map<String, dynamic>> targets;
   final Map<String, double> consumedData;
   final HomeController controller;
@@ -30,17 +28,16 @@ class MealTargetGrid extends StatelessWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: mealTitles.length, // Hanya 4 item
+      itemCount: mealTitles.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // 2 kolom
-        crossAxisSpacing: 15, // Jarak antar kolom
-        mainAxisSpacing: 15, // Jarak antar baris
-        childAspectRatio: 1.8, // Rasio lebar/tinggi kartu
+        crossAxisCount: 2,
+        crossAxisSpacing: 15,
+        mainAxisSpacing: 15,
+        childAspectRatio: 1.8,
       ),
       itemBuilder: (context, index) {
         final title = mealTitles[index];
 
-        // --- FIX 1 (Lanjutan): Ekstrak data dari Map yang kompleks ---
         final targetMap = targets[title]; // Ini adalah Map<String, dynamic>?
         final target = (targetMap?['target'] as num?)?.toDouble() ?? 0.0;
         final unit = (targetMap?['unit'] as String?) ?? 'kkal';
@@ -69,17 +66,14 @@ class MealTargetGrid extends StatelessWidget {
     required double target,
     required String unit,
   }) {
-    // Clamp progress antara 0.0 dan 1.0
+
     final double progress = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
 
-    // --- [IMPLEMENTASI PERMINTAAN ANDA: Ubah warna jika melebihi target] ---
     final bool isOverTarget = consumed > target && target > 0;
     final Color progressColor = isOverTarget ? Colors.red.shade600 : const Color(0xFF007BFF);
     final Color textColor = isOverTarget ? Colors.red.shade600 : Colors.black54;
     final FontWeight textWeight = isOverTarget ? FontWeight.bold : FontWeight.normal;
-    // --- [AKHIR IMPLEMENTASI] ---
 
-    // --- FIX 2: Hapus InkWell, karena navigasi ditangani oleh tombol "View Log" ---
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -96,7 +90,7 @@ class MealTargetGrid extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Agar rapi
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
@@ -121,8 +115,8 @@ class MealTargetGrid extends StatelessWidget {
                 '${consumed.round()} / ${target.round()} $unit',
                 style: TextStyle(
                   fontSize: 12,
-                  color: textColor, // Warna dinamis
-                  fontWeight: textWeight, // Ketebalan dinamis
+                  color: textColor,
+                  fontWeight: textWeight,
                 ),
               ),
               const SizedBox(height: 5),
@@ -131,7 +125,7 @@ class MealTargetGrid extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: progress,
                   backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(progressColor), // Warna dinamis
+                  valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                   minHeight: 6,
                 ),
               ),

@@ -47,7 +47,7 @@ class NutritionInfoSection extends StatelessWidget {
               value: '${food.fats.toStringAsFixed(1)} g',
               color: Colors.amber.shade600),
 
-          const SizedBox(height: 100), // Padding untuk tombol
+          const SizedBox(height: 100),
         ],
       ),
     );

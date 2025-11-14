@@ -7,25 +7,16 @@ import '../views/screens/login_screen.dart';
 import '../models/user_model.dart';
 import '../models/food_log_model.dart';
 import '../views/screens/food_log_screen.dart';
-// --- TAMBAHAN IMPOR NOTIFIKASI ---
-// (Mungkin tidak perlu jika api_service sudah mengekspornya,
-// tapi untuk keamanan kita tambahkan)
-import '../models/notification_model.dart';
-// --- AKHIR TAMBAHAN ---
 
 
-// --- DEFINISI ENUM (Perbaikan) ---
 enum HomeStatus { initial, loading, success, failure }
-// --- AKHIR DEFINISI ENUM ---
 
 class HomeController with ChangeNotifier {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
 
-  // --- TAMBAHAN KUNCI LOKAL ---
   static const String _waterKey = 'consumed_water';
   static const String _lastResetKey = 'last_water_reset';
-  // --- AKHIR TAMBAHAN ---
 
   // --- State ---
   HomeStatus _status = HomeStatus.initial;
@@ -52,15 +43,11 @@ class HomeController with ChangeNotifier {
   double _consumedCarbs = 0;
   double _consumedFats = 0;
 
-  // --- TAMBAHAN STATE AIR ---
   double _consumedWater = 0.0;
   double get consumedWater => _consumedWater;
-  // --- AKHIR TAMBAHAN ---
 
-  // --- TAMBAHAN STATE NOTIFIKASI ---
   bool _hasUnreadNotifications = false;
   bool get hasUnreadNotifications => _hasUnreadNotifications;
-  // --- AKHIR TAMBAHAN ---
 
   double get consumedProtein => _consumedProtein;
   double get consumedCarbs => _consumedCarbs;
@@ -138,25 +125,18 @@ class HomeController with ChangeNotifier {
     }
 
     try {
-      // 1. Muat data air (Lokal)
       await _loadWaterIntake();
-
-      // 2. Validasi user
       if (_currentUser == null) throw Exception('Data pengguna tidak valid.');
       _userProfile = _currentUser!.profile;
-      if (_userProfile == null)
+      if (_userProfile == null) {
         throw Exception('Profil pengguna belum lengkap.');
+      }
 
-      // 3. Ambil data log makanan (Remote)
       List<FoodLogEntry> allLogs = await _apiService.getFoodLogHistory(_token!);
 
-      // --- TAMBAHAN BARU: Ambil data notifikasi (Remote) ---
       final notifications = await _apiService.getNotifications(_token!);
-      // Cek apakah ada notifikasi yang 'isRead' == false
       _hasUnreadNotifications = notifications.any((n) => n.isRead == false);
-      // --- AKHIR TAMBAHAN ---
 
-      // 4. Kalkulasi konsumsi
       _calculateTodayConsumption(allLogs);
 
       _status = HomeStatus.success;
@@ -167,7 +147,6 @@ class HomeController with ChangeNotifier {
     }
   }
 
-  // --- (Fungsi-fungsi Air Anda tetap sama) ---
   Future<void> _loadWaterIntake() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -218,10 +197,8 @@ class HomeController with ChangeNotifier {
       debugPrint("Gagal mengurangi air: $e");
     }
   }
-  // --- (Akhir Fungsi Air) ---
 
   void _calculateTodayConsumption(List<FoodLogEntry> allLogs) {
-    // (Fungsi kalkulasi Anda tetap sama)
     final todayString = DateFormat('yyyy-MM-dd').format(DateTime.now());
     _todayFoodLogs = allLogs.where((log) => log.date == todayString).toList();
 
@@ -229,7 +206,7 @@ class HomeController with ChangeNotifier {
     _consumedProtein = 0;
     _consumedCarbs = 0;
     _consumedFats = 0;
-    _consumedDataForGrid.updateAll((key, value) => 0.0); // Reset grid data
+    _consumedDataForGrid.updateAll((key, value) => 0.0);
 
     for (var log in _todayFoodLogs) {
       double currentCalories = log.food.calories * log.quantity;
@@ -265,7 +242,6 @@ class HomeController with ChangeNotifier {
     print("Error di HomeController: $message");
   }
 
-  // (Fungsi navigasi dan logout Anda tetap sama)
   void navigateToFoodLog(BuildContext context) {
     if (_token == null) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -4,14 +4,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 class AuthHeader extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String? logoAssetPath; // Path to SVG or PNG logo
+  final String? logoAssetPath;
   final double logoHeight;
 
   const AuthHeader({
     super.key,
     required this.title,
     required this.subtitle,
-    this.logoAssetPath, // e.g., 'assets/images/NutriBalance.svg'
+    this.logoAssetPath,
     this.logoHeight = 60.0,
   });
 
@@ -21,14 +21,13 @@ class AuthHeader extends StatelessWidget {
 
     return Column(
       children: [
-        // Display logo if path is provided
         if (logoAssetPath != null) ...[
           Center(
             child: isSvg
                 ? SvgPicture.asset(
               logoAssetPath!,
               height: logoHeight,
-              placeholderBuilder: (context) => SizedBox(height: logoHeight), // Placeholder while loading SVG
+              placeholderBuilder: (context) => SizedBox(height: logoHeight),
             )
                 : Image.asset(
               logoAssetPath!,
@@ -48,10 +47,10 @@ class AuthHeader extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 24, // Slightly smaller title
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
-            height: 1.3, // Adjust line height if title wraps
+            height: 1.3,
           ),
         ),
         const SizedBox(height: 15),
@@ -62,10 +61,10 @@ class AuthHeader extends StatelessWidget {
           style: const TextStyle(
             fontSize: 14,
             color: Colors.grey,
-            height: 1.4, // Adjust line height
+            height: 1.4,
           ),
         ),
-        const SizedBox(height: 40), // Space after header
+        const SizedBox(height: 40),
       ],
     );
   }

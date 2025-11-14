@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'user_model.dart';
-import 'meal_models.dart'; // <-- Impor MealPlan dan Food
-import 'food_log_model.dart'; // <-- Impor model FoodLog
+import 'meal_models.dart';
+import 'food_log_model.dart';
 import 'notification_model.dart';
 import 'statistics_summary_model.dart';
 import 'package:intl/intl.dart';
@@ -14,7 +14,7 @@ import 'package:intl/intl.dart';
 class ApiService {
   final String _baseUrl = 'https://nutri-balance-backend.onrender.com/api';
 
-  // --- FUNGSI AUTH & USER (Tetap sama) ---
+  // --- FUNGSI AUTH & USER
   Future<Map<String, dynamic>> register(String name, String email, String password) async {
     try {
       final response = await http.post(
@@ -33,7 +33,6 @@ class ApiService {
   Future<StatisticsSummary> getStatisticsSummary(String token, DateTime date, String period) async {
     try {
       final dateString = DateFormat('yyyy-MM-dd').format(date);
-      // Tambahkan 'period' sebagai query parameter
       final uri = Uri.parse('$_baseUrl/statistics/summary?date=$dateString&period=$period');
 
       final response = await http.get(
@@ -121,7 +120,7 @@ class ApiService {
     }
   }
 
-  // --- FUNGSI FOOD & MEAL PLAN (DIPERBAIKI) ---
+  // --- FUNGSI FOOD & MEAL PLAN ---
 
   Future<List<FoodLogEntry>> getFoodLogHistory(String token) async {
     if (token.isEmpty) {
@@ -188,7 +187,7 @@ class ApiService {
     }
   }
 
-  // --- FUNGSI BARU (FIX) ---
+
 
   Future<List<String>> getFoodCategories() async { // Token tidak perlu
     try {
@@ -207,11 +206,9 @@ class ApiService {
     }
   }
 
-  // --- [PERBAIKAN DI SINI] ---
   /// Mencari makanan di database berdasarkan nama ATAU kategori
   Future<List<Food>> searchFoods({String? searchQuery, String? category}) async {
     try {
-      // Buat map untuk query parameters
       final Map<String, String> queryParameters = {};
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
@@ -220,17 +217,14 @@ class ApiService {
       if (category != null && category.isNotEmpty) {
         queryParameters['category'] = category;
       }
-
-      // Buat URL dengan query parameters
       final uri = Uri.parse('$_baseUrl/foods').replace(
-        queryParameters: queryParameters, // Endpoint: /api/foods?search=...&category=...
+        queryParameters: queryParameters,
       );
 
-      final response = await http.get(uri); // Tidak perlu token
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
-        // Map hasil JSON ke List<Food>
         return body.map((dynamic item) => Food.fromJson(item)).toList();
       } else {
         throw Exception('Gagal mencari makanan: ${response.body}');
@@ -240,7 +234,6 @@ class ApiService {
       throw Exception('Gagal mencari makanan');
     }
   }
-  // --- [AKHIR PERBAIKAN] ---
 
   Future<void> logFood({
     required String token,
@@ -276,7 +269,7 @@ class ApiService {
   Future<List<AppNotification>> getNotifications(String token) async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/user/notifications'), // Endpoint: /api/user/notifications
+        Uri.parse('$_baseUrl/user/notifications'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -295,7 +288,6 @@ class ApiService {
     }
   }
 
-  // --- TAMBAHAN 1: MARK AS READ ---
   Future<AppNotification> markNotificationAsRead(
       String token, String notificationId) async {
     try {
@@ -316,7 +308,6 @@ class ApiService {
     }
   }
 
-  // --- TAMBAHAN 2: DELETE NOTIFICATION ---
   Future<void> deleteNotification(String token, String notificationId) async {
     try {
       final response = await http.delete(
@@ -334,20 +325,19 @@ class ApiService {
     }
   }
 
-  // --- TAMBAHAN 3: CREATE NOTIFICATION (UNTUK DISIMPAN KE DB) ---
   Future<AppNotification> createNotification(String token, String title,
       String message, String iconAsset) async {
     try {
       final response = await http.post(
         Uri.parse(
-            '$_baseUrl/user/notifications'), // POST /api/user/notifications
+            '$_baseUrl/user/notifications'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
         },
         body: jsonEncode({
           'title': title,
-          'message': message, // Backend akan mapping ini ke 'body'
+          'message': message,
           'iconAsset': iconAsset,
         }),
       );
@@ -362,8 +352,6 @@ class ApiService {
       throw Exception('Gagal menyimpan notifikasi');
     }
   }
-
-  // --- Helper Internal ---
   User _parseUserFromJson(Map<String, dynamic> data) {
     var profileData = data['profile'];
     return User(

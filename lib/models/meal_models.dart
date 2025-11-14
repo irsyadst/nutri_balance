@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-// Model ini untuk data makanan yang ada di dalam MealPlan
-// Strukturnya harus cocok dengan 'foodModel.js' di backend
 class Food {
   final String id;
   final String name;
@@ -68,7 +66,7 @@ class MealPlan {
     if (foodData is Map<String, dynamic>) {
       parsedFood = Food.fromJson(foodData);
     } else {
-      parsedFood = Food.fromJson({}); // Buat food kosong jika error
+      parsedFood = Food.fromJson({});
     }
 
     final qtyAsDouble = (json['quantity'] ?? 1.0).toDouble();
@@ -85,7 +83,5 @@ class MealPlan {
     );
   }
 }
-
-// Helper function untuk parsing List
 List<MealPlan> mealPlanFromJson(String str) => List<MealPlan>.from(
     json.decode(str).map((x) => MealPlan.fromJson(x)));

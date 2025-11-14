@@ -35,10 +35,9 @@ class SearchResultsView extends StatelessWidget {
               const Center(
                   child: Text('Makanan tidak ditemukan.',
                       style: TextStyle(color: Colors.grey))),
-            // Bungkus ListView dengan Expanded agar bisa scroll
             Expanded(
               child: ListView.builder(
-                padding: EdgeInsets.zero, // Hapus padding default ListView
+                padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 itemCount: controller.searchResults.length,
                 itemBuilder: (context, index) {

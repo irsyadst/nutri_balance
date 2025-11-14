@@ -16,8 +16,6 @@ class NotificationTile extends StatelessWidget {
     required this.onMoreTap,
   });
 
-  // (Fungsi helper _getIconData, _getIconColor, _getIconBgColor, _formatTimestamp...)
-  // ... (Salin 4 fungsi helper dari file Anda) ...
   IconData _getIconData(String asset) {
     switch (asset) {
       case 'food_plate':
@@ -39,10 +37,10 @@ class NotificationTile extends StatelessWidget {
     switch (asset) {
       case 'food_plate':
       case 'food_box':
-        return const Color(0xFFE8963D); // Oranye
+        return const Color(0xFFE8963D);
       case 'exercise':
       case 'trophy':
-        return const Color(0xFF6A82FF); // Biru
+        return const Color(0xFF6A82FF);
       case 'water_drop':
         return Colors.blueAccent;
       default:
@@ -54,10 +52,10 @@ class NotificationTile extends StatelessWidget {
     switch (asset) {
       case 'food_plate':
       case 'food_box':
-        return const Color(0xFFFBEBCD); // Krem Muda
+        return const Color(0xFFFBEBCD);
       case 'exercise':
       case 'trophy':
-        return const Color(0xFFEBF0FF); // Biru Muda
+        return const Color(0xFFEBF0FF);
       case 'water_drop':
         return const Color(0xFFE0F7FA);
       default:
@@ -90,7 +88,6 @@ class NotificationTile extends StatelessWidget {
     final iconBgColor = _getIconBgColor(notification.iconAsset);
     final timestamp = _formatTimestamp(notification.createdAt);
 
-    // --- PERBAIKAN: Gunakan boolean 'isRead' ---
     final bool isNotificationRead = notification.isRead;
 
     return ListTile(
@@ -102,7 +99,6 @@ class NotificationTile extends StatelessWidget {
       title: Text(
         notification.title,
         style: TextStyle(
-          // --- PERBAIKAN DI SINI ---
             fontWeight:
             isNotificationRead ? FontWeight.w500 : FontWeight.bold,
             color: Colors.black87,
@@ -111,10 +107,8 @@ class NotificationTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        // Gunakan subtitle dari model (yang di-map dari 'body')
         notification.subtitle.isNotEmpty ? notification.subtitle : timestamp,
         style: TextStyle(
-          // --- PERBAIKAN DI SINI ---
           color: isNotificationRead
               ? Colors.grey[500]
               : Theme.of(context).primaryColor,
@@ -132,7 +126,6 @@ class NotificationTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       onTap: onTap,
       dense: false,
-      // --- PERBAIKAN DI SINI ---
       tileColor:
       isNotificationRead ? Colors.white : const Color(0xFFF6F8FF),
     );

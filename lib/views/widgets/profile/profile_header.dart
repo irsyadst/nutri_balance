@@ -1,11 +1,11 @@
 // lib/views/widgets/profile/profile_header.dart
 
 import 'package:flutter/material.dart';
-import '../../../models/user_model.dart'; // Import User model
+import '../../../models/user_model.dart';
 
 class ProfileHeader extends StatelessWidget {
   final User user;
-  final VoidCallback onEditPressed; // Callback untuk tombol Edit
+  final VoidCallback onEditPressed;
 
   const ProfileHeader({
     super.key,
@@ -15,12 +15,11 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- PERBAIKAN: Bungkus dengan Padding ---
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 15, 24, 10), // Padding seperti HomeHeader
+      padding: const EdgeInsets.fromLTRB(24, 15, 24, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end, // Sejajarkan ke bawah
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // Avatar dan Nama Pengguna
           Row(
@@ -65,6 +64,5 @@ class ProfileHeader extends StatelessWidget {
         ],
       ),
     );
-    // --- AKHIR PERBAIKAN ---
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Widget untuk menampilkan satu baris informasi di halaman ringkasan
 class SummaryTile extends StatelessWidget {
   final String label;
   final String value;
@@ -10,34 +9,32 @@ class SummaryTile extends StatelessWidget {
     super.key,
     required this.label,
     required this.value,
-    this.hasDivider = true, // Defaultnya ada divider
+    this.hasDivider = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0), // Padding horizontal
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0), // Padding vertikal
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Label kiri, value kanan
-              crossAxisAlignment: CrossAxisAlignment.start, // Align text ke atas jika value panjang
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Label
                 Text(
                   label,
                   style: TextStyle(color: Colors.grey[600], fontSize: 16),
                 ),
-                const SizedBox(width: 10), // Jarak antara label dan value
-                // Value (Fleksibel agar tidak overflow)
+                const SizedBox(width: 10),
                 Flexible(
                   child: Text(
                     value,
-                    textAlign: TextAlign.right, // Rata kanan
+                    textAlign: TextAlign.right,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, // Font weight sedikit tebal
+                        fontWeight: FontWeight.w600,
                         fontSize: 16,
                         color: Colors.black87),
                   ),
@@ -45,7 +42,6 @@ class SummaryTile extends StatelessWidget {
               ],
             ),
           ),
-          // Tampilkan divider jika hasDivider true
           if (hasDivider) Divider(height: 1, thickness: 1, color: Colors.grey[200]),
         ],
       ),

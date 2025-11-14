@@ -2,31 +2,26 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:nutri_balance/controllers/statistics_controller.dart';
-import 'dart:math'; // Import 'dart:math' untuk 'max'
 
 class CalorieDetailContent extends StatelessWidget {
   final StatisticsController controller;
 
   const CalorieDetailContent({super.key, required this.controller});
 
-  // Fungsi helper untuk menentukan interval label Y yang rapi
   double _calculateInterval(double maxY) {
-    if (maxY <= 0) return 100; // Default jika tidak ada data
+    if (maxY <= 0) return 100;
     if (maxY <= 200) return 50;
     if (maxY <= 600) return 100;
     if (maxY <= 1200) return 200;
     if (maxY <= 2000) return 500;
-    // Fallback: bagi menjadi 5 bagian
     return (maxY / 5).ceilToDouble();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Ambil data dari controller
     final mealData = controller.calorieDataPerMeal;
     final totalCalories = controller.caloriesToday;
 
-    // Siapkan data untuk Bar Chart
     final List<BarChartGroupData> barGroups = [];
     final mealOrder = ['Sarapan', 'Makan Siang', 'Makan Malam', 'Snack'];
 
@@ -34,10 +29,9 @@ class CalorieDetailContent extends StatelessWidget {
       final mealType = mealOrder[i];
       final value = mealData[mealType] ?? 0.0;
 
-      // Selalu tambahkan bar. Jika value 0, toY akan 0.
       barGroups.add(
         BarChartGroupData(
-          x: i, // Indeks sekarang tetap (0, 1, 2, 3)
+          x: i,
           barRods: [
             BarChartRodData(
               toY: value,
@@ -52,15 +46,12 @@ class CalorieDetailContent extends StatelessWidget {
         ),
       );
     }
-    // Tentukan nilai Y maksimum untuk chart
     final double maxY = barGroups.isEmpty ? 100 : controller.maxCaloriePerMeal * 1.2;
-    // Tentukan interval untuk label Y
     final double leftInterval = _calculateInterval(maxY);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Judul Total Kalori
         Text(
           'Total Asupan Kalori',
           style: TextStyle(
@@ -79,7 +70,6 @@ class CalorieDetailContent extends StatelessWidget {
         ),
         const SizedBox(height: 30),
 
-        // 2. Bar Chart
         const Text(
           'Distribusi Kalori',
           style: TextStyle(
@@ -90,9 +80,7 @@ class CalorieDetailContent extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         SizedBox(
-          // --- PERBAIKAN 2: Tambah tinggi chart ---
           height: 350,
-          // --- AKHIR PERBAIKAN 2 ---
           child: BarChart(
             BarChartData(
               alignment: BarChartAlignment.spaceAround,
@@ -110,9 +98,8 @@ class CalorieDetailContent extends StatelessWidget {
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (double value, TitleMeta meta) {
-                      // --- PERBAIKAN 1: Logika label disederhanakan ---
                       String shortText = '';
-                      int index = value.toInt(); // index akan 0, 1, 2, 3
+                      int index = value.toInt();
 
                       if (index >= 0 && index < mealOrder.length) {
                         String fullText = mealOrder[index];
@@ -131,8 +118,6 @@ class CalorieDetailContent extends StatelessWidget {
                             break;
                         }
                       }
-                      // --- AKHIR PERBAIKAN 1 ---
-
                       return SideTitleWidget(
                         axisSide: meta.axisSide,
                         space: 4,
@@ -175,7 +160,6 @@ class CalorieDetailContent extends StatelessWidget {
           ),
         ),
 
-        // 3. Detail List di Bawah
         const SizedBox(height: 30),
         const Text(
           'Rincian Kalori per Sesi',
@@ -203,7 +187,6 @@ class CalorieDetailContent extends StatelessWidget {
     );
   }
 
-  // Helper untuk warna bar
   Color _getColorForMeal(String mealType) {
     switch (mealType) {
       case 'Sarapan':
@@ -219,7 +202,6 @@ class CalorieDetailContent extends StatelessWidget {
     }
   }
 
-  /// Widget Helper untuk Kartu Info Detail Kalori
   Widget _buildCalorieDetailRow({
     required String title,
     required double calories,

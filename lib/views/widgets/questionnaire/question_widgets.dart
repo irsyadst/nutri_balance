@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
-// Template Halaman Pertanyaan dengan Tata Letak yang Diperbaiki
 class QuestionPageContent extends StatelessWidget {
   final String title;
   final Widget child;
   final VoidCallback onContinue;
   final VoidCallback onBack;
 
-  QuestionPageContent({
+  const QuestionPageContent({
     super.key,
     required this.title,
     required this.child,
@@ -37,16 +36,13 @@ class QuestionPageContent extends StatelessWidget {
             ),
           ),
 
-          // 2. KONTEN (JAWABAN)
           Expanded(
             child: Align(
-              // Ubah alignment menjadi topCenter agar konten ListViews dimulai dari atas
               alignment: Alignment.topCenter,
               child: child,
             ),
           ),
 
-          // 3. TOMBOL
           Padding(
             padding: const EdgeInsets.only(top: 20.0, bottom: 40.0),
             child: Row(
@@ -85,8 +81,6 @@ class QuestionPageContent extends StatelessWidget {
   }
 }
 
-
-// Widget untuk Pilihan Jenis Kelamin
 class SimpleGenderSelection extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final String? initialValue;
@@ -103,7 +97,6 @@ class _SimpleGenderSelectionState extends State<SimpleGenderSelection> {
   void initState() {
     super.initState();
     _selectedGender = widget.initialValue;
-    // Panggil onChanged dengan nilai awal jika ada
     WidgetsBinding.instance.addPostFrameCallback((_) => widget.onChanged(_selectedGender ?? 'Pria'));
   }
 
@@ -140,7 +133,7 @@ class GenderButton extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         width: 140,
-        height: 180, // Memberikan tinggi yang tetap
+        height: 180,
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFE7F3FF) : Colors.white,
           borderRadius: BorderRadius.circular(15),
@@ -170,24 +163,20 @@ class GenderButton extends StatelessWidget {
   }
 }
 
-
-// Picker Angka dengan Tampilan Modern
 class DropdownNumberPicker extends StatelessWidget {
   final String hintText;
-  final int value; // Nilai ini diterima dari parent (QuestionnaireScreen)
+  final int value;
   final VoidCallback onTap;
 
   const DropdownNumberPicker({
-    super.key, // Menerima Key dari parent
+    super.key,
     required this.hintText,
-    required this.value, // Nilai yang akan ditampilkan
+    required this.value,
     required this.onTap
   });
 
   @override
   Widget build(BuildContext context) {
-    // Debug print untuk melihat nilai yang diterima saat build
-    // print("DropdownNumberPicker building with value: $value");
 
     return GestureDetector(
       onTap: onTap,
@@ -201,8 +190,7 @@ class DropdownNumberPicker extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              // Tampilkan nilai jika tidak 0, jika 0 tampilkan hint
-              value == 0 ? hintText : '$value', // <-- Teks menampilkan 'value'
+              value == 0 ? hintText : '$value',
               style: TextStyle(fontSize: 16, color: value == 0 ? Colors.grey[600] : Colors.black, fontWeight: FontWeight.w500),
             ),
             Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),

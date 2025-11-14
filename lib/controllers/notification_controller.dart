@@ -25,7 +25,7 @@ class NotificationController with ChangeNotifier {
 
   // --- Constructor ---
   NotificationController() {
-    fetchNotifications(); // Muat data saat controller dibuat
+    fetchNotifications();
   }
 
   // --- Helper ---
@@ -69,21 +69,16 @@ class NotificationController with ChangeNotifier {
   Future<void> markAsRead(BuildContext context, String notificationId) async {
     final index = _notifications.indexWhere((n) => n.id == notificationId);
 
-    // Jika tidak ditemukan atau sudah dibaca, abaikan
     if (index == -1 || _notifications[index].isRead == true) return;
-
     final bool oldStatus = _notifications[index].isRead;
 
-    // Optimistic UI update: langsung ubah di UI
     _notifications[index].isRead = true;
     notifyListeners();
 
     try {
       final token = await _getAuthToken();
-      // Panggil API
       await _apiService.markNotificationAsRead(token, notificationId);
     } catch (e) {
-      // Rollback jika API gagal
       _notifications[index].isRead = oldStatus;
       notifyListeners();
       _showErrorSnackbar(context, "Gagal menandai notifikasi: ${e.toString()}");
@@ -101,10 +96,8 @@ class NotificationController with ChangeNotifier {
 
     try {
       final token = await _getAuthToken();
-      // Panggil API
       await _apiService.deleteNotification(token, notificationId);
     } catch (e) {
-      // Rollback jika API gagal
       _notifications.insert(index, notificationToRemove);
       notifyListeners();
       _showErrorSnackbar(context, "Gagal menghapus notifikasi: ${e.toString()}");
@@ -113,15 +106,12 @@ class NotificationController with ChangeNotifier {
 
   // --- Event Handler (Dipanggil dari View) ---
 
-  /// Dipanggil saat tile notifikasi di-tap
   void handleNotificationTap(BuildContext context, AppNotification notification) {
-    // --- PERBAIKAN: Hapus TODO dan panggil fungsi ---
+
     print('Notification tapped: ${notification.title}');
     markAsRead(context, notification.id);
-    // TODO: Tambahkan navigasi jika diperlukan
   }
 
-  /// Dipanggil saat ikon titik tiga di-tap
   void handleMoreOptionsTap(BuildContext context, AppNotification notification) {
     print('More options tapped for: ${notification.title}');
     showModalBottomSheet(
@@ -136,7 +126,6 @@ class NotificationController with ChangeNotifier {
               title: const Text('Tandai sudah dibaca'),
               onTap: () {
                 Navigator.pop(context);
-                // --- PERBAIKAN: Hapus TODO dan panggil fungsi ---
                 markAsRead(context, notification.id);
               },
             ),
@@ -146,7 +135,6 @@ class NotificationController with ChangeNotifier {
                 style: TextStyle(color: Colors.red.shade400)),
             onTap: () {
               Navigator.pop(context);
-              // --- PERBAIKAN: Hapus TODO dan panggil fungsi ---
               deleteNotification(context, notification.id);
             },
           ),

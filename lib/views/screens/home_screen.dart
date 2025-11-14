@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-// Import Controller
 import '../../controllers/home_controller.dart';
-// Import Model
 import '../../models/user_model.dart';
-// Import Widget
 import '../widgets/home/home_header.dart';
 import '../widgets/home/calorie_macro_card.dart';
 import '../widgets/home/meal_target_grid.dart';
 import '../widgets/home/add_food_button.dart';
-import '../widgets/home/view_log_button.dart'; // Impor tombol log
+import '../widgets/home/view_log_button.dart';
 import 'notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {

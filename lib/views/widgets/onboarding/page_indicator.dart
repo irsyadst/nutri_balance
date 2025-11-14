@@ -15,35 +15,31 @@ class PageIndicator extends StatelessWidget {
     required this.pageCount,
     required this.currentPage,
     required this.activeColor,
-    this.inactiveColor = Colors.grey, // Warna default untuk titik tidak aktif
+    this.inactiveColor = Colors.grey,
     this.dotWidth = 8.0,
     this.activeDotWidth = 24.0,
     this.dotHeight = 8.0,
-    this.spacing = 5.0, // Jarak antar titik
+    this.spacing = 5.0,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center, // Pusatkan indikator
+      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(pageCount, (index) => _buildDot(index)),
     );
   }
 
-  // Helper internal untuk membuat satu titik
   Widget _buildDot(int index) {
     bool isActive = currentPage == index;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200), // Durasi animasi
+      duration: const Duration(milliseconds: 200),
       height: dotHeight,
-      // Lebar berbeda untuk titik aktif dan tidak aktif
       width: isActive ? activeDotWidth : dotWidth,
-      margin: EdgeInsets.only(right: spacing), // Jarak antar titik
+      margin: EdgeInsets.only(right: spacing),
       decoration: BoxDecoration(
-        // Bentuk rounded
-        borderRadius: BorderRadius.circular(dotHeight / 2), // Setengah tinggi untuk lingkaran/pil
-        // Warna berbeda untuk titik aktif dan tidak aktif
-        color: isActive ? activeColor : inactiveColor.withOpacity(0.5), // Buat inactive lebih transparan
+        borderRadius: BorderRadius.circular(dotHeight / 2),
+        color: isActive ? activeColor : inactiveColor.withOpacity(0.5),
       ),
     );
   }

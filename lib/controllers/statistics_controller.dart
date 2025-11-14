@@ -1,9 +1,7 @@
 // lib/controllers/statistics_controller.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'package:nutri_balance/models/api_service.dart';
-import 'package:nutri_balance/models/statistics_summary_model.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 enum StatisticsStatus { initial, loading, success, failure }
@@ -20,12 +18,12 @@ class StatisticsController with ChangeNotifier {
   String? _errorMessage;
   String? _selectedDetailCategory;
 
-  // --- State Filter (DIPERBARUI) ---
+  // --- State Filter ---
   StatisticsPeriod _selectedPeriod = StatisticsPeriod.daily;
   DateTime _selectedDailyDate = DateTime.now(); // Untuk filter 'Harian'
   DateTime _selectedWeek = DateTime.now();     // Untuk filter 'Mingguan'
   DateTime _selectedMonth = DateTime.now();    // Untuk filter 'Bulanan'
-  // --- Akhir State Filter ---
+
 
   // --- Data State ---
   int _caloriesToday = 0;
@@ -35,7 +33,7 @@ class StatisticsController with ChangeNotifier {
   Map<String, double> _calorieDataPerMeal = {};
   double _maxCaloriePerMeal = 0;
   Map<String, double> _macroDataPercentage = {};
-  // --- Akhir Data State ---
+
 
   // --- Getter untuk UI ---
   StatisticsStatus get status => _status;
@@ -110,7 +108,6 @@ class StatisticsController with ChangeNotifier {
     }
   }
 
-  /// Dipanggil oleh SegmentedButton di view
   void changePeriod(StatisticsPeriod newPeriod) {
     if (newPeriod == _selectedPeriod) return;
 
@@ -124,7 +121,6 @@ class StatisticsController with ChangeNotifier {
     fetchData();
   }
 
-  /// Dipanggil oleh tombol kalender (mode 'daily')
   Future<void> changeDailyDate(BuildContext context) async {
     if (_selectedPeriod != StatisticsPeriod.daily) return;
 
@@ -141,7 +137,6 @@ class StatisticsController with ChangeNotifier {
       fetchData();
     }
   }
-  /// Dipanggil oleh tombol kalender (mode 'weekly')
   Future<void> changeWeek(BuildContext context) async {
     if (_selectedPeriod != StatisticsPeriod.weekly) return;
 
@@ -158,7 +153,7 @@ class StatisticsController with ChangeNotifier {
       fetchData();
     }
   }
-  /// Dipanggil oleh tombol kalender (mode 'monthly')
+
   Future<void> changeMonth(BuildContext context) async {
     if (_selectedPeriod != StatisticsPeriod.monthly) return;
 
@@ -176,7 +171,6 @@ class StatisticsController with ChangeNotifier {
     }
   }
 
-  /// Formatter untuk judul tanggal
   String get selectedDateFormatted {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

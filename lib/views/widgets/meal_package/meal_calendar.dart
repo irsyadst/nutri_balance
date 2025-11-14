@@ -10,26 +10,22 @@ class MealCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Bungkus dengan Obx agar UI otomatis update
     return Obx(() {
       return TableCalendar(
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
 
-        // Gunakan .value dari controller
         focusedDay: controller.focusedDate.value,
         selectedDayPredicate: (day) {
           return isSameDay(controller.selectedDate.value, day);
         },
         calendarFormat: controller.calendarFormat.value,
 
-        // Panggil fungsi di controller
         onDaySelected: controller.onDateSelected,
         onFormatChanged: controller.onFormatChanged,
         onPageChanged: controller.onPageChanged,
 
-        // Styling
-        headerStyle: HeaderStyle(
+        headerStyle: const HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
         ),

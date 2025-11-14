@@ -77,7 +77,7 @@ class EditProfileController with ChangeNotifier {
               PickerHeader(
                 title: title,
                 onDone: () {
-                  updateField(fieldKey, selectedValue); // Gunakan updateField
+                  updateField(fieldKey, selectedValue);
                   Navigator.pop(context);
                 },
               ),
@@ -174,7 +174,7 @@ class EditProfileController with ChangeNotifier {
                     PickerHeader(
                       title: title,
                       onDone: () {
-                        updateField(fieldKey, currentSelection); // Gunakan updateField
+                        updateField(fieldKey, currentSelection);
                         Navigator.pop(context);
                       },
                     ),

@@ -1,8 +1,6 @@
 // lib/views/screens/about_screen.dart
 
 import 'package:flutter/material.dart';
-// Hapus package_info, karena sudah di controller
-// import 'package:package_info_plus/package_info_plus.dart';
 
 // Impor controller dan widget baru
 import '../../controllers/about_controller.dart';
@@ -16,19 +14,16 @@ class AboutScreen extends StatefulWidget {
 }
 
 class _AboutScreenState extends State<AboutScreen> {
-  // 1. Deklarasikan controller
   late AboutController _controller;
 
   @override
   void initState() {
     super.initState();
-    // 2. Inisialisasi controller
     _controller = AboutController();
   }
 
   @override
   void dispose() {
-    // 3. Dispose controller
     _controller.dispose();
     super.dispose();
   }
@@ -50,11 +45,9 @@ class _AboutScreenState extends State<AboutScreen> {
         elevation: 0.5,
         shadowColor: Colors.grey.shade200,
       ),
-      // 4. Gunakan ListenableBuilder untuk mendengarkan controller
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, child) {
-          // 5. Panggil widget yang sudah dipisah dan kirim data
           return AboutContent(version: _controller.version);
         },
       ),

@@ -14,9 +14,9 @@ class CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell( // Bungkus dengan InkWell agar bisa diklik
+    return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(15), // Efek ripple mengikuti bentuk
+      borderRadius: BorderRadius.circular(15),
       child: Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
@@ -33,18 +33,17 @@ class CategoryCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Placeholder untuk gambar kategori (ganti dengan Image.asset jika ada)
             CircleAvatar(
               radius: 20,
               backgroundColor: Colors.grey.shade100,
               child: Icon(icon, color: Colors.grey.shade600),
             ),
             const SizedBox(width: 12),
-            Expanded( // Agar teks tidak overflow
+            Expanded(
               child: Text(
                 name,
                 style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                overflow: TextOverflow.ellipsis, // Atasi jika teks terlalu panjang
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

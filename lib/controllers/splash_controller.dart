@@ -5,13 +5,12 @@ import '../models/storage_service.dart';
 import '../models/api_service.dart';
 import '../models/user_model.dart';
 
-// Enum untuk status navigasi
 enum SplashStatus {
   loading,
-  unauthenticated, // Arahkan ke Onboarding
-  needsProfile,    // Arahkan ke Questionnaire
-  authenticated,     // Arahkan ke MainApp
-  failure          // Menampilkan error (opsional)
+  unauthenticated,
+  needsProfile,
+  authenticated,
+  failure
 }
 
 class SplashController with ChangeNotifier {
@@ -28,11 +27,10 @@ class SplashController with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   SplashController() {
-    _checkSession(); // Langsung panggil pengecekan sesi
+    _checkSession();
   }
 
   Future<void> _checkSession() async {
-    // Beri sedikit delay agar splash screen terlihat
     await Future.delayed(const Duration(seconds: 2));
 
     try {
@@ -40,24 +38,20 @@ class SplashController with ChangeNotifier {
 
       if (token != null) {
         print("Token found, trying to get profile...");
-        _user = await _apiService.getProfile(token); // Coba fetch profil
+        _user = await _apiService.getProfile(token);
 
         if (_user != null) {
-          // Jika user berhasil didapatkan (token valid & profil ada)
           print("Profile fetched successfully for ${_user!.name}");
           if (_user!.profile != null) {
-            // Jika profil lengkap -> MainAppScreen
             print("Profile complete, navigating to MainAppScreen");
             _status = SplashStatus.authenticated;
           } else {
-            // Jika profil belum lengkap -> QuestionnaireScreen
             print("Profile incomplete, navigating to QuestionnaireScreen");
             _status = SplashStatus.needsProfile;
           }
         } else {
-          // Jika token ada tapi fetch profile gagal (token invalid)
           print("Failed to fetch profile with token, deleting invalid token.");
-          await _storageService.deleteToken(); // Hapus token invalid
+          await _storageService.deleteToken();
           _status = SplashStatus.unauthenticated;
         }
       } else {
@@ -68,10 +62,8 @@ class SplashController with ChangeNotifier {
     } catch (e) {
       print("Error in _checkSession: $e");
       _errorMessage = "Gagal terhubung ke server.";
-      _status = SplashStatus.failure; // Status failure opsional
+      _status = SplashStatus.failure;
     }
-
-    // Beri tahu semua listener (yaitu Splash Screen) bahwa status telah berubah
     notifyListeners();
   }
 }

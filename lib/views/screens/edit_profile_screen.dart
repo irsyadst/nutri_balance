@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
-import '../../controllers/edit_profile_controller.dart'; // Import controller
-// Import widget section
+import '../../controllers/edit_profile_controller.dart';
 import '../widgets/edit_profile/basic_info_section.dart';
 import '../widgets/edit_profile/measurements_target_section.dart';
 import '../widgets/edit_profile/activity_goal_section.dart';
@@ -22,7 +21,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _controller = EditProfileController(initialUser: widget.user);
-    // Listener untuk menangani hasil save
+
     _controller.addListener(_handleControllerState);
   }
 
@@ -35,7 +34,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profil berhasil diperbarui!')),
         );
-        // Kembali dan kirim data user yang sudah diupdate
         Navigator.pop(context, _controller.updatedUser);
       } else if (_controller.status == EditProfileStatus.failure && _controller.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +63,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           appBar: AppBar(
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: isLoading ? null : () => Navigator.of(context).pop(), // Disable saat loading
+              onPressed: isLoading ? null : () => Navigator.of(context).pop(),
             ),
             title: const Text('Edit Profil & Tujuan', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 18)),
             centerTitle: true,

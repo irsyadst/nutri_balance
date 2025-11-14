@@ -1,9 +1,7 @@
-// lib/views/screens/notification_screen.dart
-
 import 'package:flutter/material.dart';
 import '../widgets/notification/notification_tile.dart';
 import '../../controllers/notification_controller.dart';
-import '../../models/notification_model.dart';
+
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -19,7 +17,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   void initState() {
     super.initState();
     _controller = NotificationController();
-    // (Opsional) Tambahkan listener untuk error
     _controller.addListener(_handleControllerChanges);
   }
 
@@ -31,8 +28,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   void _handleControllerChanges() {
-    // Penanganan error sekarang ada di dalam controller
-    // (Fungsi ini bisa dikosongkan jika snackbar sudah ditangani controller)
   }
 
   @override
@@ -120,7 +115,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
       );
     }
 
-    // --- PERBAIKAN: Tambah RefreshIndicator dan Dismissible ---
     return RefreshIndicator(
       onRefresh: _controller.fetchNotifications,
       child: ListView.separated(
@@ -148,7 +142,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 size: 30,
               ),
             ),
-            // Panggil fungsi delete dari controller saat di-geser
             onDismissed: (direction) {
               _controller.deleteNotification(context, notification.id);
             },

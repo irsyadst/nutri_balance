@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Reusable Widget for Fields that Trigger a Picker (like TextField/Dropdown appearance)
 class PickerTriggerField extends StatelessWidget {
   final String label;
   final String value;
@@ -12,7 +11,7 @@ class PickerTriggerField extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onTap,
-    this.trailingIcon = Icons.edit_outlined, // Default edit icon
+    this.trailingIcon = Icons.edit_outlined,
   });
 
   @override

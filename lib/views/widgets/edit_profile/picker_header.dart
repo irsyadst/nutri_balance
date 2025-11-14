@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class PickerHeader extends StatelessWidget {
   final String title;
   final VoidCallback onDone;
-  final VoidCallback? onCancel; // Make cancel optional
+  final VoidCallback? onCancel;
 
   const PickerHeader({
     super.key,

@@ -7,20 +7,15 @@ import 'package:nutri_balance/models/meal_models.dart';
 import 'package:nutri_balance/views/screens/food_detail_screen.dart';
 
 class DailyScheduleList extends StatelessWidget {
-  // Ambil controller yang sudah di-init oleh MealPackageScreen
   final MealPackageController controller = Get.find<MealPackageController>();
 
   @override
   Widget build(BuildContext context) {
-    // Obx akan otomatis me-refresh UI saat data di controller berubah
     return Obx(() {
-      // Tampilkan loading
       if (controller.isLoading.isTrue) {
         return const Center(child: CircularProgressIndicator());
       }
 
-      // --- PERBAIKAN 1: Gunakan errorMessage ---
-      // Tampilkan error
       if (controller.errorMessage.isNotEmpty) {
         return Center(
           child: Padding(
@@ -34,12 +29,8 @@ class DailyScheduleList extends StatelessWidget {
         );
       }
 
-      // --- PERBAIKAN 2: Gunakan dailySchedule ---
-      // Ambil daftar makanan untuk tanggal yang dipilih
       final meals = controller.dailySchedule;
-      // --- AKHIR PERBAIKAN 2 ---
 
-      // Tampilkan jika kosong
       if (meals.isEmpty) {
         return Center(
           child: Padding(
@@ -69,8 +60,6 @@ class DailyScheduleList extends StatelessWidget {
         );
       }
 
-      // --- LOGIKA PENGELOMPOKAN ---
-      // Filter list berdasarkan mealType
       final sarapanMeals =
       meals.where((m) => m.mealType == 'Sarapan').toList();
       final makanSiangMeals =
@@ -78,9 +67,7 @@ class DailyScheduleList extends StatelessWidget {
       final makanMalamMeals =
       meals.where((m) => m.mealType == 'Makan Malam').toList();
       final snackMeals = meals.where((m) => m.mealType == 'Snack').toList();
-      // --- AKHIR LOGIKA PENGELOMPOKAN ---
 
-      // --- TAMPILAN BARU (Mengganti ListView.builder) ---
       return SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
@@ -109,17 +96,15 @@ class DailyScheduleList extends StatelessWidget {
           ],
         ),
       );
-      // --- AKHIR TAMPILAN BARU ---
+
     });
   }
 
-  /// Widget helper untuk membuat satu section (misal: "Sarapan" + list-nya)
   Widget _buildMealSection({
     required String title,
     required IconData icon,
     required List<MealPlan> meals,
   }) {
-    // Jangan tampilkan section jika tidak ada makanan
     if (meals.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -129,14 +114,14 @@ class DailyScheduleList extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Judul Section (e.g., "Sarapan")
+
           Row(
             children: [
               Icon(icon, color: Colors.grey[700], size: 20),
               const SizedBox(width: 8),
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -146,12 +131,11 @@ class DailyScheduleList extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // List makanan untuk section ini
           Column(
             children: meals.map((meal) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10.0),
-                child: _buildMealTile(meal), // Gunakan tile kustom
+                child: _buildMealTile(meal),
               );
             }).toList(),
           ),
@@ -160,14 +144,11 @@ class DailyScheduleList extends StatelessWidget {
     );
   }
 
-  /// Widget helper untuk membuat tampilan satu makanan
   Widget _buildMealTile(MealPlan meal) {
-    // Dapatkan data food dari meal plan
     final food = meal.food;
 
     return InkWell(
       onTap: () {
-        // Navigasi ke detail makanan
         Get.to(() => FoodDetailScreen(food: food));
       },
       borderRadius: BorderRadius.circular(12),
@@ -187,7 +168,6 @@ class DailyScheduleList extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Gambar Placeholder
             Container(
               width: 60,
               height: 60,
@@ -199,7 +179,6 @@ class DailyScheduleList extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // Info Makanan
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,7 +194,6 @@ class DailyScheduleList extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    // Tampilkan kalori * porsi
                     '${(food.calories * meal.quantity).round()} kkal • ${meal.quantity.round()} porsi',
                     style: TextStyle(
                       fontSize: 14,

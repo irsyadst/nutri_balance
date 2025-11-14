@@ -1,6 +1,3 @@
-// lib/models/food_log_model.dart
-
-// Model untuk detail makanan di dalam log
 class LoggedFood {
   final String? id;
   final String name;
@@ -22,12 +19,11 @@ class LoggedFood {
     required this.servingUnit,
   });
 
-  // Konversi dari Map (JSON)
   factory LoggedFood.fromJson(Map<String, dynamic> json) {
     return LoggedFood(
-      id: json['id'], // ID mungkin string atau null
-      name: json['name'] ?? 'Makanan Tidak Dikenal', // Default name
-      calories: (json['calories'] ?? 0.0).toDouble(), // Konversi aman ke double
+      id: json['id'],
+      name: json['name'] ?? 'Makanan Tidak Dikenal',
+      calories: (json['calories'] ?? 0.0).toDouble(),
       proteins: (json['proteins'] ?? 0.0).toDouble(),
       carbs: (json['carbs'] ?? 0.0).toDouble(),
       fats: (json['fats'] ?? 0.0).toDouble(),
@@ -39,13 +35,13 @@ class LoggedFood {
 
 
 class FoodLogEntry {
-  final String id; // ID log dari MongoDB
-  final dynamic userId; // Bisa String atau Object (jika populate)
-  final String date; // Tanggal log (YYYY-MM-DD)
-  final LoggedFood food; // Detail makanan yang dicatat
-  final double quantity; // Jumlah porsi/gram
-  final String mealType; // Sarapan, Makan Siang, dll.
-  final DateTime createdAt; // Waktu pencatatan
+  final String id;
+  final dynamic userId;
+  final String date;
+  final LoggedFood food;
+  final double quantity;
+  final String mealType;
+  final DateTime createdAt;
   final double displayQuantity;
   final String displayUnit;
 
@@ -61,27 +57,24 @@ class FoodLogEntry {
     required this.displayUnit,
   });
 
-  // Factory constructor untuk membuat instance dari JSON
   factory FoodLogEntry.fromJson(Map<String, dynamic> json) {
-    // Handle userId yang mungkin object atau string
     dynamic userIdData = json['userId'];
     String userIdString = '';
     if (userIdData is String) {
       userIdString = userIdData;
     } else if (userIdData is Map && userIdData.containsKey('_id')) {
-      userIdString = userIdData['_id']; // Ambil _id jika dipopulate
+      userIdString = userIdData['_id'];
     }
 
     final qtyAsDouble = (json['quantity'] ?? 1.0).toDouble();
 
     return FoodLogEntry(
-      id: json['_id'] ?? '', // ID log
+      id: json['_id'] ?? '',
       userId: userIdString,
-      date: json['date'] ?? '', // Tanggal string
-      food: LoggedFood.fromJson(json['food'] ?? {}), // Parse sub-objek food
-      quantity: (json['quantity'] ?? 1.0).toDouble(), // Konversi quantity ke double, default 1
-      mealType: json['mealType'] ?? 'Lainnya', // Default meal type
-      // Parse createdAt, beri default jika gagal parse
+      date: json['date'] ?? '',
+      food: LoggedFood.fromJson(json['food'] ?? {}),
+      quantity: (json['quantity'] ?? 1.0).toDouble(),
+      mealType: json['mealType'] ?? 'Lainnya',
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
       displayQuantity: (json['displayQuantity'] ?? qtyAsDouble).toDouble(),
       displayUnit: json['displayUnit'] ?? json['food']?['servingUnit'] ?? 'porsi',

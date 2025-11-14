@@ -4,23 +4,22 @@ import 'package:flutter/material.dart';
 import '../models/api_service.dart';
 import '../models/user_model.dart';
 import '../models/storage_service.dart';
-import '../utils/notification_service.dart'; // <--- TAMBAHKAN IMPORT
+import '../utils/notification_service.dart';
 import '../views/screens/login_screen.dart';
 import '../views/screens/edit_profile_screen.dart';
 
 class ProfileController with ChangeNotifier {
-  // --- State dari ProfileController (Original) ---
+
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
 
-  // --- State dari ProfileScreenController ---
   User? _currentUser;
 
   // --- State Notifikasi Baru ---
   late final StorageService _storageService;
   late final NotificationService _notificationService;
-  bool _isNotificationEnabled = false; // Default false sampai di-load
-  bool _isNotificationLoading = true; // State untuk loading
+  bool _isNotificationEnabled = false;
+  bool _isNotificationLoading = true;
 
   // Profil default jika user.profile null
   final UserProfile _defaultProfile = UserProfile(
@@ -56,21 +55,14 @@ class ProfileController with ChangeNotifier {
     _currentUser = initialUser;
     _storageService = StorageService();
     _notificationService = NotificationService();
-    // Panggil method inisialisasi notifikasi
     _initNotificationState();
   }
 
-  // --- Method Inisialisasi Notifikasi ---
-
-  /// Mengambil preferensi notifikasi dari storage saat layar dibuka
   Future<void> _initNotificationState() async {
-    // Asumsi Anda punya method getNotificationPreference di StorageService
     _isNotificationEnabled = await _storageService.getNotificationPreference();
     _isNotificationLoading = false;
     notifyListeners();
   }
-
-  // --- Methods ---
 
   void _setLoading(bool value) {
     _isLoading = value;
@@ -79,7 +71,6 @@ class ProfileController with ChangeNotifier {
 
   Future<User?> saveProfileFromQuestionnaire(
       Map<String, dynamic> answers, String token) async {
-    // ... (kode asli saveProfileFromQuestionnaire tetap di sini) ...
     _setLoading(true);
 
     try {
@@ -107,24 +98,16 @@ class ProfileController with ChangeNotifier {
     }
   }
 
-  // --- Methods dari ProfileScreenController (Diperbarui) ---
-
-  /// Mengelola state & izin untuk switch notifikasi
   Future<void> toggleNotification(BuildContext context, bool value) async {
     if (value == true) {
-      // --- Logika MENGAKTIFKAN Notifikasi ---
-      // 1. Minta izin ke OS
       bool hasPermission = await _notificationService.requestPermission();
 
       if (hasPermission) {
-        // 2. Izin diberikan: update state, simpan, & jadwalkan notifikasi
         _isNotificationEnabled = true;
         await _storageService.setNotificationPreference(true);
-        // Panggil method untuk menjadwalkan notifikasi harian Anda
         await _notificationService.scheduleDailyReminders();
         print("Notifications ENABLED and scheduled.");
       } else {
-        // 3. Izin ditolak: Jaga state tetap false & beri tahu user
         _isNotificationEnabled = false;
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -136,20 +119,15 @@ class ProfileController with ChangeNotifier {
         }
       }
     } else {
-      // --- Logika MEMATIKAN Notifikasi ---
       _isNotificationEnabled = false;
       await _storageService.setNotificationPreference(false);
-      // Panggil method untuk membatalkan semua notifikasi
       await _notificationService.cancelAllNotifications();
       print("Notifications DISABLED and cancelled.");
     }
     notifyListeners();
   }
 
-
-  /// Menangani navigasi ke EditProfileScreen
   Future<void> navigateToEditProfile(BuildContext context) async {
-    // ... (kode asli navigateToEditProfile tetap di sini) ...
     if (_currentUser == null) return;
 
     final result = await Navigator.push(
@@ -168,9 +146,7 @@ class ProfileController with ChangeNotifier {
     }
   }
 
-  /// Menangani logika logout
   Future<void> logout(BuildContext context) async {
-    // ... (kode asli logout tetap di sini) ...
     bool? confirmLogout = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -197,7 +173,7 @@ class ProfileController with ChangeNotifier {
     );
 
     if (confirmLogout == true) {
-      await _storageService.deleteToken(); // Hapus token
+      await _storageService.deleteToken();
 
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(

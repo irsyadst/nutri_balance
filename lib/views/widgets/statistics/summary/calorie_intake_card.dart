@@ -34,9 +34,9 @@ class CalorieIntakeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(), // Header Anda yang sudah tanpa persentase
+          _buildHeader(),
           const SizedBox(height: 24),
-          _buildChart(), // Chart yang sudah diperbaiki
+          _buildChart(),
         ],
       ),
     );
@@ -74,7 +74,6 @@ class CalorieIntakeCard extends StatelessWidget {
     final mealOrder = ['Sarapan', 'Makan Siang', 'Makan Malam', 'Snack'];
     final List<BarChartGroupData> barGroups = [];
 
-    // PERBAIKAN 1: Buat semua 4 bar, meskipun datanya 0
     for (int i = 0; i < mealOrder.length; i++) {
       final mealType = mealOrder[i];
       final value = calorieDataPerMeal[mealType] ?? 0.0;
@@ -86,7 +85,7 @@ class CalorieIntakeCard extends StatelessWidget {
             BarChartRodData(
               toY: value,
               color: _getColorForMeal(mealType),
-              width: 14, // Bar lebih ramping untuk summary
+              width: 14,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(4),
                 topRight: Radius.circular(4),
@@ -97,7 +96,6 @@ class CalorieIntakeCard extends StatelessWidget {
       );
     }
 
-    // Tentukan nilai Y maksimum
     final double maxY = maxCaloriePerMeal == 0 ? 100 : maxCaloriePerMeal * 1.2;
 
     return AspectRatio(
@@ -116,7 +114,6 @@ class CalorieIntakeCard extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (double value, TitleMeta meta) {
-                  // PERBAIKAN 2: Logika label yang benar
                   String shortText = '';
                   int index = value.toInt();
                   if (index >= 0 && index < mealOrder.length) {
@@ -147,14 +144,13 @@ class CalorieIntakeCard extends StatelessWidget {
             ),
           ),
           borderData: FlBorderData(show: false),
-          gridData: FlGridData(show: false), // Sembunyikan grid di summary
+          gridData: const FlGridData(show: false),
           barTouchData: BarTouchData(enabled: false),
         ),
       ),
     );
   }
 
-  // Helper untuk warna bar
   Color _getColorForMeal(String mealType) {
     switch (mealType) {
       case 'Sarapan':

@@ -20,13 +20,12 @@ class OtpHeader extends StatelessWidget {
         ),
         const SizedBox(height: 15),
         Text(
-          // Gunakan RichText untuk style berbeda (opsional)
           "Masukkan 6 digit kode OTP yang telah dikirimkan ke email Anda ",
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey[600], height: 1.4),
         ),
         Text(
-          email, // Tampilkan email di baris baru
+          email,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey[800], fontWeight: FontWeight.w500, height: 1.4),
         ),

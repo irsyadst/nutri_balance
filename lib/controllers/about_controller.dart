@@ -10,8 +10,6 @@ class AboutController with ChangeNotifier {
   AboutController() {
     _loadAppVersion();
   }
-
-  /// Memuat versi aplikasi dari package info
   Future<void> _loadAppVersion() async {
     try {
       final PackageInfo info = await PackageInfo.fromPlatform();
@@ -19,7 +17,6 @@ class AboutController with ChangeNotifier {
     } catch (e) {
       _version = 'Gagal memuat versi';
     }
-    // Beri tahu UI untuk update setelah data didapat
     notifyListeners();
   }
 }

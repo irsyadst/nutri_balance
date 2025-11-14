@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../screens/add_food_screen.dart'; // For navigation
+import '../../screens/add_food_screen.dart';
 
 class AddFoodButton extends StatelessWidget {
   const AddFoodButton({super.key});
@@ -8,7 +8,6 @@ class AddFoodButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: () {
-        // Navigate to Add Food Screen
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const AddFoodScreen()),
@@ -20,8 +19,8 @@ class AddFoodButton extends StatelessWidget {
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF007BFF), // Button color
-        minimumSize: const Size(double.infinity, 55), // Full width, fixed height
+        backgroundColor: const Color(0xFF007BFF),
+        minimumSize: const Size(double.infinity, 55),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),

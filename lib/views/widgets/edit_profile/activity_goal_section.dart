@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../controllers/edit_profile_controller.dart';
-import '../../../controllers/questionnaire_controller.dart'; // Untuk akses konstanta
+import '../../../controllers/questionnaire_controller.dart';
 import 'picker_trigger_field.dart';
 
 class ActivityGoalSection extends StatelessWidget {

@@ -1,7 +1,6 @@
 name: nutri_balance
 description: "A new Flutter project."
 
-# Mencegah publikasi tidak sengaja ke pub.dev.
 publish_to: 'none' 
 
 version: 1.0.0+1
@@ -29,16 +28,15 @@ dependencies:
   permission_handler: ^11.3.1
   package_info_plus: ^8.0.0
   month_picker_dialog: ^6.6.0
-#================ DEV DEPENDENCIES ================#
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # Sebaiknya gunakan versi linter yang lebih baru dan stabil.
   flutter_lints: ^4.0.0
-
-#================ FLUTTER SETTINGS ================#
-# Konfigurasi spesifik untuk Flutter.
+  flutter_launcher_icons: ^0.13.1
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo_nutribalance.png"
 flutter:
   uses-material-design: true
   assets:

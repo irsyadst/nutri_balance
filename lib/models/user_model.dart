@@ -4,10 +4,9 @@ class User {
   final String name;
   final String email;
   final UserProfile? profile;
-  // Tambahkan konstruktor jika belum ada
   User({required this.id, required this.name, required this.email, this.profile});
 
-  // Factory constructor dari JSON (jika diperlukan dari API lain)
+  // Factory constructor dari JSON
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['_id'],
@@ -33,7 +32,6 @@ class UserProfile {
   final int? targetCarbs;
   final int? targetFats;
 
-  // Tambahkan konstruktor jika belum ada
   UserProfile({
     required this.gender,
     required this.age,
@@ -51,7 +49,7 @@ class UserProfile {
   });
 
 
-  // Factory constructor dari JSON (jika diperlukan dari API)
+  // Factory constructor dari JSON
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       gender: json['gender'] ?? '',
@@ -79,10 +77,9 @@ class UserProfile {
       'currentWeight': currentWeight,
       'goalWeight': goalWeight,
       'activityLevel': activityLevel,
-      'goals': goals, // Backend mengharapkan array, meskipun mungkin hanya satu
+      'goals': goals,
       'dietaryRestrictions': dietaryRestrictions,
       'allergies': allergies,
-      // Jangan sertakan target nutrisi, karena backend akan menghitungnya ulang
     };
   }
 }

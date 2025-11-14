@@ -60,15 +60,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
 
-                  // --- PERBAIKAN: Hapus Padding di sini ---
                   ProfileHeader(
                     user: currentUser,
                     onEditPressed: () =>
                         _controller.navigateToEditProfile(context),
                   ),
-                  // --- AKHIR PERBAIKAN ---
 
-                  const SizedBox(height: 15), // Sesuaikan jarak
+                  const SizedBox(height: 15),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -80,7 +78,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // ... (Sisa kode Anda: Account Section, Notification, dll.) ...
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: ProfileSection(
@@ -103,10 +100,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _controller.isNotificationLoading
                             ? const ListTile(
-                          // ... (loading indicator)
                         )
                             : SwitchListTile(
-                          // ... (switch tile)
                           secondary: Icon(Icons.notifications_outlined,
                               color: Colors.grey[600], size: 24),
                           title: const Text('Notifikasi Pop-up',
@@ -136,14 +131,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: Icons.info_outline_rounded,
                             title: 'Tentang Aplikasi',
                             onTap: () {
-                              // --- PERBAIKAN DI SINI ---
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const AboutScreen(),
                                 ),
                               );
-                              // --- AKHIR PERBAIKAN ---
                             }),
                       ],
                     ),
@@ -163,7 +156,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// (Ekstensi UserProfile Anda)
 extension UserProfileExtension on UserProfile {
   String? get phoneNumber => null;
   DateTime? get dateOfBirth => null;

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-// Widget untuk menampilkan tombol aksi di bagian bawah layar onboarding
 class OnboardingActionButtons extends StatelessWidget {
   final bool isLastPage;
-  final VoidCallback onSkip; // Callback saat tombol Skip ditekan
-  final VoidCallback onContinue; // Callback saat tombol Continue ditekan
-  final VoidCallback onGetStarted; // Callback saat tombol Get Started (di halaman terakhir) ditekan
+  final VoidCallback onSkip;
+  final VoidCallback onContinue;
+  final VoidCallback onGetStarted;
 
   const OnboardingActionButtons({
     super.key,
@@ -17,13 +16,11 @@ class OnboardingActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).primaryColor; // Ambil warna primer dari tema
-
-    // Tampilkan tombol berbeda berdasarkan apakah ini halaman terakhir
+    final primaryColor = Theme.of(context).primaryColor;
     return isLastPage
         ? _buildFullWidthButton(
       context: context,
-      text: 'Get Started', // Teks untuk halaman terakhir
+      text: 'Get Started',
       onPressed: onGetStarted,
       backgroundColor: primaryColor,
       foregroundColor: Colors.white,
@@ -34,33 +31,30 @@ class OnboardingActionButtons extends StatelessWidget {
     );
   }
 
-  // Helper untuk membangun dua tombol (Skip dan Continue)
   Widget _buildDualButtons({required BuildContext context, required Color primaryColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Tombol Skip
         Expanded(
           child: TextButton(
-            onPressed: onSkip, // Gunakan callback onSkip
+            onPressed: onSkip,
             style: TextButton.styleFrom(
-              foregroundColor: Colors.grey.shade600, // Warna teks
-              backgroundColor: Colors.grey.shade200, // Warna background
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Bentuk rounded
+              foregroundColor: Colors.grey.shade600,
+              backgroundColor: Colors.grey.shade200,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
             child: const Text('Skip', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ),
         ),
-        const SizedBox(width: 16), // Jarak antar tombol
-        // Tombol Continue
+        const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton(
-            onPressed: onContinue, // Gunakan callback onContinue
+            onPressed: onContinue,
             style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor, // Warna primer
-              foregroundColor: Colors.white, // Warna teks
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Bentuk rounded
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
             child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -70,7 +64,6 @@ class OnboardingActionButtons extends StatelessWidget {
     );
   }
 
-  // Helper untuk membangun satu tombol lebar penuh
   Widget _buildFullWidthButton({
     required BuildContext context,
     required String text,
@@ -78,13 +71,13 @@ class OnboardingActionButtons extends StatelessWidget {
     required Color backgroundColor,
     required Color foregroundColor}) {
     return SizedBox(
-      width: double.infinity, // Lebar penuh
+      width: double.infinity,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Bentuk rounded
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
         child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

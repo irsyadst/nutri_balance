@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Widget khusus untuk BottomNavigationBar
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap; // Callback saat item di-tap
@@ -11,23 +10,20 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onTap,
   });
 
-  // Helper untuk membuat ikon (dengan state aktif/tidak aktif)
   Widget _buildIcon(IconData iconData, IconData activeIconData, int index, Color activeColor, Color inactiveColor) {
     return Icon(
-      currentIndex == index ? activeIconData : iconData, // Pilih ikon berdasarkan state
+      currentIndex == index ? activeIconData : iconData,
       color: currentIndex == index ? activeColor : inactiveColor,
-      size: 28, // Sesuaikan ukuran ikon
+      size: 28,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Definisikan warna di sini agar mudah diubah
-    final activeColor = Theme.of(context).primaryColor; // Ambil dari tema
+    final activeColor = Theme.of(context).primaryColor;
     const inactiveColor = Colors.grey;
 
     return Container(
-      // Dekorasi shadow dan border radius atas
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -36,49 +32,44 @@ class CustomBottomNavigationBar extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000), // Warna shadow dengan opacity
+            color: Color(0x1A000000),
             blurRadius: 10,
-            offset: Offset(0, -5), // Shadow ke atas
+            offset: Offset(0, -5),
           ),
         ],
       ),
-      // ClipRRect untuk menerapkan border radius ke child (BottomNavigationBar)
       child: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(25),
           topRight: Radius.circular(25),
         ),
         child: BottomNavigationBar(
-          onTap: onTap, // Gunakan callback dari parameter
-          currentIndex: currentIndex, // Gunakan index saat ini dari parameter
+          onTap: onTap,
+          currentIndex: currentIndex,
 
-          // Styling lainnya
           backgroundColor: Colors.white,
           selectedItemColor: activeColor,
           unselectedItemColor: inactiveColor,
-          showUnselectedLabels: true, // Tampilkan label meskipun tidak aktif
+          showUnselectedLabels: true,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           unselectedLabelStyle: const TextStyle(fontSize: 12),
-          type: BottomNavigationBarType.fixed, // Agar semua item terlihat
-          elevation: 0, // Hapus elevasi default karena sudah ada shadow di container
+          type: BottomNavigationBarType.fixed,
+          elevation: 0,
 
           items: <BottomNavigationBarItem>[
-            // Item Beranda
+
             BottomNavigationBarItem(
               icon: _buildIcon(Icons.home_outlined, Icons.home, 0, activeColor, inactiveColor),
               label: 'Beranda',
             ),
-            // Item Jadwal Makan
             BottomNavigationBarItem(
               icon: _buildIcon(Icons.calendar_month_outlined, Icons.calendar_month, 1, activeColor, inactiveColor),
               label: 'Jadwal Makan',
             ),
-            // Item Statistik
             BottomNavigationBarItem(
               icon: _buildIcon(Icons.bar_chart_outlined, Icons.bar_chart, 2, activeColor, inactiveColor),
               label: 'Statistik',
             ),
-            // Item Profil
             BottomNavigationBarItem(
               icon: _buildIcon(Icons.person_outline, Icons.person, 3, activeColor, inactiveColor),
               label: 'Profil',

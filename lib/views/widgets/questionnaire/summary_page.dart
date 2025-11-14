@@ -3,10 +3,9 @@ import '../../../utils/nutritional_calculator.dart'; // Import kalkulator
 // Import widget SummaryTile
 import 'summary_tile.dart';
 
-// Widget untuk menampilkan halaman ringkasan kuesioner
 class SummaryPage extends StatelessWidget {
-  final Map<int, dynamic> answers; // Data jawaban dari kuesioner
-  final VoidCallback onConfirm; // Callback saat tombol konfirmasi ditekan
+  final Map<int, dynamic> answers;
+  final VoidCallback onConfirm;
 
   const SummaryPage({
     super.key,
@@ -14,7 +13,6 @@ class SummaryPage extends StatelessWidget {
     required this.onConfirm,
   });
 
-  // Helper untuk mendapatkan dan memformat nilai jawaban
   String _getAnswerValue(int key, String unit, dynamic defaultValue) {
     final value = answers[key];
     if (value == null || (value is List && value.isEmpty)) {
@@ -22,7 +20,6 @@ class SummaryPage extends StatelessWidget {
       return '$defaultValue $unit'.trim();
     }
     if (value is List) {
-      // Filter list string yang valid
       final filteredList = value.whereType<String>().where((item) => item.isNotEmpty).toList();
       if (filteredList.isEmpty) return 'Tidak ada';
       return filteredList.join(', ');
@@ -38,20 +35,18 @@ class SummaryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ambil nilai dengan default yang lebih aman
     final gender = _getAnswerValue(0, '', 'Pria');
-    final age = int.tryParse(_getAnswerValue(1, '', 24)) ?? 24; // Pastikan int
-    final height = int.tryParse(_getAnswerValue(2, '', 165)) ?? 165; // Pastikan int
-    final currentWeight = int.tryParse(_getAnswerValue(3, '', 50)) ?? 50; // Pastikan int
-    final goalWeight = int.tryParse(_getAnswerValue(4, '', 65)) ?? 65; // Pastikan int
+    final age = int.tryParse(_getAnswerValue(1, '', 24)) ?? 24;
+    final height = int.tryParse(_getAnswerValue(2, '', 165)) ?? 165;
+    final currentWeight = int.tryParse(_getAnswerValue(3, '', 50)) ?? 50;
+    final goalWeight = int.tryParse(_getAnswerValue(4, '', 65)) ?? 65;
     final activityLevel = _getAnswerValue(5, '', 'Cukup Aktif');
     final goal = _getAnswerValue(6, '', 'Penurunan Berat Badan');
     final dietaryRestrictions = _getAnswerValue(7, '', []);
     final allergies = _getAnswerValue(8, '', []);
 
-    // Kalkulasi Rekomendasi
     final recommendations = NutritionalCalculator.calculateNeeds(
-      gender: answers[0] ?? 'Pria', // Gunakan nilai asli untuk kalkulasi
+      gender: answers[0] ?? 'Pria',
       age: age,
       height: height,
       currentWeight: currentWeight,
@@ -59,10 +54,9 @@ class SummaryPage extends StatelessWidget {
       goal: answers[6] ?? 'Penurunan Berat Badan',
     );
 
-    // Data Profil untuk ditampilkan
     final profileData = {
       "Jenis Kelamin": gender,
-      "Usia": _getAnswerValue(1, ' tahun', 24), // Tambah 'tahun'
+      "Usia": _getAnswerValue(1, ' tahun', 24),
       "Tinggi": _getAnswerValue(2, 'cm', 165),
       "Berat Saat Ini": _getAnswerValue(3, 'kg', 50),
       "Target Berat": _getAnswerValue(4, 'kg', 65),
@@ -72,7 +66,6 @@ class SummaryPage extends StatelessWidget {
       "Alergi": allergies,
     };
 
-    // Data Rekomendasi
     final recommendationTiles = {
       "Kalori Harian": "${recommendations['calories']} kkal",
       "Protein": "${recommendations['proteins']} g",
@@ -80,39 +73,32 @@ class SummaryPage extends StatelessWidget {
       "Karbohidrat": "${recommendations['carbs']} g",
     };
 
-    // Data BMI
     final bmiInfo = {
       "Indeks Massa Tubuh (IMT)": recommendations['bmi'] ?? 'N/A',
       "Kategori IMT": recommendations['bmiCategory'] ?? 'N/A',
     };
 
-    // Layout Halaman Summary
     return Container(
-      color: Colors.grey[50], // Background abu-abu muda
-      child: Stack( // Gunakan Stack agar tombol bisa mengambang
+      color: Colors.grey[50],
+      child: Stack(
         children: [
-          // Konten yang bisa di-scroll
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            // Padding bawah untuk memberi ruang tombol mengambang
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                // Section Ringkasan Profil
                 _buildSection(
                   title: "Ringkasan Profil",
                   data: profileData,
                 ),
                 const SizedBox(height: 24),
-                // Section Rekomendasi Harian
                 _buildSection(
                   title: "Rekomendasi Harian",
                   data: recommendationTiles,
                 ),
                 const SizedBox(height: 24),
-                // Section Tinjauan IMT
                 _buildSection(
                   title: "Tinjauan IMT",
                   data: bmiInfo,
@@ -121,15 +107,12 @@ class SummaryPage extends StatelessWidget {
               ],
             ),
           ),
-          // Tombol Konfirmasi di bawah (mengambang)
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
               padding: const EdgeInsets.all(24.0),
               decoration: BoxDecoration(
-                // Background sedikit transparan agar konten di belakangnya samar terlihat
                   color: Colors.white.withOpacity(0.95),
-                  // Shadow ke atas
                   boxShadow: [
                     BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0,-2))
                   ]
@@ -137,13 +120,13 @@ class SummaryPage extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: onConfirm, // Gunakan callback onConfirm
+                  onPressed: onConfirm,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 18),
-                    backgroundColor: Theme.of(context).primaryColor, // Warna primer
+                    backgroundColor: Theme.of(context).primaryColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(99)), // Tombol rounded
+                        borderRadius: BorderRadius.circular(99)),
                   ),
                   child: const Text(
                     'Mulai Pelacakan',
@@ -158,19 +141,18 @@ class SummaryPage extends StatelessWidget {
     );
   }
 
-  // Helper widget untuk membuat satu section (judul + kartu)
   Widget _buildSection({required String title, required Map<String, dynamic> data}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-        _buildInfoCard( // Gunakan helper kartu
+        _buildInfoCard(
           children: data.entries.map((entry) {
-            return SummaryTile( // Gunakan SummaryTile
+            return SummaryTile(
               label: entry.key,
               value: entry.value,
-              hasDivider: entry.key != data.keys.last, // Divider kecuali item terakhir
+              hasDivider: entry.key != data.keys.last,
             );
           }).toList(),
         ),
@@ -178,7 +160,6 @@ class SummaryPage extends StatelessWidget {
     );
   }
 
-  // Helper widget untuk membuat kartu informasi
   Widget _buildInfoCard({required List<Widget> children}) {
     return Container(
       decoration: BoxDecoration(
@@ -188,10 +169,10 @@ class SummaryPage extends StatelessWidget {
           BoxShadow(
               color: Colors.black.withOpacity(0.05),
               blurRadius: 15,
-              offset: const Offset(0, 5)) // Shadow tipis
+              offset: const Offset(0, 5))
         ],
       ),
-      child: ClipRRect( // Clip agar divider tidak keluar dari border radius
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Column(children: children),
       ),

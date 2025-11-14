@@ -23,7 +23,6 @@ class ViewLogButton extends StatelessWidget {
         ),
         onPressed: onPressed,
         style: TextButton.styleFrom(
-          // Mengambil warna dari tema utama
           foregroundColor: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),

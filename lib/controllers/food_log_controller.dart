@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nutri_balance/models/api_service.dart';
 import 'package:nutri_balance/models/food_log_model.dart';
-import 'package:nutri_balance/models/storage_service.dart';
 
 enum FoodLogStatus { loading, success, error }
 
@@ -21,7 +20,7 @@ class FoodLogController with ChangeNotifier {
   DateTime _selectedDate = DateTime.now();
   DateTime get selectedDate => _selectedDate;
 
-  List<FoodLogEntry> _allLogs = []; // Menyimpan semua log
+  List<FoodLogEntry> _allLogs = [];
   List<FoodLogEntry> _logsForSelectedDate = []; // Log yang difilter
   List<FoodLogEntry> get logsForSelectedDate => _logsForSelectedDate;
 
@@ -40,7 +39,6 @@ class FoodLogController with ChangeNotifier {
 
     try {
       _allLogs = await _apiService.getFoodLogHistory(_token);
-      // Langsung filter untuk hari ini
       filterLogsByDate(_selectedDate);
       _status = FoodLogStatus.success;
     } catch (e) {
@@ -57,7 +55,6 @@ class FoodLogController with ChangeNotifier {
     final dateString = _dateFormatter.format(date);
 
     _logsForSelectedDate = _allLogs.where((log) {
-      // Backend mengembalikan tanggal sebagai string 'yyyy-MM-dd'
       return log.date == dateString;
     }).toList();
 
@@ -70,7 +67,7 @@ class FoodLogController with ChangeNotifier {
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)), // Hanya sampai besok
+      lastDate: DateTime.now().add(const Duration(days: 1)),
     );
     if (picked != null && picked != _selectedDate) {
       filterLogsByDate(picked);

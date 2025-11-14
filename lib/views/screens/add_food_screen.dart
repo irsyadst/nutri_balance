@@ -1,21 +1,12 @@
 // lib/views/screens/add_food_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:nutri_balance/models/meal_models.dart';
 import '../../controllers/add_food_controller.dart';
 import '../widgets/add_food/food_search_bar.dart';
-// Hapus impor widget lama
-// import '../widgets/add_food/category_grid.dart';
-// import '../widgets/add_food/food_result_tile.dart';
-import '../widgets/add_food/log_food_modal.dart';
-import 'food_detail_screen.dart';
-
-// --- IMPOR BARU UNTUK WIDGET YANG DIPISAH ---
 import '../widgets/add_food/recommendation_tab_view.dart';
 import '../widgets/add_food/category_tab_view.dart';
 import '../widgets/add_food/search_results_view.dart';
-// --- AKHIR IMPOR BARU ---
+
 
 class AddFoodScreen extends StatefulWidget {
   const AddFoodScreen({super.key});
@@ -67,7 +58,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               elevation: 0.5,
               shadowColor: Colors.grey.shade200,
               bottom: _controller.isSearching
-                  ? null // Sembunyikan tabs saat mencari
+                  ? null
                   : TabBar(
                 controller: _tabController,
                 labelColor: Theme.of(context).primaryColor,
@@ -96,10 +87,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           child: FoodSearchBar(
             controller: _searchController,
             onChanged:
-            controller.handleSearchByName, // Panggil method pencarian nama
+            controller.handleSearchByName,
           ),
         ),
-        // Gunakan Expanded agar TabBarView/SearchResultsView mengisi sisa ruang
         Expanded(
           child: _buildContent(context, controller),
         ),
@@ -108,18 +98,15 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   }
 
   Widget _buildContent(BuildContext context, AddFoodController controller) {
-    // --- DIPERBARUI: Panggil SearchResultsView ---
+
     if (controller.isSearching) {
       return SearchResultsView(controller: controller);
     }
 
-    // --- DIPERBARUI: Panggil widget Tab ---
     return TabBarView(
       controller: _tabController,
       children: [
-        // Tab 1: Rekomendasi
         RecommendationTabView(controller: controller),
-        // Tab 2: Kategori
         CategoryTabView(
           controller: controller,
           searchController: _searchController,
@@ -128,9 +115,4 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     );
   }
 
-// --- HAPUS: _buildRekomendasiTab() ---
-// (Logika sudah dipindah ke recommendation_tab_view.dart)
-
-// --- HAPUS: _buildKategoriTab() ---
-// (Logika sudah dipindah ke category_tab_view.dart)
 }

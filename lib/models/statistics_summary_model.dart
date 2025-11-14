@@ -1,4 +1,3 @@
-// lib/models/statistics_summary_model.dart
 import 'dart:convert';
 
 StatisticsSummary statisticsSummaryFromJson(String str) => StatisticsSummary.fromJson(json.decode(str));

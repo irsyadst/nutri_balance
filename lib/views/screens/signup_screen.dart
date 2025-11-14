@@ -33,12 +33,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _controller.dispose(); // Dispose controller
+    _controller.dispose();
     super.dispose();
   }
 
   void _handleSignUp() {
-    if (_controller.isLoading) return; // Prevent multiple taps
+    if (_controller.isLoading) return;
 
     // Validate form first
     if (_formKey.currentState?.validate() ?? false) {
@@ -49,16 +49,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         return;
       }
 
-      // Call controller to request registration
       _controller.requestRegistration(
         _nameController.text,
         _emailController.text,
         _passwordController.text,
       ).then((result) {
-        if (!mounted) return; // Check if widget is still mounted
+        if (!mounted) return;
 
         if (result['success'] == true) {
-          // Navigate to OTP screen on success
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -66,12 +64,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           );
         } else {
-          // Show error message on failure
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(result['message'] ?? 'Pendaftaran gagal.')));
         }
       }).catchError((error) {
-        // Handle potential errors during the API call
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Terjadi kesalahan: ${error.toString()}')));
@@ -81,7 +77,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // --- Fungsi untuk Google Sign In ---
   void _handleGoogleSignUp() {
-    // TODO: Implementasi Google Sign Up
     print("Google Sign Up button pressed");
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Google Sign Up belum diimplementasi.')),
@@ -95,8 +90,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       builder: (context, child) {
         return Stack(
           children: [
-            _buildMainUI(), // Build the main UI
-            // Show loading modal if controller is loading
+            _buildMainUI(),
             if (_controller.isLoading)
               const LoadingModal(
                 message: 'Signing Up...',
@@ -108,35 +102,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Widget builder for the main UI structure
   Widget _buildMainUI() {
     return Scaffold(
       backgroundColor: Colors.white,
-      // Simple AppBar for back navigation
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // Transparent background
-        elevation: 0, // No shadow
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black54, size: 20), // Smaller back icon
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black54, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-          child: Form( // Wrap content in a Form
+          child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Use AuthHeader widget
                 const AuthHeader(
-                  logoAssetPath: 'assets/images/NutriBalance.svg', // Use SVG logo if available
-                  title: "Buat Akun Baru", // Updated title
-                  subtitle: "Isi detail Anda untuk memulai perjalanan kesehatan.", // Updated subtitle
+                  logoAssetPath: 'assets/images/NutriBalance.png',
+                  title: "Buat Akun Baru",
+                  subtitle: "Isi detail Anda untuk memulai perjalanan kesehatan.",
                 ),
 
-                // Use AuthTextField for Name
                 AuthTextField(
                   controller: _nameController,
                   hintText: 'Nama Lengkap',
@@ -145,7 +135,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Use AuthTextField for Email
                 AuthTextField(
                   controller: _emailController,
                   hintText: 'Email',
@@ -159,7 +148,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Use AuthTextField for Password
                 AuthTextField(
                   controller: _passwordController,
                   hintText: 'Password',
@@ -169,7 +157,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Use AuthTextField for Confirm Password
                 AuthTextField(
                     controller: _confirmPasswordController,
                     hintText: 'Konfirmasi Password',
@@ -183,32 +170,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // Use PrimaryButton for Sign Up action
                 PrimaryButton(
                   text: 'Sign Up',
                   onPressed: _handleSignUp,
                 ),
                 const SizedBox(height: 30),
 
-                // Use OrDivider widget
                 const OrDivider(),
                 const SizedBox(height: 30),
 
-                // Use SocialSignInButton for Google
                 SocialSignInButton(
-                  label: 'Sign Up with Google', // Updated label
+                  label: 'Sign Up with Google',
                   iconAssetPath: 'assets/images/Google.svg',
                   onPressed: _handleGoogleSignUp,
                 ),
                 const SizedBox(height: 40),
 
-                // Use AuthNavigationLink widget
                 AuthNavigationLink(
-                  leadingText: "Sudah punya akun? ", // Updated text
+                  leadingText: "Sudah punya akun? ",
                   linkText: 'Sign In',
-                  onTap: () => Navigator.pop(context), // Go back to login screen
+                  onTap: () => Navigator.pop(context),
                 ),
-                const SizedBox(height: 20), // Bottom padding
+                const SizedBox(height: 20),
               ],
             ),
           ),

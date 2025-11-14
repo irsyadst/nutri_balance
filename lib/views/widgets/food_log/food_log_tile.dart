@@ -7,10 +7,8 @@ class FoodLogTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Hitung total kalori untuk entri ini
     final totalCalories = (log.food.calories * log.quantity).toStringAsFixed(0);
 
-    // Tampilkan kuantitas dan unit
     final quantityText =
         '${log.displayQuantity.toStringAsFixed(log.displayUnit == 'g' ? 0 : 1)} ${log.displayUnit}';
 
@@ -27,7 +25,6 @@ class FoodLogTile extends StatelessWidget {
         ),
       ),
       onTap: () {
-        // TODO: Navigasi ke detail log? Atau biarkan?
         print('Tapped on ${log.food.name}');
       },
     );

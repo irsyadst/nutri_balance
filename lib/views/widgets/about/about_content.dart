@@ -18,9 +18,8 @@ class AboutContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
-          // Logo Aplikasi
           Image.asset(
-            'assets/images/NutriBalance.png', //
+            'assets/images/NutriBalance.png',
             height: 100,
           ),
           const SizedBox(height: 16),
@@ -33,7 +32,6 @@ class AboutContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          // Tampilkan versi dari controller
           Text(
             version,
             style: const TextStyle(
@@ -44,7 +42,6 @@ class AboutContent extends StatelessWidget {
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 24),
-          // Deskripsi Aplikasi
           const Text(
             'NutriBalance adalah aplikasi pelacak kalori dan nutrisi yang dirancang untuk membantu Anda mencapai target kesehatan dengan lebih mudah. Catat makanan, pantau progres, dan dapatkan rekomendasi menu harian yang dipersonalisasi.',
             textAlign: TextAlign.center,
@@ -54,8 +51,7 @@ class AboutContent extends StatelessWidget {
               color: Colors.black54,
             ),
           ),
-          const Spacer(), // Mendorong copyright ke bawah
-          // Copyright
+          const Spacer(),
           const Text(
             '© 2025 NutriBalance. All rights reserved.',
             style: TextStyle(

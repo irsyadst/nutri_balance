@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'category_card.dart'; // Import CategoryCard
+import 'category_card.dart';
 
 class CategoryGrid extends StatelessWidget {
-  // Terima data kategori dari luar
   final List<Map<String, dynamic>> categories;
-  // Callback saat kategori diklik (opsional)
   final Function(String)? onCategoryTap;
 
   const CategoryGrid({
@@ -20,10 +18,10 @@ class CategoryGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: categories.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // 2 kolom
+        crossAxisCount: 2,
         crossAxisSpacing: 15,
         mainAxisSpacing: 15,
-        childAspectRatio: 2.5, // Sesuaikan rasio jika perlu
+        childAspectRatio: 2.5,
       ),
       itemBuilder: (context, index) {
         final category = categories[index];
@@ -35,7 +33,6 @@ class CategoryGrid extends StatelessWidget {
             if (onCategoryTap != null) {
               onCategoryTap!(category['name']);
             }
-            // TODO: Logika default jika tidak ada callback (misal navigasi)
             print('Kategori diklik: ${category['name']}');
           },
         );

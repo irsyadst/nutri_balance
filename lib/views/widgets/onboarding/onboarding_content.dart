@@ -17,7 +17,7 @@ class OnboardingPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Radius defaultRadius = Radius.circular(50);
-    final BorderRadius backgroundBorderRadius = const BorderRadius.only(
+    const BorderRadius backgroundBorderRadius = BorderRadius.only(
       bottomLeft: defaultRadius,
       bottomRight: defaultRadius,
     );
@@ -27,8 +27,8 @@ class OnboardingPageContent extends StatelessWidget {
         Expanded(
           flex: 5,
           child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF007BFF),
+            decoration: const BoxDecoration(
+              color: Color(0xFF007BFF),
               borderRadius: backgroundBorderRadius,
             ),
             child: Center(

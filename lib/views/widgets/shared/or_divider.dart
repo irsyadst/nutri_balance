@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Simple divider with "OR" text in the middle
 class OrDivider extends StatelessWidget {
   const OrDivider({super.key});
 

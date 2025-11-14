@@ -33,7 +33,6 @@ class RecommendationTabView extends StatelessWidget {
               style: TextStyle(color: Colors.grey)));
     }
 
-    // Bungkus dengan ListView agar bisa di-scroll
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       itemCount: controller.recommendedFoods.length,

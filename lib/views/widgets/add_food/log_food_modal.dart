@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:nutri_balance/models/meal_models.dart';
 
 class LogFoodModal extends StatefulWidget {
   final Food food;
   final double initialQuantity;
   final String initialMealType;
-  final Function(double quantity, String mealType) onLog; // Callback
+  final Function(double quantity, String mealType) onLog;
 
   const LogFoodModal({
     super.key,
@@ -40,7 +39,6 @@ class _LogFoodModalState extends State<LogFoodModal> {
     super.dispose();
   }
 
-  // Fungsi untuk mendapatkan meal type berdasarkan waktu
   String _getMealTypeFromTime() {
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 10) return 'Sarapan';
@@ -52,7 +50,6 @@ class _LogFoodModalState extends State<LogFoodModal> {
 
   @override
   Widget build(BuildContext context) {
-    // Hitung nutrisi berdasarkan kuantitas
     final quantity = double.tryParse(_quantityController.text) ?? widget.initialQuantity;
     final totalCalories = widget.food.calories * quantity;
     final totalProteins = widget.food.proteins * quantity;
@@ -88,7 +85,6 @@ class _LogFoodModalState extends State<LogFoodModal> {
             ),
             const SizedBox(height: 20),
 
-            // Input Kuantitas dan Waktu Makan
             Row(
               children: [
                 // Input Kuantitas
@@ -104,11 +100,10 @@ class _LogFoodModalState extends State<LogFoodModal> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onChanged: (value) => setState(() {}), // Update UI saat diketik
+                    onChanged: (value) => setState(() {}),
                   ),
                 ),
                 const SizedBox(width: 10),
-                // Dropdown Waktu Makan
                 Expanded(
                   flex: 3,
                   child: DropdownButtonFormField<String>(
@@ -136,7 +131,6 @@ class _LogFoodModalState extends State<LogFoodModal> {
             ),
             const SizedBox(height: 20),
 
-            // Tombol Log
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../controllers/generate_menu_controller.dart'; // Import controller
-// Import widget
+import '../../controllers/generate_menu_controller.dart';
 import '../widgets/generate_menu/period_radio_option.dart';
 
 class GenerateMenuScreen extends StatefulWidget {
@@ -11,18 +10,15 @@ class GenerateMenuScreen extends StatefulWidget {
 }
 
 class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
-  // Buat instance controller
   late GenerateMenuController _controller;
 
   @override
   void initState() {
     super.initState();
     _controller = GenerateMenuController();
-    // Tambahkan listener untuk menangani feedback (SnackBar/Navigasi)
     _controller.addListener(_handleStateChange);
   }
 
-  // Fungsi untuk memberi feedback ke user saat status controller berubah
   void _handleStateChange() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -45,18 +41,15 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
       }
     });
   }
-  // --- FUNGSI PICKER PINDAH KE SINI ---
-  // Fungsi untuk menangani perubahan radio DAN memanggil picker
+
   void _handleRadioChange(String? newValue, bool isLoading) async {
     if (isLoading || newValue == null) return;
 
     // Panggil controller untuk update state radio
     _controller.selectPeriod(newValue);
-
-    // Jika memilih rentang khusus, tampilkan date picker DARI SCREEN
     if (newValue == 'rentang_khusus') {
       DateTimeRange? pickedRange = await showDateRangePicker(
-        context: context, // Gunakan context dari screen
+        context: context,
         firstDate: DateTime.now().subtract(const Duration(days: 1)),
         lastDate: DateTime.now().add(const Duration(days: 90)),
         initialDateRange: _controller.dateRange ??
@@ -75,16 +68,12 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
           );
         },
       );
-
-      // Kirim hasil picker ke controller
       _controller.setDateRange(pickedRange);
     }
   }
 
-  // Fungsi untuk menampilkan picker lagi jika teks tanggal ditekan
   void _showDatePickerAgain(bool isLoading) async {
     if (isLoading) return;
-    // Logika sama seperti di _handleRadioChange
     DateTimeRange? pickedRange = await showDateRangePicker(
       context: context,
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
@@ -105,14 +94,12 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
         );
       },
     );
-    // Kirim hasil picker ke controller (meskipun mungkin null jika dibatalkan)
     _controller.setDateRange(pickedRange);
   }
-  // ------------------------------------
 
   @override
   void dispose() {
-    _controller.removeListener(_handleStateChange); // Hapus listener
+    _controller.removeListener(_handleStateChange);
     _controller.dispose(); // Hapus controller
     super.dispose();
   }
@@ -121,7 +108,6 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
 
-    // Gunakan ListenableBuilder untuk update UI berdasarkan state controller
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, child) {
@@ -155,7 +141,6 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
                 ),
                 const SizedBox(height: 15),
 
-                // Radio options (sekarang valid karena onChanged di widget nullable)
                 PeriodRadioOption(
                   title: 'Hanya hari ini saja',
                   value: 'hanya_hari_ini',
@@ -185,7 +170,6 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
                   activeColor: primaryColor,
                 ),
 
-                // Tampilkan field tanggal jika 'rentang_khusus' dipilih
                 if (_controller.selectedPeriod == 'rentang_khusus')
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0, left: 16.0),
@@ -200,7 +184,7 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
                             Icon(Icons.calendar_today_outlined, color: primaryColor, size: 20),
                             const SizedBox(width: 10),
                             Text(
-                              _controller.dateRangeText, // Ambil teks tanggal dari controller
+                              _controller.dateRangeText,
                               style: TextStyle(
                                 color: _controller.dateRange == null ? Colors.grey[600] : Colors.black87,
                                 fontWeight: FontWeight.w500,
@@ -213,14 +197,12 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
                     ),
                   ),
 
-                const Spacer(), // Dorong tombol ke bawah
+                const Spacer(),
 
-                // Tombol Hasilkan Menu
                 ElevatedButton.icon(
-                  // Panggil method generateMenu di controller
                   onPressed: isLoading ? null : _controller.generateMenu,
                   icon: isLoading
-                      ? Container( // Ganti ikon dengan loading indicator
+                      ? Container(
                     width: 24,
                     height: 24,
                     padding: const EdgeInsets.all(2.0),
@@ -228,12 +210,12 @@ class _GenerateMenuScreenState extends State<GenerateMenuScreen> {
                   )
                       : const Icon(Icons.autorenew, color: Colors.white),
                   label: Text(
-                    isLoading ? 'Menghasilkan...' : 'Hasilkan Menu', // Ubah teks saat loading
+                    isLoading ? 'Menghasilkan...' : 'Hasilkan Menu',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
-                    disabledBackgroundColor: Colors.grey.shade400, // Warna saat tombol nonaktif
+                    disabledBackgroundColor: Colors.grey.shade400,
                     minimumSize: const Size(double.infinity, 55),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),

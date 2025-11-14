@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Widget untuk baris kartu info (Tinggi, Berat, Usia)
 class InfoCardRow extends StatelessWidget {
   final int height;
   final int weight;
@@ -16,21 +15,17 @@ class InfoCardRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      // mainAxisAlignment: MainAxisAlignment.spaceBetween, // Defaultnya spaceBetween
       children: [
-        // Gunakan Expanded agar kartu mengisi ruang yang tersedia
         Expanded(child: _InfoCard(value: '$height cm', label: 'Tinggi')),
-        const SizedBox(width: 12), // Jarak antar kartu
+        const SizedBox(width: 12),
         Expanded(child: _InfoCard(value: '$weight kg', label: 'Berat')),
         const SizedBox(width: 12),
-        Expanded(child: _InfoCard(value: '$age thn', label: 'Usia')), // Ubah label 'yo' ke 'thn'
+        Expanded(child: _InfoCard(value: '$age thn', label: 'Usia')),
       ],
     );
   }
 }
 
-
-// Widget internal untuk satu kartu info
 class _InfoCard extends StatelessWidget {
   final String value;
   final String label;
@@ -40,14 +35,12 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10), // Sesuaikan padding
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        // Border tipis
         border: Border.all(color: Colors.grey.shade200, width: 0.8),
         boxShadow: [
-          // Shadow halus
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 12,
@@ -56,21 +49,21 @@ class _InfoCard extends StatelessWidget {
         ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center, // Pusatkan konten
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             value,
             style: TextStyle(
               fontSize: 17, // Sedikit lebih kecil
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColor, // Warna primer
+              color: Theme.of(context).primaryColor,
             ),
-            textAlign: TextAlign.center, // Center text
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 6), // Jarak antara value dan label
+          const SizedBox(height: 6),
           Text(
             label,
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]), // Ukuran label lebih kecil
+            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
         ],

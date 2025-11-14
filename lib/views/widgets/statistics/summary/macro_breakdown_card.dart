@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-// Widget untuk menampilkan kartu rincian makronutrien di tab ringkasan
 class MacroBreakdownCard extends StatelessWidget {
-  final String macroRatio; // Contoh: "40/30/30"
+  final String macroRatio;
   final double macroChangePercent;
-  final Map<String, double> macroDataPercentage; // Data persentase per makro
+  final Map<String, double> macroDataPercentage;
 
   const MacroBreakdownCard({
     super.key,
@@ -32,12 +31,10 @@ class MacroBreakdownCard extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // Daftar Progress Bar Makro
         ...macroDataPercentage.entries.map((entry) {
-          return _MacroBar( // Gunakan widget internal _MacroBar
+          return _MacroBar(
             label: entry.key,
             percentage: entry.value,
-            // Tentukan warna berdasarkan label
             color: _getColorForMacro(entry.key, context),
           );
         }).toList(),
@@ -45,25 +42,22 @@ class MacroBreakdownCard extends StatelessWidget {
     );
   }
 
-  // Helper untuk menentukan warna bar makro
   Color _getColorForMacro(String label, BuildContext context) {
     switch (label.toLowerCase()) {
       case 'protein':
-        return Theme.of(context).primaryColor; // Biru (warna primer)
+    return Theme.of(context).primaryColor;
       case 'karbohidrat':
-      case 'carbs': // Handle variasi nama
-        return Colors.green.shade400; // Hijau
+      case 'carbs':
+        return Colors.green.shade400;
       case 'lemak':
-      case 'fats': // Handle variasi nama
-        return Colors.amber.shade400; // Kuning/Oranye
+      case 'fats':
+        return Colors.amber.shade400;
       default:
-        return Colors.grey; // Warna default
+        return Colors.grey;
     }
   }
 }
 
-
-// Widget internal untuk satu progress bar makro
 class _MacroBar extends StatelessWidget {
   final String label;
   final double percentage;
@@ -78,26 +72,22 @@ class _MacroBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0), // Jarak antar bar
+      padding: const EdgeInsets.only(bottom: 12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label Makro (Protein, dll.)
           Text(
-            // Tampilkan persentase di samping label
               '$label (${percentage.toStringAsFixed(0)}%)',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade700)
           ),
-          const SizedBox(height: 6), // Jarak label ke bar
-          // Progress Bar Linear
+          const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(5),
             child: LinearProgressIndicator(
-              // Pastikan nilai antara 0.0 dan 1.0
               value: (percentage / 100).clamp(0.0, 1.0),
-              backgroundColor: Colors.grey.shade200, // Warna background
-              valueColor: AlwaysStoppedAnimation<Color>(color), // Warna progress
-              minHeight: 10, // Tinggi bar (sedikit lebih tebal)
+              backgroundColor: Colors.grey.shade200,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 10,
             ),
           ),
         ],

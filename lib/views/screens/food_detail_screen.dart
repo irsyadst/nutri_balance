@@ -2,23 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:nutri_balance/models/meal_models.dart';
 import 'package:nutri_balance/controllers/add_food_controller.dart';
 import 'package:nutri_balance/controllers/food_detail_controller.dart';
-// Impor widget-widget yang sudah dipisah
 import '../widgets/food_detail/food_detail_header.dart';
 import '../widgets/food_detail/nutrition_info_section.dart';
 import '../widgets/food_detail/log_food_button.dart';
 
 class FoodDetailScreen extends StatefulWidget {
   final Food food;
-  // --- PERUBAHAN: Buat controller nullable ---
   final AddFoodController? controller;
-  // --- AKHIR PERUBAHAN ---
   final double initialQuantity;
   final String initialMealType;
 
   const FoodDetailScreen({
     super.key,
     required this.food,
-    this.controller, // --- PERUBAHAN: Hapus 'required' ---
+    this.controller,
     this.initialQuantity = 1.0,
     this.initialMealType = 'Sarapan',
   });
@@ -33,10 +30,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller baru
     _controller = FoodDetailController(
       food: widget.food,
-      addFoodController: widget.controller, // Ini sekarang bisa null
+      addFoodController: widget.controller,
       initialQuantity: widget.initialQuantity,
       initialMealType: widget.initialMealType,
     );
@@ -65,27 +61,19 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Gunakan Widget Header
                 FoodDetailHeader(food: _controller.food),
-
                 const Divider(height: 1, thickness: 1, indent: 24, endIndent: 24),
-
-                // 2. Gunakan Widget Info Nutrisi
                 NutritionInfoSection(food: _controller.food),
               ],
             ),
           ),
 
-          // --- PERUBAHAN: Tampilkan tombol hanya jika controller ada ---
-          // 3. Gunakan Widget Tombol Log (Secara Kondisional)
           if (widget.controller != null)
             LogFoodButton(
               onPressed: () {
-                // Panggil fungsi dari controller
                 _controller.showLogFoodModal(context);
               },
             )
-          // --- AKHIR PERUBAHAN ---
         ],
       ),
     );

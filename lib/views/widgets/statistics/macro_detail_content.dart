@@ -10,31 +10,25 @@ class MacroDetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ambil data persentase dari controller
     final percentages = controller.macroDataPercentage;
     final totalCalories = controller.caloriesToday;
-
-    // Siapkan data untuk Pie Chart
     final List<PieChartSectionData> sections = [];
 
-    // Tentukan urutan dan warna
     final macroData = {
       'Karbohidrat': {'value': percentages['Karbohidrat'] ?? 0.0, 'color': Colors.blue.shade400},
       'Protein': {'value': percentages['Protein'] ?? 0.0, 'color': Colors.green.shade400},
       'Lemak': {'value': percentages['Lemak'] ?? 0.0, 'color': Colors.orange.shade400},
     };
 
-    // --- PERBAIKAN DI 3 BARIS BERIKUT ---
-    // Kita perlu melakukan cast (as double) karena Dart menganggap 'value' sebagai 'Object'
     final double totalCarbs = (totalCalories * ((macroData['Karbohidrat']!['value']! as double) / 100)) / 4;
     final double totalProtein = (totalCalories * ((macroData['Protein']!['value']! as double) / 100)) / 4;
     final double totalFats = (totalCalories * ((macroData['Lemak']!['value']! as double) / 100)) / 9;
-    // --- AKHIR PERBAIKAN ---
+
 
     final double totalGrams = totalCarbs + totalProtein + totalFats;
 
     macroData.forEach((key, data) {
-      final value = data['value'] as double; // Cast di sini juga untuk Pie Chart
+      final value = data['value'] as double;
       if (value > 0) {
         sections.add(
           PieChartSectionData(
@@ -55,11 +49,10 @@ class MacroDetailContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Pie Chart
         SizedBox(
           height: 250,
           child: totalGrams <= 0
-              ? Center(child: Text('Tidak ada data makro untuk periode ini.'))
+              ? const Center(child: Text('Tidak ada data makro untuk periode ini.'))
               : PieChart(
             PieChartData(
               sections: sections,
@@ -70,7 +63,6 @@ class MacroDetailContent extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // 2. Legenda Chart
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: macroData.entries.map((entry) {
@@ -84,8 +76,7 @@ class MacroDetailContent extends StatelessWidget {
         ),
         const SizedBox(height: 30),
 
-        // 3. Rincian Gram
-        Text(
+        const Text(
           'Rincian Total (Rata-rata Harian)',
           style: TextStyle(
             color: Colors.black87,
@@ -114,7 +105,6 @@ class MacroDetailContent extends StatelessWidget {
   }
 }
 
-// Widget Helper untuk Legenda Pie Chart
 class _Indicator extends StatelessWidget {
   final Color color;
   final String text;
@@ -156,7 +146,6 @@ class _Indicator extends StatelessWidget {
   }
 }
 
-// Widget Helper untuk Kartu Info Gram
 class _MacroInfoCard extends StatelessWidget {
   final String title;
   final double grams;

@@ -5,7 +5,7 @@ class AuthTextField extends StatelessWidget {
   final String hintText;
   final bool isPassword;
   final TextInputType keyboardType;
-  final IconData? prefixIcon; // Optional icon
+  final IconData? prefixIcon;
   final String? Function(String?)? validator;
 
   const AuthTextField({
@@ -20,34 +20,31 @@ class AuthTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan TextFormField jika butuh validasi
     return TextFormField(
       controller: controller,
       obscureText: isPassword,
       keyboardType: keyboardType,
-      validator: validator, // Terapkan validator
+      validator: validator,
       style: const TextStyle(fontSize: 16),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-        // Tambahkan prefixIcon jika ada
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.grey.shade400) : null,
         filled: true,
-        fillColor: Colors.grey.shade100, // Warna background
+        fillColor: Colors.grey.shade100,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none, // Hilangkan border default
+          borderSide: BorderSide.none,
         ),
-        enabledBorder: OutlineInputBorder( // Border saat tidak fokus
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        focusedBorder: OutlineInputBorder( // Border saat fokus
+        focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 1.5), // Border biru saat fokus
+          borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 1.5),
         ),
-        // Tambahkan border untuk error jika validator digunakan
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.red, width: 1.5),

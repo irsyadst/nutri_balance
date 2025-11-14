@@ -59,7 +59,6 @@ class AuthController with ChangeNotifier {
         return true;
       }
     }
-
     _setLoading(false);
     return false;
   }

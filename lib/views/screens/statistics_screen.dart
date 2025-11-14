@@ -1,6 +1,5 @@
 // lib/views/screens/statistics_screen.dart
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // <-- Pastikan import intl ada
 import '../../controllers/statistics_controller.dart';
 import '../widgets/statistics/calorie_detail_content.dart';
 import '../widgets/statistics/macro_detail_content.dart';
@@ -10,7 +9,6 @@ import '../widgets/statistics/summary/macro_breakdown_card.dart';
 import '../widgets/statistics/detail/detail_category_tile.dart';
 import 'package:nutri_balance/models/api_service.dart';
 import 'package:nutri_balance/models/storage_service.dart';
-import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 
 class StatisticsScreen extends StatefulWidget {
@@ -204,10 +202,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     }
   }
 
-  // === WIDGET BUILDER UNTUK TAB RINGKASAN (PERBAIKAN DI SINI) ===
   Widget _buildSummaryTab() {
     return SingleChildScrollView(
-      // Padding utama untuk sekeliling layar
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
