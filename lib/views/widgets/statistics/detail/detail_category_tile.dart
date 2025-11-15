@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 class DetailCategoryTile extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -15,6 +16,7 @@ class DetailCategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(15),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
@@ -32,15 +34,17 @@ class DetailCategoryTile extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // Ikon Kategori
             Icon(icon, color: Theme.of(context).primaryColor, size: 26),
             const SizedBox(width: 15),
+            // Judul Kategori
             Expanded(
               child: Text(
                 title,
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400), // Ukuran lebih kecil
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
           ],
         ),
       ),
