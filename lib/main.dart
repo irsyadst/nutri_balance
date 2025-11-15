@@ -9,9 +9,7 @@ import 'utils/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // --- INISIALISASI NOTIFIKASI ---
-  await NotificationService().init();
-  // --- AKHIR INISIALISASI ---
+   await NotificationService().init();
 
   await initializeDateFormatting('id_ID', null);
 
