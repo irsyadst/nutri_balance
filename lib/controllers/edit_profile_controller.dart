@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart'; // Untuk CupertinoPicker
+import 'package:flutter/cupertino.dart';
 import '../models/user_model.dart';
 import '../models/api_service.dart';
 import '../models/storage_service.dart';
-// Import widget header picker
 import '../views/widgets/edit_profile/picker_header.dart';
-// Enum untuk status penyimpanan
+
 enum EditProfileStatus { initial, loading, success, failure }
 
 class EditProfileController with ChangeNotifier {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
-  final User initialUser; // User awal
+  final User initialUser;
 
-  // --- State ---
-  late Map<String, dynamic> _editedData; // Simpan data yang bisa diedit
+  late Map<String, dynamic> _editedData;
   Map<String, dynamic> get editedData => Map.unmodifiable(_editedData);
 
   EditProfileStatus _status = EditProfileStatus.initial;
@@ -23,11 +21,9 @@ class EditProfileController with ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  User? _updatedUser; // Untuk menyimpan hasil update
+  User? _updatedUser;
   User? get updatedUser => _updatedUser;
 
-
-  // Profil default jika user.profile null
   final UserProfile _defaultProfile = UserProfile(
     gender: 'Pria', age: 25, height: 170, currentWeight: 70,
     goalWeight: 65, activityLevel: 'Cukup Aktif', goals: ['Penurunan Berat Badan'],
@@ -53,16 +49,14 @@ class EditProfileController with ChangeNotifier {
     };
   }
 
-  // --- Update Data Lokal ---
   void updateField(String key, dynamic value) {
     if (_editedData[key] != value) {
       _editedData[key] = value;
-      notifyListeners(); // Beri tahu UI jika ada perubahan
+      notifyListeners();
       print("Controller updated $key: $value");
     }
   }
 
-  // --- Logika Picker ---
   void showPicker(BuildContext context, String fieldKey, String title, int min, int max, {String unit = ''}) {
     int initialValue = (_editedData[fieldKey] as int?) ?? min;
     int selectedValue = initialValue;
@@ -120,7 +114,7 @@ class EditProfileController with ChangeNotifier {
                           title: title,
                           onDone: () {
                             if (currentSelection != null) {
-                              updateField(fieldKey, currentSelection); // Gunakan updateField
+                              updateField(fieldKey, currentSelection);
                             }
                             Navigator.pop(context);
                           }
@@ -210,8 +204,6 @@ class EditProfileController with ChangeNotifier {
     );
   }
 
-
-  // --- Logika Simpan ---
   Future<void> saveChanges() async {
     if (_status == EditProfileStatus.loading) return;
 
@@ -267,7 +259,6 @@ class EditProfileController with ChangeNotifier {
     }
   }
 
-  // Helper untuk styling input field (bisa dipindah ke utils)
   static InputDecoration inputDecoration({required String hintText}) {
     return InputDecoration(
       hintText: hintText,
@@ -285,12 +276,11 @@ class EditProfileController with ChangeNotifier {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.blue.withOpacity(0.5), width: 1.5), // Contoh warna fokus
+        borderSide: BorderSide(color: Colors.blue.withOpacity(0.5), width: 1.5),
       ),
     );
   }
 
-  // Helper untuk judul section (bisa dipindah ke widget terpisah)
   static Widget buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15.0, top: 10.0),

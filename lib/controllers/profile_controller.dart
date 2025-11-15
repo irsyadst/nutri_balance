@@ -1,5 +1,3 @@
-// lib/controllers/profile_controller.dart
-
 import 'package:flutter/material.dart';
 import '../models/api_service.dart';
 import '../models/user_model.dart';
@@ -9,19 +7,16 @@ import '../views/screens/login_screen.dart';
 import '../views/screens/edit_profile_screen.dart';
 
 class ProfileController with ChangeNotifier {
-
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
 
   User? _currentUser;
 
-  // --- State Notifikasi Baru ---
   late final StorageService _storageService;
   late final NotificationService _notificationService;
   bool _isNotificationEnabled = false;
   bool _isNotificationLoading = true;
 
-  // Profil default jika user.profile null
   final UserProfile _defaultProfile = UserProfile(
     gender: 'N/A',
     age: 0,
@@ -34,19 +29,15 @@ class ProfileController with ChangeNotifier {
     allergies: const [],
   );
 
-  // --- Getters ---
   bool get isLoading => _isLoading;
   User get currentUser => _currentUser!;
   UserProfile get profile => _currentUser?.profile ?? _defaultProfile;
 
-  // Getters Notifikasi Baru
   bool get isNotificationEnabled => _isNotificationEnabled;
   bool get isNotificationLoading => _isNotificationLoading;
 
-  // --- Constructors ---
 
   ProfileController() {
-    // Constructor ini untuk alur kuesioner
     _storageService = StorageService();
     _notificationService = NotificationService();
   }
@@ -98,6 +89,7 @@ class ProfileController with ChangeNotifier {
     }
   }
 
+
   Future<void> toggleNotification(BuildContext context, bool value) async {
     if (value == true) {
       bool hasPermission = await _notificationService.requestPermission();
@@ -121,6 +113,7 @@ class ProfileController with ChangeNotifier {
     } else {
       _isNotificationEnabled = false;
       await _storageService.setNotificationPreference(false);
+      // Panggil method untuk membatalkan semua notifikasi
       await _notificationService.cancelAllNotifications();
       print("Notifications DISABLED and cancelled.");
     }
@@ -147,6 +140,7 @@ class ProfileController with ChangeNotifier {
   }
 
   Future<void> logout(BuildContext context) async {
+    // ... (kode asli logout tetap di sini) ...
     bool? confirmLogout = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {

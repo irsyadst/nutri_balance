@@ -2,19 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:nutri_balance/models/statistics_summary_model.dart';
 import 'user_model.dart';
 import 'meal_models.dart';
 import 'food_log_model.dart';
 import 'notification_model.dart';
-import 'statistics_summary_model.dart';
-import 'package:intl/intl.dart';
 
-
-// Service untuk Komunikasi dengan Backend
 class ApiService {
   final String _baseUrl = 'https://nutri-balance-backend.onrender.com/api';
 
-  // --- FUNGSI AUTH & USER
   Future<Map<String, dynamic>> register(String name, String email, String password) async {
     try {
       final response = await http.post(
@@ -27,27 +24,6 @@ class ApiService {
     } catch (e) {
       debugPrint('Error di register: $e');
       return {'success': false, 'message': 'Tidak dapat terhubung ke server.'};
-    }
-  }
-
-  Future<StatisticsSummary> getStatisticsSummary(String token, DateTime date, String period) async {
-    try {
-      final dateString = DateFormat('yyyy-MM-dd').format(date);
-      final uri = Uri.parse('$_baseUrl/statistics/summary?date=$dateString&period=$period');
-
-      final response = await http.get(
-        uri,
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        return statisticsSummaryFromJson(response.body);
-      } else {
-        throw Exception('Gagal memuat data statistik: ${response.body}');
-      }
-    } catch (e) {
-      debugPrint('Error di getStatisticsSummary: $e');
-      throw Exception('Gagal memuat data statistik');
     }
   }
 
@@ -110,17 +86,28 @@ class ApiService {
       debugPrint("Update Profile Body: ${response.body}");
 
       if (response.statusCode == 200) {
-        return _parseUserFromJson(jsonDecode(response.body)['user']);
+
+        final responseBody = jsonDecode(response.body);
+
+        final userData = responseBody['user'];
+
+        if (userData != null) {
+          return _parseUserFromJson(userData);
+        } else {
+          debugPrint("Server returned user:null. Re-fetching profile to get updated data...");
+          return await getProfile(token);
+        }
+
       }
       print('Update profile failed: ${response.body}');
       return null;
+
     } catch (e) {
       debugPrint('Error di updateProfile: $e');
       return null;
     }
   }
 
-  // --- FUNGSI FOOD & MEAL PLAN ---
 
   Future<List<FoodLogEntry>> getFoodLogHistory(String token) async {
     if (token.isEmpty) {
@@ -187,7 +174,7 @@ class ApiService {
     }
   }
 
-
+  // --- FUNGSI BARU (FIX) ---
 
   Future<List<String>> getFoodCategories() async { // Token tidak perlu
     try {
@@ -206,9 +193,9 @@ class ApiService {
     }
   }
 
-  /// Mencari makanan di database berdasarkan nama ATAU kategori
   Future<List<Food>> searchFoods({String? searchQuery, String? category}) async {
     try {
+      // Buat map untuk query parameters
       final Map<String, String> queryParameters = {};
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
@@ -217,6 +204,7 @@ class ApiService {
       if (category != null && category.isNotEmpty) {
         queryParameters['category'] = category;
       }
+
       final uri = Uri.parse('$_baseUrl/foods').replace(
         queryParameters: queryParameters,
       );
@@ -225,6 +213,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
+        // Map hasil JSON ke List<Food>
         return body.map((dynamic item) => Food.fromJson(item)).toList();
       } else {
         throw Exception('Gagal mencari makanan: ${response.body}');
@@ -234,6 +223,7 @@ class ApiService {
       throw Exception('Gagal mencari makanan');
     }
   }
+
 
   Future<void> logFood({
     required String token,
@@ -293,7 +283,7 @@ class ApiService {
     try {
       final response = await http.put(
         Uri.parse(
-            '$_baseUrl/user/notifications/$notificationId'), // PUT /api/user/notifications/:id
+            '$_baseUrl/user/notifications/$notificationId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -312,7 +302,7 @@ class ApiService {
     try {
       final response = await http.delete(
         Uri.parse(
-            '$_baseUrl/user/notifications/$notificationId'), // DELETE /api/user/notifications/:id
+            '$_baseUrl/user/notifications/$notificationId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -352,6 +342,29 @@ class ApiService {
       throw Exception('Gagal menyimpan notifikasi');
     }
   }
+
+  Future<StatisticsSummary> getStatisticsSummary(String token, DateTime date, String period) async {
+    try {
+      final dateString = DateFormat('yyyy-MM-dd').format(date);
+      // Tambahkan 'period' sebagai query parameter
+      final uri = Uri.parse('$_baseUrl/statistics/summary?date=$dateString&period=$period');
+
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        return statisticsSummaryFromJson(response.body);
+      } else {
+        throw Exception('Gagal memuat data statistik: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error di getStatisticsSummary: $e');
+      throw Exception('Gagal memuat data statistik');
+    }
+  }
+
   User _parseUserFromJson(Map<String, dynamic> data) {
     var profileData = data['profile'];
     return User(
@@ -362,4 +375,3 @@ class ApiService {
     );
   }
 }
-

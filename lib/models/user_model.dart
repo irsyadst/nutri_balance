@@ -6,7 +6,6 @@ class User {
   final UserProfile? profile;
   User({required this.id, required this.name, required this.email, this.profile});
 
-  // Factory constructor dari JSON
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['_id'],
@@ -49,7 +48,6 @@ class UserProfile {
   });
 
 
-  // Factory constructor dari JSON
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       gender: json['gender'] ?? '',
@@ -68,7 +66,6 @@ class UserProfile {
     );
   }
 
-  // toJson untuk mengirim data update ke backend
   Map<String, dynamic> toJson() {
     return {
       'gender': gender,
